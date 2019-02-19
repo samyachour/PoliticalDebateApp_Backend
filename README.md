@@ -4,13 +4,19 @@ This repo is the master for all our code repos.
 
 This repo has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management. It also indexes all our debate map documents.
 
-### The App
+### The app
 
 The political debate app concept is simple: explore the pro & con sides of contentious issues via an interactive (bandersnatch-esque) interface.
 
 #### Design
 
-Each frontend homepage opens with a search bar, a grid of all our issues, and a login button in the top right.
+Each frontend homepage opens with a search bar, a grid of all our issues, and a login button in the top right (opens a modal with email & password, to register just adds a second confirm password field) ('log in' becomes a gear after login and leads to a settings page with log out, delete acct, and password/email change options).
+
+![](Designs/Home.png)
+
+Each point is accompanied by several responses (rebuttals). Some of these lead to separate points some lead deeper into this given point. At the end of a map the user just sees a darker 'complete button.'
+
+![](Designs/Point.png)
 
 #### Debate maps
 
@@ -20,6 +26,7 @@ The backend has a script that can parse these documents and create a new debate 
 
 #### Misc
 
+- We use [Test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
 - The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
 
 ## Political debate app (backend)
@@ -28,6 +35,6 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 
 Each repo has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management that is automatically managed by issues & pull requests.
 
-## Framework
+### Framework
 
 For our backend we use a Django REST-API.
