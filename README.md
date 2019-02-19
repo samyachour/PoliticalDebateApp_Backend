@@ -38,3 +38,7 @@ Each repo has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_
 ### Framework
 
 For our backend we use the server-side swift framework [Vapor](https://vapor.codes).
+
+#### Usage
+
+- Useful commands: `vapor update`
