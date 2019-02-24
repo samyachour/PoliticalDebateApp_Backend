@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
 from rest_framework.views import status
-from .models import Debates
+from rest_api.models import Debates
 from .serializers import DebatesSerializer
 
 # tests for views
@@ -14,13 +14,13 @@ class BaseViewTest(APITestCase):
     @staticmethod
     def create_debate(title="", subtitle=""):
         if title != "" and subtitle != "":
-            debates.objects.create(title=title, subtitle=subtitle)
+            Debates.objects.create(title=title, subtitle=subtitle)
 
     def setUp(self):
         # add test data
-        self.create_debate("Gun control", "Banning assault rifles")
-        self.create_debate("Abortion", "A woman's right to choose")
-        self.create_debate("Obamacare", "Is it helping people (on the whole)")
+        self.create_debate("Gun control", "assault rifle ban")
+        self.create_debate("Obamacare", "is it working")
+        self.create_debate("Climate change", "is it man-made")
 
 
 class GetAllDebatesTest(BaseViewTest):

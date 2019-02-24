@@ -5,5 +5,9 @@ source venv/bin/activate
 pip3 install Django
 pip3 install djangorestframework
 pip3 install psycopg2
+pip3 install psycopg2-binary
 brew update
 brew upgrade
+
+# If you have problems with django finding the app folder
+# echo "export PYTHONPATH="${PWD}/PoliticalDebateApp"" >> venv/bin/activate

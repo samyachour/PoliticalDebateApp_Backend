@@ -43,7 +43,7 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py migrate` `psql PoliticalDebateApp`
+    - `python manage.py makemigrations` `python manage.py migrate` `psql -d PoliticalDebateApp -U politicaldebateappowner`
 
 #### Setup
 
