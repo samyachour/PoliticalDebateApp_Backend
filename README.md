@@ -47,6 +47,15 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 #### Setup
 
+Dependencies:
+- Python 3.x (manual)
+- Django 2.x
+- Django rest framework 3.x
+- PostgreSQL 11.x (manual)
+- Psycopg2 2.x
+
+Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
-- run build_venv.sh `chmod +x build_venv.sh` `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
-- create a secrets.py file in PoliticalDebateApp/ with the secret key defined as the variable `secretKeyHidden` & PostgreSQL credentials `secretPostgreUser` and `secretPostgrePassword`
+- install latest postegresql with homebrew `brew install postgresql`
+- run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
+- create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
