@@ -33,7 +33,7 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 
 ### Framework
 
-For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org).
+For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org).
 
 #### Usage
 
