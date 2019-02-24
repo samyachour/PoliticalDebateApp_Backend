@@ -37,4 +37,4 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 #### Usage
 
-- Useful commands: ``
+- Useful commands: `source venv/bin/activate` `python manage.py migrate`
