@@ -37,10 +37,12 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 #### Usage
 
-- Useful commands: `source venv/bin/activate` `python manage.py migrate`
+- Useful commands:
+    - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
+    - general: `python manage.py migrate` `psql PoliticalDebateApp`
 
 #### Setup
 
 - install latest python with homebrew `brew install python` or `brew upgrade python`
 - run build_venv.sh `chmod +x build_venv.sh` `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
-- create a secrets.py file in PoliticalDebateApp/ with the secret key defined as the variable `secretKeyHidden`
+- create a secrets.py file in PoliticalDebateApp/ with the secret key defined as the variable `secretKeyHidden` & PostgreSQL credentials `secretPostgreUser` and `secretPostgrePassword`
