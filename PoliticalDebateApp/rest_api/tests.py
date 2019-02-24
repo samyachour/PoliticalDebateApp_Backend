@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase, APIClient
 from rest_framework.views import status
 from .models import Debates
-from .serializers import debatesSerializer
+from .serializers import DebatesSerializer
 
 # tests for views
 
@@ -23,7 +23,7 @@ class BaseViewTest(APITestCase):
         self.create_debate("Obamacare", "Is it helping people (on the whole)")
 
 
-class GetAlldebatesTest(BaseViewTest):
+class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
         """
@@ -35,7 +35,7 @@ class GetAlldebatesTest(BaseViewTest):
             reverse("debates-all", kwargs={"version": "v1"})
         )
         # fetch the data from db
-        expected = debates.objects.all()
-        serialized = debatesSerializer(expected, many=True)
+        expected = Debates.objects.all()
+        serialized = DebatesSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
