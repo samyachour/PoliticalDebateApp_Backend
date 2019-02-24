@@ -24,6 +24,9 @@ The backend has a script that can parse these documents and create a new debate 
 
 #### Misc
 
+- We aggregate commits onto develop and merge onto master weekly incrementing version by release e.g. 'x.1' > 'x.2'
+    - branches off develop must be associated with an existing issue and follow the naming convention 'issue[#]/[type]/[name]' for example 'issue7/enhancement/BasicDjangoRestSetup'
+    - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
 - We use [Test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
 - The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
 
