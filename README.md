@@ -51,6 +51,7 @@ Dependencies:
 - Python 3.x (manual)
 - Django 2.x
 - Django rest framework 3.x
+- Django rest framework JWT 1.x
 - PostgreSQL 11.x (manual)
 - Psycopg2 2.x
 
