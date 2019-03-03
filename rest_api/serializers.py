@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Debates, Progress
+from .models import *
 from django.contrib.auth.models import User
 
 
@@ -23,3 +23,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("username", "email")
+
+class PasswordChangeSerializer(serializers.Serializer):
+    """
+    Serializer for password change endpoint.
+    """
+    old_password = serializers.CharField(max_length=255, required=True)
+    new_password = serializers.CharField(max_length=255, required=True)
