@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework.views import status
 from rest_api.models import Debates, Progress
-from .serializers import DebatesSerializer, TokenSerializer, ProgressSerializer
+from .serializers import *
 import json
 
 # tests for views
@@ -114,6 +114,22 @@ class BaseViewTest(APITestCase):
             content_type="application/json"
         )
 
+    def change_user_password(self, old_password="", new_password=""):
+        url = reverse(
+            "auth-change-password",
+            kwargs={
+                "version": "v1"
+            }
+        )
+        return self.client.put(
+            url,
+            data=json.dumps({
+                "old_password": old_password,
+                "new_password": new_password
+            }),
+            content_type="application/json"
+        )
+
     def login_client(self, username="", password=""):
         # get a token from DRF
         response = self.client.post(
@@ -207,10 +223,11 @@ class GetASingleDebateTest(BaseViewTest):
         This test ensures that a single debate of a given id is
         returned
         """
+        valid_id = Debates.objects.get(title="Gun control").id
         # hit the API endpoint
-        response = self.fetch_a_debate(self.valid_debate_id)
+        response = self.fetch_a_debate(valid_id)
         # fetch the data from db
-        expected = Debates.objects.get(pk=self.valid_debate_id)
+        expected = Debates.objects.get(pk=valid_id)
         serialized = DebatesSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -256,11 +273,12 @@ class GetASingleProgressPointTest(BaseViewTest):
         This test ensures that a single progress point of a given id is
         returned
         """
+        valid_id = Progress.objects.get(debate_title="Gun control").id
         self.login_client('test_user', 'testing')
         # hit the API endpoint
-        response = self.fetch_a_progress_point(self.valid_progress_point_id)
+        response = self.fetch_a_progress_point(valid_id)
         # fetch the data from db
-        expected = Progress.objects.get(pk=self.valid_progress_point_id)
+        expected = Progress.objects.get(pk=valid_id)
         serialized = ProgressSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -271,6 +289,26 @@ class GetASingleProgressPointTest(BaseViewTest):
             "Could not retrieve progress"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class AuthChangePasswordTest(BaseViewTest):
+    """
+    Tests for the auth/change-password/ endpoint
+    """
+
+    def test_change_password(self):
+        # test login with valid credentials
+        self.login_client('test_user', 'testing')
+        response = self.change_user_password("testing", "testing1")
+        # assert status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            "Success."
+        )
+        # test with incorrect old password
+        response = self.change_user_password("adhwuwf", "afeeaaeve")
+        # assert status code is 400 Bad request
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class AuthLoginUserTest(BaseViewTest):
     """
@@ -293,7 +331,7 @@ class AuthRegisterUserTest(BaseViewTest):
     """
     Tests for auth/register/ endpoint
     """
-    def test_register_a_user_with_valid_progress_point_data(self):
+    def test_register_a_user_with_valid_data(self):
         url = reverse(
             "auth-register",
             kwargs={
@@ -314,7 +352,7 @@ class AuthRegisterUserTest(BaseViewTest):
         # assert status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_register_a_user_with_invalid_progress_point_data(self):
+    def test_register_a_user_with_invalid_data(self):
         url = reverse(
             "auth-register",
             kwargs={

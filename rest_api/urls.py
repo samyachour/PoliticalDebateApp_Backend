@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ListDebatesView, LoginView, DebatesDetailView, ProgressView, RegisterUsers
+from .views import *
 
 
 urlpatterns = [
@@ -8,5 +8,6 @@ urlpatterns = [
     path('progress/<int:pk>/', ProgressView.as_view(), name="get-progress"),
     path('progress/', ProgressView.as_view(), name="post-progress"),
     path('auth/login/', LoginView.as_view(), name="auth-login"),
-    path('auth/register/', RegisterUsers.as_view(), name="auth-register")
+    path('auth/register/', RegisterUsers.as_view(), name="auth-register"),
+    path('auth/change-password/', ChangePasswordView.as_view(), name="auth-change-password"),
 ]

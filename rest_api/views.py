@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from .models import Debates, Progress
-from .serializers import DebatesSerializer, TokenSerializer, ProgressSerializer
+from .serializers import *
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from rest_framework_jwt.settings import api_settings
@@ -100,6 +100,31 @@ class LoginView(generics.CreateAPIView):
             serializer.is_valid()
             return Response(serializer.data)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+class ChangePasswordView(generics.CreateAPIView):
+    """
+    POST auth/change-password/
+    """
+    # This permission class will overide the global permission
+    # class setting
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = PasswordChangeSerializer
+    queryset = User.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        self.object = self.request.user
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            return Response("Success.", status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterUsers(generics.CreateAPIView):
     """
