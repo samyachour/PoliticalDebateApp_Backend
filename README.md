@@ -67,23 +67,23 @@ Instructions:
 
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1'
 
-###Architecture
+### Architecture
 
 - Here is out current setup:
     - User (default Django User model)
-        -username: String
-        -email: String
-        -password: String
+        - username: String
+        - email: String
+        - password: String
     - Token
     - Debate
-        -title: String (foreign key)
-        -subtitle: String
-        -date updated: Date
-        -debate_map: JSON [String: Array[String]]
-    -Progress
-        -userID: String (automatic)
-        -debate_title: String (Debate.title)
-        -seen_points: Array[String (Debate.debate_map[point])]
-    -ReadingList
-        -userID: String (automatic)
-        -reading_list: Array[String (Debate.title)]
+        - title: String (foreign key)
+        - subtitle: String
+        - date updated: Date
+        - debate_map: JSON Dict [String: Array[String]]
+    - Progress
+        - userID: String (automatic)
+        - debate_title: String (Debate.title)
+        - seen_points: Array[String (Debate.debate_map[point])]
+    - ReadingList
+        - userID: String (automatic)
+        - reading_list: Array[String (Debate.title)]
