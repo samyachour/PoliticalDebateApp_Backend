@@ -38,8 +38,8 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 ### Framework
 
 For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org).
-    -helpful links: Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
-    -Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
+- Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
+- Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
 
 #### Usage
 
@@ -77,13 +77,12 @@ Instructions:
     - Token
     - Debate
         - title: String (foreign key)
-        - subtitle: String
         - date updated: Date
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
-        - userID: String (automatic)
+        - user: User (foreign key) (automatic)
         - debate_title: String (Debate.title)
         - seen_points: Array[String (Debate.debate_map[point])]
     - ReadingList
-        - userID: String (automatic)
+        - user: User (foreign key) (automatic)
         - reading_list: Array[String (Debate.title)]

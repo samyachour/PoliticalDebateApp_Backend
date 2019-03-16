@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework.views import status
-from rest_api.models import Debates, Progress
+from rest_api.models import *
 from .serializers import *
 import json
 
@@ -11,21 +11,26 @@ import json
 
 class ProgressModelTest(APITestCase):
     def setUp(self):
+        test_user = User.objects.create(
+                    username="test_user1",
+                    email="test1@mail.com",
+                    password="testing1"
+                )
         self.progress_point = Progress.objects.create(
-            user_ID="1234",
+            user=test_user,
             debate_title="Gun control",
-            debate_point="Civilians can't own tanks though."
+            seen_points=["Civilians can't own tanks though."]
         )
 
-    def test_song(self):
+    def test_basic_create_a_progress_point(self):
         """"
         This test ensures that the progress point created in the setup
         exists
         """
-        self.assertEqual(self.progress_point.user_ID, "1234")
+        self.assertEqual(self.progress_point.user.username, "test_user1")
         self.assertEqual(self.progress_point.debate_title, "Gun control")
-        self.assertEqual(self.progress_point.debate_point, "Civilians can't own tanks though.")
-        self.assertEqual(str(self.progress_point), "1234 - Gun control - Civilians can't own tanks though.")
+        self.assertEqual(self.progress_point.seen_points, ["Civilians can't own tanks though."])
+        self.assertEqual(str(self.progress_point), "test_user1 - Gun control")
 
 class DebatesModelTest(APITestCase):
     def setUp(self):
@@ -52,9 +57,9 @@ class BaseViewTest(APITestCase):
             Debates.objects.create(title=title, subtitle=subtitle)
 
     @staticmethod
-    def create_progress_point(user_ID="", debate_title="", debate_point=""):
-        if user_ID != "" and debate_title != "" and debate_point != "":
-            Progress.objects.create(user_ID=user_ID, debate_title=debate_title, debate_point=debate_point)
+    def create_progress_point(user=None, debate_title="", debate_point=""):
+        if user != None and debate_title != "" and debate_point != "":
+            Progress.objects.create(user=user, debate_title=debate_title, seen_points=[debate_point])
 
     def make_a_request(self, kind="post", **kwargs):
         """
@@ -87,7 +92,7 @@ class BaseViewTest(APITestCase):
             )
         )
 
-    def fetch_a_progress_point(self, pk=0):
+    def fetch_progress_seen_points(self, pk=0):
         return self.client.get(
             reverse(
                 "get-progress",
@@ -169,22 +174,21 @@ class BaseViewTest(APITestCase):
         )
 
     def setUp(self):
+        print("SET UP")
         # create a admin user
         self.user = User.objects.create_superuser(
             username="test_user",
             email="test@mail.com",
-            password="testing",
-            first_name="test",
-            last_name="user",
+            password="testing"
         )
         # add test data
         self.create_debate("Gun control", "Should we ban assault rifles?")
         self.create_debate("Abortion", "Is it a woman's right to choose?")
         self.create_debate("The border wall", "Is it an effective border security tool?")
 
-        self.create_progress_point("1234", "Gun control", "Civilians can't own tanks though.")
-        self.create_progress_point("1234", "Abortion", "We allow parents to refuse to donate organs to their child.")
-        self.create_progress_point("1234", "The border wall", "Drones cost 1/100th of the price.")
+        self.create_progress_point(self.user, "Gun control", "Civilians can't own tanks though.")
+        self.create_progress_point(self.user, "Abortion", "We allow parents to refuse to donate organs to their child.")
+        self.create_progress_point(self.user, "The border wall", "Drones cost 1/100th of the price.")
 
         self.valid_progress_point_data = {
             "debate_title": "test debate title",
@@ -252,7 +256,7 @@ class AddProgressPointTest(BaseViewTest):
             version="v1",
             data=self.valid_progress_point_data
         )
-        self.assertEqual(response.data, self.valid_progress_point_data)
+        self.assertEqual(response.data["seen_points"][-1], self.valid_progress_point_data["debate_point"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # test with invalid data
         response = self.make_a_request(
@@ -273,17 +277,17 @@ class GetASingleProgressPointTest(BaseViewTest):
         This test ensures that a single progress point of a given id is
         returned
         """
-        valid_id = Progress.objects.get(debate_title="Gun control").id
+        valid_id = Progress.objects.get(user=self.user, debate_title="Gun control").id
         self.login_client('test_user', 'testing')
         # hit the API endpoint
-        response = self.fetch_a_progress_point(valid_id)
+        response = self.fetch_progress_seen_points(valid_id)
         # fetch the data from db
         expected = Progress.objects.get(pk=valid_id)
         serialized = ProgressSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test with a song that does not exist
-        response = self.fetch_a_progress_point(self.invalid_id)
+        response = self.fetch_progress_seen_points(self.invalid_id)
         self.assertEqual(
             response.data["message"],
             "Could not retrieve progress"

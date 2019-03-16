@@ -52,17 +52,30 @@ class ProgressView(generics.RetrieveAPIView):
 
     @validate_progress_point_request_data
     def post(self, request, *args, **kwargs):
-        progress_point = Progress.objects.create(
-            user_ID=request.user.id,
-            debate_title=request.data["debate_title"],
-            debate_point=request.data["debate_point"]
-        )
+
+        try:
+            progress_point = self.queryset.get(user=request.user, debate_title = request.data["debate_title"])
+
+            existing_seen_points = progress_point.seen_points
+            if request.data['debate_point'] not in existing_seen_points:
+                existing_seen_points.append(request.data['debate_point'])
+
+            progress_point.update(seen_points=existing_seen_points)
+
+        except Progress.DoesNotExist:
+            progress_point = Progress.objects.create(
+                user=request.user,
+                debate_title=request.data["debate_title"],
+                seen_points=[request.data["debate_point"]]
+            )
+
         return Response(
             data=ProgressSerializer(progress_point).data,
             status=status.HTTP_201_CREATED
         )
 
     def get(self, request, *args, **kwargs):
+
         try:
             progress_point = self.queryset.get(pk=kwargs["pk"])
             return Response(ProgressSerializer(progress_point).data)
@@ -107,7 +120,7 @@ class ChangePasswordView(generics.CreateAPIView):
     """
     # This permission class will overide the global permission
     # class setting
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = PasswordChangeSerializer
     queryset = User.objects.all()
 
