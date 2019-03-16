@@ -107,7 +107,7 @@ class ChangePasswordView(generics.CreateAPIView):
     """
     # This permission class will overide the global permission
     # class setting
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     serializer_class = PasswordChangeSerializer
     queryset = User.objects.all()
 

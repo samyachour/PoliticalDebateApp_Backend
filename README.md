@@ -43,7 +43,7 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `psql -d PoliticalDebateApp -U politicaldebateappowner`
+    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver` `psql -d PoliticalDebateApp -U politicaldebateappowner`
 
 #### Setup
 
@@ -60,3 +60,28 @@ Instructions:
 - install latest postegresql with homebrew `brew install postgresql`
 - run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
 - create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
+
+### Endpoints
+
+- our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1'
+
+###Architecture
+
+- Here is out current setup:
+    - User (default Django User model)
+        -username: String
+        -email: String
+        -password: String
+    - Token
+    - Debate
+        -title: String (foreign key)
+        -subtitle: String
+        -date updated: Date
+        -debate_map: JSON [String: Array[String]]
+    -Progress
+        -userID: String (automatic)
+        -debate_title: String (Debate.title)
+        -seen_points: Array[String (Debate.debate_map[point])]
+    -ReadingList
+        -userID: String (automatic)
+        -reading_list: Array[String (Debate.title)]
