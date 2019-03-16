@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from rest_framework import generics
-from .models import Debates, Progress
+from .models import *
 from .serializers import *
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from rest_framework_jwt.settings import api_settings
 from rest_framework import permissions, status
 from rest_framework.response import Response
-from .decorators import validate_progress_point_request_data
+from .decorators import *
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -54,18 +54,26 @@ class ProgressView(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            progress_point = self.queryset.get(user=request.user, debate_title = request.data["debate_title"])
+            debate = Debates.objects.get(title=request.data["debate_title"])
+            progress_point = self.queryset.get(user=request.user, debate = debate)
 
             existing_seen_points = progress_point.seen_points
             if request.data['debate_point'] not in existing_seen_points:
                 existing_seen_points.append(request.data['debate_point'])
+                progress_point.update(seen_points=existing_seen_points)
 
-            progress_point.update(seen_points=existing_seen_points)
+        except Debates.DoesNotExist:
+            return Response(
+                data={
+                    "message": "could not find debate with title {}".format(request.data["debate_title"])
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         except Progress.DoesNotExist:
             progress_point = Progress.objects.create(
                 user=request.user,
-                debate_title=request.data["debate_title"],
+                debate=debate,
                 seen_points=[request.data["debate_point"]]
             )
 
