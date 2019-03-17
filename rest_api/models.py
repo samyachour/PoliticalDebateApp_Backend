@@ -1,18 +1,23 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
+from datetime import datetime
+
+def get_default_data_dict():
+    return {}
+
+def get_default_data_array():
+    return []
 
 class Debate(models.Model):
     # debate title
     title = models.CharField(max_length=255, null=False, unique=True)
     # debate subtitle
-    subtitle = models.CharField(max_length=255, null=False)
+    last_updated = models.DateField(default=datetime.today, null=False)
+    debate_map = JSONField(default=get_default_data_dict, null=False)
 
     def __str__(self):
-        return "{} - {}".format(self.title, self.subtitle)
-
-def get_default_data_array():
-    return []
+        return "{} updated {}".format(self.title, self.last_updated)
 
 class Progress(models.Model):
     # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future

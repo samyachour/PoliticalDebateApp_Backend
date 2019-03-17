@@ -6,6 +6,7 @@ from rest_framework.views import status
 from rest_api.models import *
 from .serializers import *
 import json
+from datetime import datetime
 
 # tests for views
 
@@ -13,9 +14,9 @@ class BaseViewTest(APITestCase):
     client = APIClient()
 
     @staticmethod
-    def create_debate(title="", subtitle=""):
-        if title != "" and subtitle != "":
-            return Debate.objects.create(title=title, subtitle=subtitle)
+    def create_debate(title="", last_updated=None, debate_map=None):
+        if title != "" and last_updated != None and debate_map != None:
+            return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map)
 
     @staticmethod
     def create_progress_point(user=None, debate=None, debate_point=""):
@@ -219,11 +220,12 @@ class BaseViewTest(APITestCase):
             email="test@mail.com",
             password="testing"
         )
+        self.today = datetime.today()
         # add test data
-        self.gunControl = self.create_debate("Gun control", "Should we ban assault rifles?")
-        self.abortion = self.create_debate("Abortion", "Is it a woman's right to choose?")
-        self.borderWall = self.create_debate("The border wall", "Is it an effective border security tool?")
-        self.vetting = self.create_debate("Vetting", "Are we doing enough?")
+        self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : ["rebuttal"]})
+        self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : ["rebuttal"]})
+        self.borderWall = self.create_debate("The border wall", self.today, {"Is it an effective border security tool?" : ["rebuttal"]})
+        self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : ["rebuttal"]})
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
         self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
@@ -279,11 +281,13 @@ class DebateModelTest(BaseViewTest):
         """
         debate = Debate.objects.create(
             title="Test debate",
-            subtitle="test debate subtitle"
+            last_updated=self.today,
+            debate_map={"Test point": ["rebuttal"]}
         )
         self.assertEqual(debate.title, "Test debate")
-        self.assertEqual(debate.subtitle, "test debate subtitle")
-        self.assertEqual(str(debate), "Test debate - test debate subtitle")
+        self.assertEqual(debate.last_updated, self.today)
+        self.assertEqual(debate.debate_map, {"Test point": ["rebuttal"]})
+        self.assertEqual(str(debate), "Test debate updated {}".format(self.today))
 
 class StarredModelTest(BaseViewTest):
     def test_basic_create_a_starred_list(self):
@@ -329,7 +333,6 @@ class GetASingleDebateTest(BaseViewTest):
 
         # hit the API endpoint
         response = self.fetch_a_debate(valid_debate.pk)
-        print(response)
         # fetch the data from db
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

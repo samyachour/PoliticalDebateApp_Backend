@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class DebateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Debate
-        fields = ("pk", "title", "subtitle")
+        fields = ("pk", "title", "last_updated", "debate_map")
 
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
