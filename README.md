@@ -45,7 +45,8 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver` `psql -d PoliticalDebateApp -U politicaldebateappowner`
+    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
+    - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
 
 #### Setup
 
@@ -63,26 +64,217 @@ Instructions:
 - run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
 - create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
 
-### Endpoints
-
-- our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1'
-
 ### Architecture
 
-- Here is out current setup:
+- Here are our current models:
     - User (default Django User model)
         - username: String
         - email: String
         - password: String
     - Token
     - Debate
-        - title: String (foreign key)
+        - title: String (unique)
         - last_updated: Date
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
-        - user: User (foreign key) (automatic)
-        - debate: Debate (foreign key) (passed in by (unique) debate.title string)
+        - user: User (foreign key)
+        - debate: Debate (foreign key)
         - seen_points: Array[String (Debate.debate_map[point])]
     - ReadingList
-        - user: User (foreign key) (automatic)
+        - user: User (foreign key)
         - reading_list: Array[String (Debate.title)]
+
+
+### Endpoints
+
+- our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
+- use `'%20` for spaces
+
+#### `auth/register/`
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "email": "test@mail.com",
+    "username": "test_username",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
+
+
+#### `auth/login/`
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "username": "test_username",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+```
+{
+    "token": (JSON Web Token)
+}
+```
+or
+`HTTP_401_UNAUTHORIZED`
+
+#### `auth/change-password/`
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "old_password": "test_old_password",
+    "new_password": "test_new_password"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `debates/<str:title>`
+
+GET
+
+- Returns:
+
+```
+{
+    "title": "test_old_password",
+    "last_updated": March 15, 2019
+    "debate_map": {
+        "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+        "secondary - point2" : ["rebuttal - (key to secondary point)"]
+    }
+}
+```
+
+#### `debates/`
+
+GET
+
+- Returns:
+
+```
+[
+    {
+        "title": "test_old_password",
+        "last_updated": March 15, 2019
+        "debate_map": {
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "secondary - point2" : ["rebuttal - (key to secondary point)"]
+        }
+    },
+    {
+        (debate)
+    },
+    {
+        (debate)
+    }
+]
+```
+
+#### `progress/<str:debate_title>`
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "seen_points": [
+        "test_point", "test_point", "test_point"...
+    ]
+}
+```
+(the `1` after debate is a generated database unique ID)
+
+#### `progress/`
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_title": "title",
+    "debate_point": "point"
+}
+```
+
+- Returns:
+
+```
+{
+    "seen_points": [
+        "test_point", "test_point", "test_point"...
+    ]
+}
+```
+(the `1` after debate is a generated database unique ID)
+
+#### `reading-list/`
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "reading_list": [
+        "debate_title", "debate_title", "debate_title"...
+    ]
+}
+```
+(the `1` after debate is a generated database unique ID)

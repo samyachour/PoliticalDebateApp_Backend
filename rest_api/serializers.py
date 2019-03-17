@@ -11,12 +11,12 @@ class DebatesSerializer(serializers.ModelSerializer):
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
-        fields = ("debate", "seen_points")
+        fields = ("seen_points",)
 
 class ReadingListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReadingList
-        fields = ("reading_list")
+        fields = ("reading_list",)
 
 class TokenSerializer(serializers.Serializer):
     """
