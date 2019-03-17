@@ -38,12 +38,15 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 ### Framework
 
 For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org).
+- Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
+- Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
 
 #### Usage
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `psql -d PoliticalDebateApp -U politicaldebateappowner`
+    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
+    - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
 
 #### Setup
 
@@ -60,3 +63,372 @@ Instructions:
 - install latest postegresql with homebrew `brew install postgresql`
 - run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
 - create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
+
+### Architecture
+
+- Here are our current models:
+    - User (default Django User model)
+        - username: String
+        - email: String
+        - password: String
+    - Token
+    - Debate
+        - title: String (unique)
+        - last_updated: Date
+        - debate_map: JSON Dict [String: Array[String]]
+    - Progress
+        - user: User (foreign key)
+        - debate: Debate (foreign key)
+        - completed: Bool
+        - seen_points: Array[String (Debate.debate_map[point])]
+    - Starred
+        - user: User (foreign key)
+        - starred_list: Debates (ManyToMany)
+
+
+### Endpoints
+
+- our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
+- use `%20` for spaces
+- when you see numbers associated with model types (e.g. `debate: 1`) the number is the ID (unique primary key (`pk`))
+
+#### `auth/register/`
+
+- register new user with credentials
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "email": "test@mail.com",
+    "username": "test_username",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
+
+
+#### `auth/login/`
+
+- login user to get token for session
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "username": "test_username",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+```
+{
+    "token": (JSON Web Token)
+}
+```
+or `HTTP_401_UNAUTHORIZED`
+
+#### `auth/refresh-token/`
+
+- need to keep checking if token is almost expired, if so ask for a refresh
+- access token expires every 10 minutes
+- refresh window is up to 30 days
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "token": (existing JSON web token)
+}
+```
+
+- Returns:
+
+```
+{
+    "token": (new JSON Web Token)
+}
+```
+or
+`HTTP_400_BAD_REQUEST` (with error message)
+
+#### `auth/change-password/`
+
+- change user password
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "old_password": "test_old_password",
+    "new_password": "test_new_password"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `debate/<int:pk>`
+
+- get a debate by primary key
+
+GET
+
+- Returns:
+
+```
+{
+    "pk", 1,
+    "title": "test_old_password",
+    "last_updated": March 15, 2019
+    "debate_map": {
+        "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+        "secondary - point2" : ["rebuttal - (key to secondary point)"]
+    }
+}
+```
+or `HTTP_404_NOT_FOUND`
+
+#### `debates/`
+
+- get all debates
+- should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
+
+GET
+
+- Returns:
+
+```
+[
+    {
+        "pk": 1,
+        "title": "test_debate_pro",
+        "last_updated": March 15, 2019
+        "debate_map": {
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "secondary - point2" : ["rebuttal - (key to secondary point)"]
+        }
+    },
+    {
+        "pk": 2,
+        "title": "test_debate_con",
+        "last_updated": March 15, 2019
+        "debate_map": {
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "secondary - point2" : ["rebuttal - (key to secondary point)"]
+        }
+    },
+    {
+        (debate)
+    }
+]
+```
+
+#### `progress/<int:pk>`
+
+- get seen points for given debate
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "debate": 1,
+    "completed": False,
+    "seen_points": [
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
+    ]
+}
+```
+or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
+
+#### `progress/`
+
+- get all debates user has made progress on
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+[
+    {
+        "debate": 1,
+        "completed": False,
+        "seen_points": [
+            "main - test_point", "secondary - test_point", "secondary - test_point"...
+        ]
+    }
+]
+```
+
+#### `progress/`
+
+- add new seen point to debate progress
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_pk": 1,
+    "debate_point": "point"
+}
+```
+
+- Returns:
+
+```
+{
+    "debate": 1,
+    "completed": False,
+    "seen_points": [
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
+    ]
+}
+```
+or `HTTP_400_BAD_REQUEST`
+
+#### `progress-completed/`
+
+- set progress completion status for a user's debate
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_pk": 1,
+    "completed": True
+}
+```
+
+- Returns:
+
+```
+{
+    "debate": 1,
+    "completed": True,
+    "seen_points": [
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
+    ]
+}
+```
+or `HTTP_400_BAD_REQUEST`
+
+#### `starred-list/`
+
+- get all debates user has starred
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "starred_list": [
+        1, 2, 3...
+    ]
+}
+```
+or `HTTP_404_NOT_FOUND`
+
+#### `starred_list/`
+
+- add new debate to starred list
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_pk": 1
+}
+```
+
+- Returns:
+
+```
+{
+    "starred_list": [
+        1, 2, 3... (debate (unique) IDs)
+    ]
+}
+```
+or `HTTP_400_BAD_REQUEST`

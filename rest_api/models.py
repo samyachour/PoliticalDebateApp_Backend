@@ -1,21 +1,48 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField, JSONField
+from django.conf import settings
+from datetime import datetime
 
-class Debates(models.Model):
+def get_default_data_dict():
+    return {}
+
+def get_default_data_array():
+    return []
+
+class Debate(models.Model):
     # debate title
-    title = models.CharField(max_length=255, null=False)
+    title = models.CharField(max_length=255, null=False, unique=True)
     # debate subtitle
-    subtitle = models.CharField(max_length=255, null=False)
+    last_updated = models.DateField(default=datetime.today, null=False)
+    debate_map = JSONField(default=get_default_data_dict, null=False)
 
     def __str__(self):
-        return "{} - {}".format(self.title, self.subtitle)
+        return "{} updated {}".format(self.title, self.last_updated)
 
 class Progress(models.Model):
-    # User ID
-    user_ID = models.IntegerField(null=False)
-    # debate title
-    debate_title = models.CharField(max_length=255, null=False)
-    # debate point seen
-    debate_point = models.CharField(max_length=255, null=False)
+    # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
+
+    debate = models.ForeignKey(Debate, on_delete=models.CASCADE, default=None, null=False)
+    completed = models.BooleanField(default=False)
+    seen_points = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
 
     def __str__(self):
-        return "{} - {} - {}".format(self.user_ID, self.debate_title, self.debate_point)
+        return "{} - {}".format(self.user.username, self.debate.title)
+
+class Starred(models.Model):
+    # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
+
+    starred_list = models.ManyToManyField(Debate)
+
+    def buildStarredString(self):
+        result = ""
+        for debate in self.starred_list.all():
+            result += debate.title + ", "
+
+        if result:
+            return result[:-2]
+
+    def __str__(self):
+        return "{} - {}".format(self.user.username, self.buildStarredString())
