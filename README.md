@@ -222,7 +222,6 @@ Header
     ]
 }
 ```
-(the `1` after debate is a generated database unique ID)
 
 #### `progress/`
 
@@ -253,7 +252,6 @@ Body
     ]
 }
 ```
-(the `1` after debate is a generated database unique ID)
 
 #### `reading-list/`
 
@@ -277,4 +275,32 @@ Header
     ]
 }
 ```
-(the `1` after debate is a generated database unique ID)
+
+#### `reading_list/`
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_title": "title"
+}
+```
+
+- Returns:
+
+```
+{
+    "reading_list": [
+        "debate_title", "debate_title", "debate_title"...
+    ]
+}
+```
