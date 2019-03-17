@@ -31,4 +31,4 @@ class ReadingList(models.Model):
     reading_list = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
 
     def __str__(self):
-        return "{} - {}".format(self.user.username, self.reading_list)
+        return "{} - {}".format(self.user.username, ", ".join(self.reading_list))

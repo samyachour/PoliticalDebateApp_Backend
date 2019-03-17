@@ -56,12 +56,13 @@ class ProgressView(generics.RetrieveAPIView):
 
         try:
             debate = Debates.objects.get(title=request.data["debate_title"])
-            progress_point = self.queryset.get(user=request.user, debate = debate)
+            progress_point = self.queryset.get(user=request.user, debate=debate)
 
             existing_seen_points = progress_point.seen_points
             if request.data['debate_point'] not in existing_seen_points:
                 existing_seen_points.append(request.data['debate_point'])
-                progress_point.update(seen_points=existing_seen_points)
+                # Can't call 'update' on an object (which is what .get() returns)
+                self.queryset.filter(user=request.user, debate=debate).update(seen_points=existing_seen_points)
 
         except Debates.DoesNotExist:
             return Response(
@@ -124,7 +125,8 @@ class ReadingListView(generics.RetrieveAPIView):
 
             if request.data["debate_title"] not in reading_list:
                 reading_list.append(request.data["debate_title"])
-                user_and_reading_list.update(reading_list=reading_list)
+                # Can't call 'update' on an object (which is what .get() returns)
+                self.queryset.filter(user=request.user).update(reading_list=reading_list)
 
         except Debates.DoesNotExist:
             return Response(
@@ -134,8 +136,15 @@ class ReadingListView(generics.RetrieveAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        except ReadingList.DoesNotExist:
+            user_and_reading_list = ReadingList.objects.create(
+                user=request.user,
+                reading_list=[request.data["debate_title"]]
+            )
+
+
         return Response(
-            data=ProgressSerializer(progress_point).data,
+            data=ReadingListSerializer(user_and_reading_list).data,
             status=status.HTTP_201_CREATED
         )
 
@@ -143,7 +152,7 @@ class ReadingListView(generics.RetrieveAPIView):
 
         try:
             reading_list = self.queryset.get(user=request.user)
-            return Response(ProgressSerializer(reading_list).data)
+            return Response(ReadingListSerializer(reading_list).data)
         except ReadingList.DoesNotExist:
             return Response(
                 data={

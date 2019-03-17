@@ -22,6 +22,11 @@ class BaseViewTest(APITestCase):
         if user != None and debate != None and debate_point != "":
             Progress.objects.create(user=user, debate=debate, seen_points=[debate_point])
 
+    @staticmethod
+    def create_reading_list(user=None, debate_title=""):
+        if user != None and debate_title != "":
+            ReadingList.objects.create(user=user, reading_list=[debate_title])
+
     def make_a_create_progress_request(self, kind="post", **kwargs):
         """
         Make a post request to create a progress point
@@ -32,6 +37,26 @@ class BaseViewTest(APITestCase):
             return self.client.post(
                 reverse(
                     "post-progress",
+                    kwargs={
+                        "version": kwargs["version"]
+                    }
+                ),
+                data=json.dumps(kwargs["data"]),
+                content_type='application/json'
+            )
+        else:
+            return None
+
+    def make_a_create_reading_list_request(self, kind="post", **kwargs):
+        """
+        Make a post request to create/add to a reading list
+        :param kind: HTTP VERB
+        :return:
+        """
+        if kind == "post":
+            return self.client.post(
+                reverse(
+                    "post-reading-list",
                     kwargs={
                         "version": kwargs["version"]
                     }
@@ -59,6 +84,15 @@ class BaseViewTest(APITestCase):
                 "version": "v1",
                 "debate_title": debate_title
             },
+        )
+        return self.client.get(url)
+
+    def fetch_reading_list(self):
+        url = reverse(
+            "get-reading-list",
+            kwargs={
+                "version": "v1"
+            }
         )
         return self.client.get(url)
 
@@ -150,13 +184,25 @@ class BaseViewTest(APITestCase):
         self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
         self.create_progress_point(self.user, self.borderWall, "Drones cost 1/100th of the price.")
 
+        self.create_reading_list(self.user, "Gun control")
+
         self.valid_progress_point_data = {
             "debate_title": "Gun control",
             "debate_point": "Civilians can't own tanks though."
         }
-        self.invalid_progress_point_data = {
+        self.invalid_progress_point_data_empty = {
             "debate_title": "",
             "debate_point": ""
+        }
+
+        self.valid_reading_list_data = {
+            "debate_title": "Abortion",
+        }
+        self.invalid_reading_list_data_empty = {
+            "debate_title": "",
+        }
+        self.invalid_reading_list_data = {
+            "debate_title": "shjafhfaiefgeiuaehfaieu",
         }
 
 class ProgressModelTest(BaseViewTest):
@@ -172,7 +218,7 @@ class ProgressModelTest(BaseViewTest):
         self.assertEqual(str(progress_point), "test_user - Gun control")
 
 class DebatesModelTest(BaseViewTest):
-    def test_song(self):
+    def test_basic_create_a_debate(self):
         """"
         This test ensures that the debate created exists
         """
@@ -183,6 +229,18 @@ class DebatesModelTest(BaseViewTest):
         self.assertEqual(debate.title, "Test debate")
         self.assertEqual(debate.subtitle, "test debate subtitle")
         self.assertEqual(str(debate), "Test debate - test debate subtitle")
+
+class ReadingListModelTest(BaseViewTest):
+    def test_basic_create_a_reading_list(self):
+        """"
+        This test ensures that the reading list created exists
+        """
+        reading_list = ReadingList.objects.create(
+            user=self.user,
+            reading_list=[self.gunControl.title]
+        )
+        self.assertEqual(reading_list.reading_list[0], "Gun control")
+        self.assertEqual(str(reading_list), "test_user - Gun control")
 
 class GetAllDebatesTest(BaseViewTest):
 
@@ -243,7 +301,7 @@ class AddProgressPointTest(BaseViewTest):
         response = self.make_a_create_progress_request(
             kind="post",
             version="v1",
-            data=self.invalid_progress_point_data
+            data=self.invalid_progress_point_data_empty
         )
         self.assertEqual(
             response.data["message"],
@@ -272,6 +330,7 @@ class GetASingleProgressPointTest(BaseViewTest):
             response.data["message"],
             "Could not find debate with title shjafhfaiefgeiuaehfaieu"
         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # test with a progress point that does not exist
         response = self.fetch_progress_seen_points("Vetting")
         self.assertEqual(
@@ -279,6 +338,60 @@ class GetASingleProgressPointTest(BaseViewTest):
             "Could not retrieve progress"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class AddToReadingListTest(BaseViewTest):
+
+    def test_create_a_reading_list(self):
+        """
+        This test ensures that a single debate can be added to the reading list
+        """
+        self.login_client('test_user', 'testing')
+        # hit the API endpoint
+        response = self.make_a_create_reading_list_request(
+            kind="post",
+            version="v1",
+            data=self.valid_reading_list_data
+        )
+        self.assertEqual(response.data["reading_list"][-1], self.valid_reading_list_data["debate_title"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # test with invalid data
+        response = self.make_a_create_reading_list_request(
+            kind="post",
+            version="v1",
+            data=self.invalid_reading_list_data_empty
+        )
+        self.assertEqual(
+            response.data["message"],
+            "A debate title is required"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # test with a debate that does not exist
+        response = self.make_a_create_reading_list_request(
+            kind="post",
+            version="v1",
+            data=self.invalid_reading_list_data
+        )
+        self.assertEqual(
+            response.data["message"],
+            "Could not find debate with title shjafhfaiefgeiuaehfaieu"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class GetASingleReadingListTest(BaseViewTest):
+
+    def test_get_a_reading_list(self):
+        """
+        This test ensures that a single progress point of a given debate title is returned
+        """
+        valid_reading_list = ReadingList.objects.get(user=self.user)
+        self.login_client('test_user', 'testing')
+        # hit the API endpoint
+        response = self.fetch_reading_list()
+        # fetch the data from db
+        expected = ReadingList.objects.get(user=valid_reading_list.user)
+        serialized = ReadingListSerializer(expected)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class AuthChangePasswordTest(BaseViewTest):
     """
