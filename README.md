@@ -80,17 +80,20 @@ Instructions:
         - user: User (foreign key)
         - debate: Debate (foreign key)
         - seen_points: Array[String (Debate.debate_map[point])]
-    - ReadingList
+    - Starred
         - user: User (foreign key)
-        - reading_list: Array[String (Debate.title)]
+        - starred_list: Debates (ManyToMany)
 
 
 ### Endpoints
 
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
-- use `'%20` for spaces
+- use `%20` for spaces
+- when you see numbers associated with model types (e.g. `debate: 1`) the number is the ID (unique primary key (`pk`))
 
 #### `auth/register/`
+
+- register new user with credentials
 
 POST
 
@@ -111,6 +114,8 @@ Body
 
 
 #### `auth/login/`
+
+- login user to get token for session
 
 POST
 
@@ -134,7 +139,36 @@ Body
 or
 `HTTP_401_UNAUTHORIZED`
 
+#### `auth/refresh-token/`
+
+- need to keep checking if token is almost expired, if so ask for a refresh
+- access token expires every 10 minutes
+- refresh window is up to 30 days
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "token": (existing JSON web token)
+}
+```
+
+- Returns:
+
+```
+{
+    "token": (new JSON Web Token)
+}
+```
+or
+`HTTP_400_BAD_REQUEST` (with error message)
+
 #### `auth/change-password/`
+
+- change user password
 
 POST
 
@@ -158,7 +192,9 @@ Body
 
 `HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
 
-#### `debates/<str:title>`
+#### `debate/<int:pk>`
+
+- get a debate by primary key
 
 GET
 
@@ -166,6 +202,7 @@ GET
 
 ```
 {
+    "pk", 1,
     "title": "test_old_password",
     "last_updated": March 15, 2019
     "debate_map": {
@@ -177,6 +214,9 @@ GET
 
 #### `debates/`
 
+- get all debates
+- should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
+
 GET
 
 - Returns:
@@ -184,7 +224,17 @@ GET
 ```
 [
     {
-        "title": "test_old_password",
+        "pk": 1,
+        "title": "test_debate_pro",
+        "last_updated": March 15, 2019
+        "debate_map": {
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "secondary - point2" : ["rebuttal - (key to secondary point)"]
+        }
+    },
+    {
+        "pk": 2,
+        "title": "test_debate_con",
         "last_updated": March 15, 2019
         "debate_map": {
             "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
@@ -193,14 +243,13 @@ GET
     },
     {
         (debate)
-    },
-    {
-        (debate)
     }
 ]
 ```
 
-#### `progress/<str:debate_title>`
+#### `progress/<int:pk>`
+
+- get seen points for given debate
 
 GET
 
@@ -217,13 +266,44 @@ Header
 
 ```
 {
+    "debate": 1,
     "seen_points": [
-        "test_point", "test_point", "test_point"...
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
     ]
 }
 ```
 
 #### `progress/`
+
+- get all debates user has made progress on
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+
+- Returns:
+
+```
+[
+    {
+        "debate": 1,
+        "seen_points": [
+            "main - test_point", "secondary - test_point", "secondary - test_point"...
+        ]
+    }
+]
+```
+
+#### `progress/`
+
+- add new seen point to debate progress
 
 POST
 
@@ -238,7 +318,7 @@ Header
 ```
 Body
 {
-    "debate_title": "title",
+    "debate_pk": 1,
     "debate_point": "point"
 }
 ```
@@ -248,12 +328,14 @@ Body
 ```
 {
     "seen_points": [
-        "test_point", "test_point", "test_point"...
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
     ]
 }
 ```
 
-#### `reading-list/`
+#### `starred-list/`
+
+- get all debates user has starred
 
 GET
 
@@ -270,13 +352,15 @@ Header
 
 ```
 {
-    "reading_list": [
-        "debate_title", "debate_title", "debate_title"...
+    "starred_list": [
+        1, 2, 3...
     ]
 }
 ```
 
-#### `reading_list/`
+#### `starred_list/`
+
+- add new debate to starred list
 
 POST
 
@@ -291,7 +375,7 @@ Header
 ```
 Body
 {
-    "debate_title": "title"
+    "debate_pk": 1
 }
 ```
 
@@ -299,8 +383,8 @@ Body
 
 ```
 {
-    "reading_list": [
-        "debate_title", "debate_title", "debate_title"...
+    "starred_list": [
+        1, 2, 3... (debate (unique) IDs)
     ]
 }
 ```

@@ -3,20 +3,20 @@ from .models import *
 from django.contrib.auth.models import User
 
 
-class DebatesSerializer(serializers.ModelSerializer):
+class DebateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Debates
-        fields = ("title", "subtitle")
+        model = Debate
+        fields = ("pk", "title", "subtitle")
 
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
-        fields = ("seen_points",)
+        fields = ("debate", "seen_points",)
 
-class ReadingListSerializer(serializers.ModelSerializer):
+class StarredSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ReadingList
-        fields = ("reading_list",)
+        model = Starred
+        fields = ("starred_list",)
 
 class TokenSerializer(serializers.Serializer):
     """
