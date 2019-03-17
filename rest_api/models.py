@@ -17,9 +17,18 @@ def get_default_data_array():
 class Progress(models.Model):
     # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
-    
+
     debate = models.ForeignKey(Debates, on_delete=models.CASCADE, default=None, null=False)
     seen_points = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
 
     def __str__(self):
         return "{} - {}".format(self.user.username, self.debate.title)
+
+class ReadingList(models.Model):
+    # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
+    # Can't be an array of foreign keys because how would deletion work?
+    reading_list = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
+
+    def __str__(self):
+        return "{} - {}".format(self.user.username, self.reading_list)

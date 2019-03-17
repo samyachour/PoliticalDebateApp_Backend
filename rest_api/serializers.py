@@ -13,6 +13,11 @@ class ProgressSerializer(serializers.ModelSerializer):
         model = Progress
         fields = ("debate", "seen_points")
 
+class ReadingListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReadingList
+        fields = ("reading_list")
+
 class TokenSerializer(serializers.Serializer):
     """
     This serializer serializes the token data

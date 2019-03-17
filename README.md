@@ -77,11 +77,11 @@ Instructions:
     - Token
     - Debate
         - title: String (foreign key)
-        - date updated: Date
+        - last_updated: Date
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
         - user: User (foreign key) (automatic)
-        - debate_title: String (Debate.title)
+        - debate: Debate (foreign key) (passed in by (unique) debate.title string)
         - seen_points: Array[String (Debate.debate_map[point])]
     - ReadingList
         - user: User (foreign key) (automatic)

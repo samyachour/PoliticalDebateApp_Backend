@@ -14,7 +14,7 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
 class ListDebatesView(generics.ListAPIView):
     """
-    GET debates/
+    GET debates
     """
     queryset = Debates.objects.all()
     serializer_class = DebatesSerializer
@@ -23,34 +23,35 @@ class ListDebatesView(generics.ListAPIView):
 
 class DebatesDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET debates/:id/
+    GET debates/<str:title>
     """
     queryset = Debates.objects.all()
     serializer_class = DebatesSerializer
     permission_classes = (permissions.AllowAny,)
 
+    @validate_debate_get_request_data
     def get(self, request, *args, **kwargs):
         try:
-            debate = self.queryset.get(pk=kwargs["pk"])
+            debate = self.queryset.get(title=kwargs["title"])
             return Response(DebatesSerializer(debate).data)
         except Debates.DoesNotExist:
             return Response(
                 data={
-                    "message": "Debate with id: {} does not exist".format(kwargs["pk"])
+                    "message": "Debate with title: {} does not exist".format(kwargs["title"])
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
 
 class ProgressView(generics.RetrieveAPIView):
     """
-    GET progress/:id/
+    GET progress/<str:debate_title>
     POST progress/
     """
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    @validate_progress_point_request_data
+    @validate_progress_post_point_request_data
     def post(self, request, *args, **kwargs):
 
         try:
@@ -65,7 +66,7 @@ class ProgressView(generics.RetrieveAPIView):
         except Debates.DoesNotExist:
             return Response(
                 data={
-                    "message": "could not find debate with title {}".format(request.data["debate_title"])
+                    "message": "Could not find debate with title {}".format(request.data["debate_title"])
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -82,15 +83,71 @@ class ProgressView(generics.RetrieveAPIView):
             status=status.HTTP_201_CREATED
         )
 
+    @validate_progress_point_get_request_data
     def get(self, request, *args, **kwargs):
 
         try:
-            progress_point = self.queryset.get(pk=kwargs["pk"])
+            debate = Debates.objects.get(title=kwargs["debate_title"])
+            progress_point = self.queryset.get(user=request.user, debate=debate)
             return Response(ProgressSerializer(progress_point).data)
+        except Debates.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Could not find debate with title {}".format(kwargs["debate_title"])
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Progress.DoesNotExist:
             return Response(
                 data={
                     "message": "Could not retrieve progress"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+class ReadingListView(generics.RetrieveAPIView):
+    """
+    GET reading_list/
+    POST reading_list/
+    """
+    queryset = ReadingList.objects.all()
+    serializer_class = ReadingListSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @validate_reading_list_post_request_data
+    def post(self, request, *args, **kwargs):
+
+        try:
+            Debates.objects.get(title=request.data["debate_title"])
+            user_and_reading_list = self.queryset.get(user=request.user)
+            reading_list = user_and_reading_list.reading_list
+
+            if request.data["debate_title"] not in reading_list:
+                reading_list.append(request.data["debate_title"])
+                user_and_reading_list.update(reading_list=reading_list)
+
+        except Debates.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Could not find debate with title {}".format(request.data["debate_title"])
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            data=ProgressSerializer(progress_point).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            reading_list = self.queryset.get(user=request.user)
+            return Response(ProgressSerializer(reading_list).data)
+        except ReadingList.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Could not retrieve reading list"
                 },
                 status=status.HTTP_404_NOT_FOUND
             )

@@ -42,27 +42,25 @@ class BaseViewTest(APITestCase):
         else:
             return None
 
-    def fetch_a_debate(self, pk=0):
-        return self.client.get(
-            reverse(
-                "get-debate",
-                kwargs={
-                    "version": "v1",
-                    "pk": pk
-                }
-            )
+    def fetch_a_debate(self, title=""):
+        url = reverse(
+            "get-debate",
+            kwargs={
+                "version": "v1",
+                "title": title
+            },
         )
+        return self.client.get(url)
 
-    def fetch_progress_seen_points(self, pk=0):
-        return self.client.get(
-            reverse(
-                "get-progress",
-                kwargs={
-                    "version": "v1",
-                    "pk": pk
-                }
-            )
+    def fetch_progress_seen_points(self, debate_title=""):
+        url = reverse(
+            "get-progress",
+            kwargs={
+                "version": "v1",
+                "debate_title": debate_title
+            },
         )
+        return self.client.get(url)
 
     def login_a_user(self, username="", password=""):
         url = reverse(
@@ -146,6 +144,7 @@ class BaseViewTest(APITestCase):
         self.gunControl = self.create_debate("Gun control", "Should we ban assault rifles?")
         self.abortion = self.create_debate("Abortion", "Is it a woman's right to choose?")
         self.borderWall = self.create_debate("The border wall", "Is it an effective border security tool?")
+        self.create_debate("Vetting", "Are we doing enough?")
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
         self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
@@ -159,10 +158,6 @@ class BaseViewTest(APITestCase):
             "debate_title": "",
             "debate_point": ""
         }
-
-        self.valid_debate_id = 14
-        self.valid_progress_point_id = 17
-        self.invalid_id = 1000000000
 
 class ProgressModelTest(BaseViewTest):
     def test_basic_create_a_progress_point(self):
@@ -210,22 +205,22 @@ class GetASingleDebateTest(BaseViewTest):
 
     def test_get_a_debate(self):
         """
-        This test ensures that a single debate of a given id is
+        This test ensures that a single debate of a given title is
         returned
         """
-        valid_id = Debates.objects.get(title="Gun control").id
+        valid_title = Debates.objects.get(title="Gun control").title
         # hit the API endpoint
-        response = self.fetch_a_debate(valid_id)
+        response = self.fetch_a_debate(valid_title)
         # fetch the data from db
-        expected = Debates.objects.get(pk=valid_id)
+        expected = Debates.objects.get(title=valid_title)
         serialized = DebatesSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test with a song that does not exist
-        response = self.fetch_a_debate(self.invalid_id)
+        # test with a debate that does not exist
+        response = self.fetch_a_debate("fjaefjekafkjabvbjeak")
         self.assertEqual(
             response.data["message"],
-            "Debate with id: 1000000000 does not exist"
+            "Debate with title: fjaefjekafkjabvbjeak does not exist"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -260,20 +255,25 @@ class GetASingleProgressPointTest(BaseViewTest):
 
     def test_get_a_progress_point(self):
         """
-        This test ensures that a single progress point of a given id is
-        returned
+        This test ensures that a single progress point of a given debate title is returned
         """
-        valid_id = Progress.objects.get(user=self.user, debate=self.gunControl).id
+        valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
         self.login_client('test_user', 'testing')
         # hit the API endpoint
-        response = self.fetch_progress_seen_points(valid_id)
+        response = self.fetch_progress_seen_points(valid_progress.debate.title)
         # fetch the data from db
-        expected = Progress.objects.get(pk=valid_id)
+        expected = Progress.objects.get(user=valid_progress.user, debate=valid_progress.debate)
         serialized = ProgressSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test with a song that does not exist
-        response = self.fetch_progress_seen_points(self.invalid_id)
+        # test with a debate that does not exist
+        response = self.fetch_progress_seen_points("shjafhfaiefgeiuaehfaieu")
+        self.assertEqual(
+            response.data["message"],
+            "Could not find debate with title shjafhfaiefgeiuaehfaieu"
+        )
+        # test with a progress point that does not exist
+        response = self.fetch_progress_seen_points("Vetting")
         self.assertEqual(
             response.data["message"],
             "Could not retrieve progress"
