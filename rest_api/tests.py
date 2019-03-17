@@ -68,6 +68,26 @@ class BaseViewTest(APITestCase):
         else:
             return None
 
+    def set_progress_point_completed_request(self, kind="post", **kwargs):
+        """
+        Make a post request to set a progress point as completed
+        :param kind: HTTP VERB
+        :return:
+        """
+        if kind == "post":
+            return self.client.post(
+                reverse(
+                    "post-progress-completed",
+                    kwargs={
+                        "version": kwargs["version"]
+                    }
+                ),
+                data=json.dumps(kwargs["data"]),
+                content_type='application/json'
+            )
+        else:
+            return None
+
     def fetch_a_debate(self, pk=None):
         url = reverse(
             "get-debate",
@@ -216,9 +236,17 @@ class BaseViewTest(APITestCase):
             "debate_pk": self.gunControl.pk,
             "debate_point": "Civilians can't own tanks though."
         }
+        self.valid_progress_point_completed_data = {
+            "debate_pk": self.gunControl.pk,
+            "completed": True
+        }
         self.invalid_progress_point_data_empty = {
             "debate_pk": "",
             "debate_point": ""
+        }
+        self.invalid_progress_point_completed_data_empty = {
+            "debate_pk": "",
+            "completed": ""
         }
 
         self.valid_starred_list_data = {
@@ -240,6 +268,7 @@ class ProgressModelTest(BaseViewTest):
 
         self.assertEqual(progress_point.user.username, "test_user")
         self.assertEqual(progress_point.debate.title, "Gun control")
+        self.assertEqual(progress_point.completed, False)
         self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
         self.assertEqual(str(progress_point), "test_user - Gun control")
 
@@ -275,7 +304,7 @@ class GetAllDebatesTest(BaseViewTest):
         """
         # hit the API endpoint
         response = self.client.get(
-            reverse("debate-all", kwargs={"version": "v1"})
+            reverse("get-all-debates", kwargs={"version": "v1"})
         )
         # fetch the data from db
         expected = Debate.objects.all()
@@ -336,6 +365,33 @@ class AddProgressPointTest(BaseViewTest):
         self.assertEqual(
             response.data["message"],
             "Both debate ID and debate point are required to add a progress point"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class SetProgressPointCompletedTest(BaseViewTest):
+
+    def test_set_progress_point_completed(self):
+        """
+        This test ensures that a single progress point can be set as completed
+        """
+        self.login_client('test_user', 'testing')
+        # hit the API endpoint
+        response = self.set_progress_point_completed_request(
+            kind="post",
+            version="v1",
+            data=self.valid_progress_point_completed_data
+        )
+        self.assertTrue(response.data["completed"])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # test with invalid data
+        response = self.set_progress_point_completed_request(
+            kind="post",
+            version="v1",
+            data=self.invalid_progress_point_completed_data_empty
+        )
+        self.assertEqual(
+            response.data["message"],
+            "Both debate ID and completed status are required to update completed status"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

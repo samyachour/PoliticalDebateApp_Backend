@@ -19,6 +19,7 @@ class Progress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
 
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, default=None, null=False)
+    completed = models.BooleanField(default=False)
     seen_points = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
 
     def __str__(self):

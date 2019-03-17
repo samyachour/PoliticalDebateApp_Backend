@@ -119,6 +119,52 @@ class ProgressViewAll(generics.RetrieveAPIView):
         print(progress_points)
         return Response(ProgressSerializer(progress_points, many=True).data)
 
+class ProgressCompleted(generics.RetrieveAPIView):
+    """
+    POST progress-completed/
+    """
+    queryset = Progress.objects.all()
+    serializer_class = ProgressSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @validate_progress_post_completed_request_data
+    def post(self, request, *args, **kwargs):
+
+        try:
+            debate = Debate.objects.get(pk=request.data["debate_pk"])
+            progress_point = self.queryset.filter(user=request.user, debate=debate)
+
+            if progress_point.count() == 1:
+                progress_point.update(completed=request.data["completed"])
+                progress_point = self.queryset.get(user=request.user, debate=debate)
+            elif progress_point.count() > 1:
+                return Response(
+                    data={
+                        "message": "Found duplicate progress point for user ID {} and debate ID {}. This should never happen".format(request.user.pk, request.data["debate_pk"])
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                return Response(
+                    data={
+                        "message": "Could not find user progress point with debate ID {}".format(request.data["debate_pk"])
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Debate.DoesNotExist:
+            return Response(
+                data={
+                    "message": "Could not find debate with ID {}".format(request.data["debate_pk"])
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            data=ProgressSerializer(progress_point).data,
+            status=status.HTTP_201_CREATED
+        )
+
 class StarredView(generics.RetrieveAPIView):
     """
     GET starred-list/

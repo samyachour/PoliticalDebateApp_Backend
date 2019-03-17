@@ -11,7 +11,7 @@ class DebateSerializer(serializers.ModelSerializer):
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
-        fields = ("debate", "seen_points",)
+        fields = ("debate", "completed", "seen_points",)
 
 class StarredSerializer(serializers.ModelSerializer):
     class Meta:

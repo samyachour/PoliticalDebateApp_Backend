@@ -79,6 +79,7 @@ Instructions:
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
+        - completed: Bool
         - seen_points: Array[String (Debate.debate_map[point])]
     - Starred
         - user: User (foreign key)
@@ -136,8 +137,7 @@ Body
     "token": (JSON Web Token)
 }
 ```
-or
-`HTTP_401_UNAUTHORIZED`
+or `HTTP_401_UNAUTHORIZED`
 
 #### `auth/refresh-token/`
 
@@ -211,6 +211,7 @@ GET
     }
 }
 ```
+or `HTTP_404_NOT_FOUND`
 
 #### `debates/`
 
@@ -267,11 +268,13 @@ Header
 ```
 {
     "debate": 1,
+    "completed": False,
     "seen_points": [
         "main - test_point", "secondary - test_point", "secondary - test_point"...
     ]
 }
 ```
+or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
 
 #### `progress/`
 
@@ -294,6 +297,7 @@ Header
 [
     {
         "debate": 1,
+        "completed": False,
         "seen_points": [
             "main - test_point", "secondary - test_point", "secondary - test_point"...
         ]
@@ -327,11 +331,49 @@ Body
 
 ```
 {
+    "debate": 1,
+    "completed": False,
     "seen_points": [
         "main - test_point", "secondary - test_point", "secondary - test_point"...
     ]
 }
 ```
+or `HTTP_400_BAD_REQUEST`
+
+#### `progress-completed/`
+
+- set progress completion status for a user's debate
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    "Authorization": (JSON Web Token)
+}
+```
+```
+Body
+{
+    "debate_pk": 1,
+    "completed": True
+}
+```
+
+- Returns:
+
+```
+{
+    "debate": 1,
+    "completed": True,
+    "seen_points": [
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
+    ]
+}
+```
+or `HTTP_400_BAD_REQUEST`
 
 #### `starred-list/`
 
@@ -357,6 +399,7 @@ Header
     ]
 }
 ```
+or `HTTP_404_NOT_FOUND`
 
 #### `starred_list/`
 
@@ -388,3 +431,4 @@ Body
     ]
 }
 ```
+or `HTTP_400_BAD_REQUEST`
