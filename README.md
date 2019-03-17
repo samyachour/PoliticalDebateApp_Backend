@@ -250,7 +250,7 @@ GET
 
 #### `progress/<int:pk>`
 
-- get seen points for given debate
+- get user's seen points for given debate
 
 GET
 
@@ -307,7 +307,7 @@ Header
 
 #### `progress/`
 
-- add new seen point to debate progress
+- add new seen point to user's debate progress
 
 POST
 
@@ -403,7 +403,7 @@ or `HTTP_404_NOT_FOUND`
 
 #### `starred_list/`
 
-- add new debate to starred list
+- add new debate to user's starred list
 
 POST
 
