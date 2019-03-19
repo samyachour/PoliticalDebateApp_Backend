@@ -45,7 +45,7 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
+    - django: `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
     - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
 
 #### Setup
@@ -195,6 +195,7 @@ Body
 #### `debate/<int:pk>`
 
 - get a debate by primary key
+- load entire map into memory and use to present map flow to users marking points as seen as you go
 
 GET
 
@@ -216,6 +217,7 @@ or `HTTP_404_NOT_FOUND`
 #### `debates/`
 
 - get all debates
+- will only ever return a maximum of 100 debates (50 w/ pro & con combined)
 - should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
 
 GET
