@@ -203,7 +203,7 @@ GET
 ```
 {
     "pk", 1,
-    "title": "test_old_password",
+    "title": "test_debate_pro",
     "last_updated": March 15, 2019
     "debate_map": {
         "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
