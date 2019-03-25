@@ -53,7 +53,7 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 Dependencies:
 - Python 3.x (manual)
 - [Django](https://www.djangoproject.com) 2.x
-- [Django rest framework](django rest framework) 3.x
+- [Django rest framework](https://www.django-rest-framework.org) 3.x
 - [Django rest framework JWT](https://getblimp.github.io/django-rest-framework-jwt/) 1.x
 - [PostgreSQL 11.x](https://www.postgresql.org) (manual)
 - [Psycopg2](http://initd.org/psycopg/) 2.x
