@@ -203,11 +203,11 @@ GET
 
 ```
 {
-    "pk", 1,
+    "pk": 1,
     "title": "test_debate_pro",
-    "last_updated": "2019-03-17"
+    "last_updated": "2019-03-17",
     "debate_map": {
-        "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+        "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"],
         "secondary - point2" : ["rebuttal - (key to secondary point)"]
     }
 }
@@ -229,18 +229,18 @@ GET
     {
         "pk": 1,
         "title": "test_debate_pro",
-        "last_updated": "2019-03-17"
+        "last_updated": "2019-03-17",
         "debate_map": {
-            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"],
             "secondary - point2" : ["rebuttal - (key to secondary point)"]
         }
     },
     {
         "pk": 2,
         "title": "test_debate_con",
-        "last_updated": "2019-03-17"
+        "last_updated": "2019-03-17",
         "debate_map": {
-            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
+            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"],
             "secondary - point2" : ["rebuttal - (key to secondary point)"]
         }
     },
