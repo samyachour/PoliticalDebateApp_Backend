@@ -201,29 +201,8 @@ GET
 
 - Returns:
 
-```
-{
-    "pk": 1,
-    "title": "test_debate_pro",
-    "last_updated": "2019-03-17",
-    "debate_map": {
-        "main - point1": {
-            "description": "main point1 description",
-            "non-sequitur rebuttal": "main point1 formatted as non-sequitur rebuttal",
-            "styling": { "references": ["research.com/article1", "research.com/article2"], "images": ["image1 url", "image2 url"] },
-            "secondary - point1": {
-                "description": "secondary point1 description",
-                "non-sequitur rebuttal": "secondary point1 formatted as non-sequitur rebuttal",
-                "styling": {""},
-                "secondary - point1": {""}
-            },
-            "secondary - point2": {""}
-        },
-        "main - point2": {""}
-    }
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
 
-}
-```
 or `HTTP_404_NOT_FOUND`
 
 #### `debates/`
@@ -236,51 +215,7 @@ GET
 
 - Returns:
 
-```
-[
-    {
-        "pk": 1,
-        "title": "test_debate_pro",
-        "last_updated": "2019-03-17",
-        "debate_map": {
-            "main - point1": {
-                "description": "main point1 description",
-                "non-sequitur rebuttal": "main point1 formatted as non-sequitur rebuttal",
-                "styling": { "references": ["research.com/article1", "research.com/article2"], "images": ["image1 url", "image2 url"] },
-                "secondary - point1": {
-                    "description": "secondary point1 description",
-                    "non-sequitur rebuttal": "secondary point1 formatted as non-sequitur rebuttal",
-                    "styling": {""},
-                    "secondary - point1": {""}
-                },
-                "secondary - point2": {""}
-            },
-            "main - point2": {""}
-        }
-
-    },
-    {
-        "pk": 2,
-        "title": "test_debate_con",
-        "last_updated": "2019-03-17",
-        "debate_map": {
-        	"main - point1": {
-                "description": "main point1 description",
-                "non-sequitur rebuttal": "main point1 formatted as non-sequitur rebuttal",
-                "styling": { "references": ["research.com/article1", "research.com/article2"], "images": ["image1 url", "image2 url"] },
-        		"secondary - point1": { 
-                    "description": "secondary point1 description",
-                    "non-sequitur rebuttal": "secondary point1 formatted as non-sequitur rebuttal",
-                    "styling": {""},
-                    "secondary - point1": {""}
-                },
-                "secondary - point2": {""}
-            },
-            "main - point2": {""}
-        }
-    }
-]
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
 
 #### `progress/<int:pk>`
 
