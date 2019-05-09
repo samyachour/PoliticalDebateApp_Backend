@@ -2,7 +2,7 @@
         "main - point1": {
 		"description": "main point1 description",
 		"non-sequitur rebuttal": "main point1 formatted as non-sequitur rebuttal",
-		"styling": { "hyperlink": "research.com/article", "images": ["image1 url", "image2 url"] },
+		"styling": { "references": ["research.com/article1", "research.com/article2"], "images": ["image1 url", "image2 url"] },
         	"secondary - point1": { 
 			"description": "secondary point1 description",
 			"non-sequitur rebuttal": "secondary point1 formatted as non-sequitur rebuttal", 
