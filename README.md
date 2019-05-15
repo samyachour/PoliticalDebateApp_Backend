@@ -4,7 +4,7 @@ This repo is the master for all our code repos. It has a [kanban board](https://
 
 ### The app
 
-The political debate app concept is simple: explore the pro & con sides of contentious issues via an interactive (bandersnatch-esque) interface.
+The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
 
 #### Design
 
@@ -18,9 +18,9 @@ Each point is accompanied by several responses (rebuttals). Some of these lead t
 
 #### Debate maps
 
-The app's backend content can be modified by creating stylized text files called [debate maps](Debate_maps/Template) (usually with no extension).
+The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json).
 
-The backend has a script that can parse these documents and create a new debate page based on it, with the frontends then pulling this on start.
+The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
 
 #### Misc
 
