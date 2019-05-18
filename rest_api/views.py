@@ -248,10 +248,10 @@ class RegisterUsers(generics.CreateAPIView):
         username = request.data.get("username", "")
         password = request.data.get("password", "")
         email = request.data.get("email", "")
-        if not username and not password and not email:
+        if not username or not password or not email:
             return Response(
                 data={
-                    "message": "username, password and email is required to register a user"
+                    "message": "a username, password and email are required to register a user"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
