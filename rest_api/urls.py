@@ -1,6 +1,9 @@
 from django.urls import path
 from .views import *
-from rest_framework_jwt.views import refresh_jwt_token
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
     path('debates/', ListDebatesView.as_view(), name="get-all-debates"),
@@ -11,8 +14,8 @@ urlpatterns = [
     path('progress-completed/', ProgressCompleted.as_view(), name="post-progress-completed"),
     path('starred-list/', StarredView.as_view(), name="get-starred-list"),
     path('starred-list/', StarredView.as_view(), name="post-starred-list"),
-    path('auth/login/', LoginView.as_view(), name="auth-login"),
     path('auth/register/', RegisterUsers.as_view(), name="auth-register"),
     path('auth/change-password/', ChangePasswordView.as_view(), name="auth-change-password"),
-    path('auth/refresh-token/', refresh_jwt_token, name="auth-refresh-token"),
+    path('auth/token/obtain/', TokenObtainPairView.as_view(), name='auth-token-obtain'), # Login
+    path('auth/token/refresh/', TokenRefreshView.as_view(), name='auth-token-refresh'),
 ]
