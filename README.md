@@ -54,7 +54,7 @@ Dependencies:
 - Python 3.x (manual)
 - [Django](https://www.djangoproject.com) 2.x
 - [Django rest framework](https://www.django-rest-framework.org) 3.x
-- [Django rest framework JWT](https://getblimp.github.io/django-rest-framework-jwt/) 1.x
+- [Django rest framework SimpleJWT](https://github.com/davesque/django-rest-framework-simplejwt) 3.x
 - [PostgreSQL 11.x](https://www.postgresql.org) (manual)
 - [Psycopg2](http://initd.org/psycopg/) 2.x
 
@@ -114,7 +114,7 @@ Body
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
 
 
-#### `auth/login/`
+#### `auth/token/obtain`
 
 - login user to get token for session
 
@@ -134,14 +134,16 @@ Body
 
 ```
 {
-    "token": (JSON Web Token)
+    "refresh": (JSON Web Refresh Token)
+    "access": (JSON Web Access Token)
 }
 ```
 or `HTTP_401_UNAUTHORIZED`
 
-#### `auth/refresh-token/`
+#### `auth/token/refresh`
 
-- need to keep checking if token is almost expired, if so ask for a refresh
+- when you get a 401, refresh your access token
+- save refresh and access tokens to secure persistent data
 - access token expires every 10 minutes
 - refresh window is up to 30 days
 
@@ -152,7 +154,7 @@ POST
 ```
 Body
 {
-    "token": (existing JSON web token)
+    "refresh": (existing JSON Web Refresh token)
 }
 ```
 
@@ -160,7 +162,7 @@ Body
 
 ```
 {
-    "token": (new JSON Web Token)
+    "access": (new JSON Web Access Token)
 }
 ```
 or
@@ -228,7 +230,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -256,7 +258,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -285,7 +287,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
@@ -320,7 +322,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
@@ -355,7 +357,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -381,7 +383,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```

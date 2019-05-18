@@ -129,7 +129,7 @@ class BaseViewTest(APITestCase):
 
     def login_a_user(self, username="", password=""):
         url = reverse(
-            "auth-login",
+            "auth-token-obtain",
             kwargs={
                 "version": "v1"
             }
@@ -145,7 +145,7 @@ class BaseViewTest(APITestCase):
 
     def refresh_token(self, token=""):
         url = reverse(
-            "auth-refresh-token",
+            "auth-token-refresh",
             kwargs={
                 "version": "v1"
             }
@@ -153,7 +153,7 @@ class BaseViewTest(APITestCase):
         return self.client.post(
             url,
             data=json.dumps({
-                "token": token
+                "refresh": token
             }),
             content_type="application/json"
         )
@@ -175,9 +175,15 @@ class BaseViewTest(APITestCase):
         )
 
     def login_client(self, username="", password=""):
+        url = reverse(
+            "auth-token-obtain",
+            kwargs={
+                "version": "v1"
+            }
+        )
         # get a token from DRF
         response = self.client.post(
-            reverse("create-token"),
+            url,
             data=json.dumps(
                 {
                     'username': username,
@@ -186,7 +192,7 @@ class BaseViewTest(APITestCase):
             ),
             content_type='application/json'
         )
-        self.token = response.data['token']
+        self.token = response.data['access']
         # set the token in the header
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer ' + self.token
@@ -519,20 +525,22 @@ class AuthChangePasswordTest(BaseViewTest):
 
 class AuthLoginUserTest(BaseViewTest):
     """
-    Tests for the auth/login/ endpoint
+    Tests for the auth/token/obtain endpoint
     """
 
     def test_login_user_with_valid_credentials(self):
         # test login with valid credentials
         response = self.login_a_user("test_user", "testing")
-        # assert token key exists
-        self.assertIn("token", response.data)
+        # assert access token key exists
+        self.assertIn("access", response.data)
+        # assert refresh token key exists
+        self.assertIn("refresh", response.data)
         # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # refresh token
-        response = self.refresh_token(response.data["token"])
+        response = self.refresh_token(response.data["refresh"])
         # assert token key exists
-        self.assertIn("token", response.data)
+        self.assertIn("access", response.data)
         # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test login with invalid credentials
