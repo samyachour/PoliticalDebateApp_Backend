@@ -117,6 +117,7 @@ Body
 #### `auth/token/obtain`
 
 - login user to get token for session
+- save refresh and access tokens to secure persistent data
 
 POST
 
@@ -134,8 +135,8 @@ Body
 
 ```
 {
-    "refresh": (JSON Web Refresh Token)
-    "access": (JSON Web Access Token)
+    "refresh": (new JSON Web Refresh Token)
+    "access": (new JSON Web Access Token)
 }
 ```
 or `HTTP_401_UNAUTHORIZED`
@@ -143,7 +144,6 @@ or `HTTP_401_UNAUTHORIZED`
 #### `auth/token/refresh`
 
 - when you get a 401, refresh your access token
-- save refresh and access tokens to secure persistent data
 - access token expires every 10 minutes
 - refresh window is up to 30 days
 
@@ -179,7 +179,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
