@@ -4,7 +4,7 @@ This repo is the master for all our code repos. It has a [kanban board](https://
 
 ### The app
 
-The political debate app concept is simple: explore the pro & con sides of contentious issues via an interactive (bandersnatch-esque) interface.
+The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
 
 #### Design
 
@@ -18,9 +18,9 @@ Each point is accompanied by several responses (rebuttals). Some of these lead t
 
 #### Debate maps
 
-The app's backend content can be modified by creating stylized text files called [debate maps](Debate_maps/Template) (usually with no extension).
+The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json).
 
-The backend has a script that can parse these documents and create a new debate page based on it, with the frontends then pulling this on start.
+The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
 
 #### Misc
 
@@ -45,18 +45,18 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 
 - Useful commands:
     - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
+    - django: `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
     - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
 
 #### Setup
 
 Dependencies:
 - Python 3.x (manual)
-- Django 2.x
-- Django rest framework 3.x
-- Django rest framework JWT 1.x
-- PostgreSQL 11.x (manual)
-- Psycopg2 2.x
+- [Django](https://www.djangoproject.com) 2.x
+- [Django rest framework](https://www.django-rest-framework.org) 3.x
+- [Django rest framework SimpleJWT](https://github.com/davesque/django-rest-framework-simplejwt) 3.x
+- [PostgreSQL 11.x](https://www.postgresql.org) (manual)
+- [Psycopg2](http://initd.org/psycopg/) 2.x
 
 Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
@@ -114,9 +114,10 @@ Body
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
 
 
-#### `auth/login/`
+#### `auth/token/obtain`
 
 - login user to get token for session
+- save refresh and access tokens to secure persistent data
 
 POST
 
@@ -134,14 +135,15 @@ Body
 
 ```
 {
-    "token": (JSON Web Token)
+    "refresh": (new JSON Web Refresh Token)
+    "access": (new JSON Web Access Token)
 }
 ```
 or `HTTP_401_UNAUTHORIZED`
 
-#### `auth/refresh-token/`
+#### `auth/token/refresh`
 
-- need to keep checking if token is almost expired, if so ask for a refresh
+- when you get a 401, refresh your access token
 - access token expires every 10 minutes
 - refresh window is up to 30 days
 
@@ -152,7 +154,7 @@ POST
 ```
 Body
 {
-    "token": (existing JSON web token)
+    "refresh": (existing JSON Web Refresh token)
 }
 ```
 
@@ -160,7 +162,7 @@ Body
 
 ```
 {
-    "token": (new JSON Web Token)
+    "access": (new JSON Web Access Token)
 }
 ```
 or
@@ -177,7 +179,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
@@ -195,62 +197,31 @@ Body
 #### `debate/<int:pk>`
 
 - get a debate by primary key
+- load entire map into memory and use to present map flow to users marking points as seen as you go
 
 GET
 
 - Returns:
 
-```
-{
-    "pk", 1,
-    "title": "test_old_password",
-    "last_updated": March 15, 2019
-    "debate_map": {
-        "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
-        "secondary - point2" : ["rebuttal - (key to secondary point)"]
-    }
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
+
 or `HTTP_404_NOT_FOUND`
 
 #### `debates/`
 
 - get all debates
+- will only ever return a maximum of 100 debates (50 w/ pro & con combined)
 - should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
 
 GET
 
 - Returns:
 
-```
-[
-    {
-        "pk": 1,
-        "title": "test_debate_pro",
-        "last_updated": March 15, 2019
-        "debate_map": {
-            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
-            "secondary - point2" : ["rebuttal - (key to secondary point)"]
-        }
-    },
-    {
-        "pk": 2,
-        "title": "test_debate_con",
-        "last_updated": March 15, 2019
-        "debate_map": {
-            "main - point1" : ["rebuttal - (key to secondary point)", "main point formatted as non-sequitur rebuttal"]
-            "secondary - point2" : ["rebuttal - (key to secondary point)"]
-        }
-    },
-    {
-        (debate)
-    }
-]
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
 
 #### `progress/<int:pk>`
 
-- get seen points for given debate
+- get user's seen points for given debate
 
 GET
 
@@ -259,7 +230,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -287,7 +258,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -307,7 +278,7 @@ Header
 
 #### `progress/`
 
-- add new seen point to debate progress
+- add new seen point to user's debate progress
 
 POST
 
@@ -316,7 +287,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
@@ -351,7 +322,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
@@ -386,7 +357,7 @@ GET
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
@@ -403,7 +374,7 @@ or `HTTP_404_NOT_FOUND`
 
 #### `starred_list/`
 
-- add new debate to starred list
+- add new debate to user's starred list
 
 POST
 
@@ -412,7 +383,7 @@ POST
 ```
 Header
 {
-    "Authorization": (JSON Web Token)
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 ```
