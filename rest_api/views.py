@@ -245,10 +245,9 @@ class RegisterUsers(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        username = request.data.get("username", "")
         password = request.data.get("password", "")
         email = request.data.get("email", "")
-        if not username or not password or not email:
+        if not email or not password:
             return Response(
                 data={
                     "message": "a username, password and email are required to register a user"
@@ -256,6 +255,6 @@ class RegisterUsers(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         new_user = User.objects.create_user(
-            username=username, password=password, email=email
+            username=email, password=password, email=email
         )
         return Response(status=status.HTTP_201_CREATED)

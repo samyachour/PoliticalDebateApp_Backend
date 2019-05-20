@@ -104,7 +104,6 @@ POST
 Body
 {
     "email": "test@mail.com",
-    "username": "test_username",
     "password": "test_password"
 }
 ```
@@ -118,6 +117,7 @@ Body
 
 - login user to get token for session
 - save refresh and access tokens to secure persistent data
+- use the "username" key but pass in the user's email
 
 POST
 
@@ -126,7 +126,7 @@ POST
 ```
 Body
 {
-    "username": "test_username",
+    "username": "test@mail.com",
     "password": "test_password"
 }
 ```
