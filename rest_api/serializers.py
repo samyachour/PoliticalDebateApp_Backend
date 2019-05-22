@@ -29,3 +29,9 @@ class PasswordChangeSerializer(serializers.Serializer):
     """
     old_password = serializers.CharField(max_length=255, required=True)
     new_password = serializers.CharField(max_length=255, required=True)
+
+class EmailChangeSerializer(serializers.Serializer):
+    """
+    Serializer for email change endpoint.
+    """
+    new_email = serializers.CharField(max_length=255, required=True)

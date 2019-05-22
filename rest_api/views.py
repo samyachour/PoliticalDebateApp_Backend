@@ -218,9 +218,9 @@ class StarredView(generics.RetrieveAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-class ChangePasswordView(generics.CreateAPIView):
+class ChangePasswordView(generics.UpdateAPIView):
     """
-    POST auth/change-password/
+    PUT auth/change-password/
     """
     # This permission class will overide the global permission
     # class setting
@@ -243,7 +243,40 @@ class ChangePasswordView(generics.CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RegisterUsers(generics.CreateAPIView):
+class ChangeEmailView(generics.UpdateAPIView):
+    """
+    PUT auth/change-email/
+    """
+    # This permission class will overide the global permission
+    # class setting
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmailChangeSerializer
+    queryset = User.objects.all()
+
+    def put(self, request, *args, **kwargs):
+        self.object = self.request.user
+        serializer = self.get_serializer(data=request.data)
+        new_email = request.data.get("new_email", "")
+
+        if serializer.is_valid():
+            try:
+                # Set username to email, don't set email property until it's verified
+                self.object.username = new_email
+                email_verification.send_email(self.object, request, new_email)
+            # Throws SMTPexception if email fails to send
+            except:
+                return Response(
+                    data={
+                        "message": "invalid email"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            self.object.save()
+            return Response("Success.", status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     """
     POST auth/register/
     """

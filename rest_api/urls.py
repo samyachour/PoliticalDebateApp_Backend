@@ -16,6 +16,7 @@ urlpatterns = [
     path('starred-list/', StarredView.as_view(), name="post-starred-list"),
     path('auth/register/', RegisterUsersView.as_view(), name="auth-register"),
     path('auth/change-password/', ChangePasswordView.as_view(), name="auth-change-password"),
+    path('auth/change-email/', ChangeEmailView.as_view(), name="auth-change-email"),
     path('auth/token/obtain/', TokenObtainPairView.as_view(), name='auth-token-obtain'), # Login
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='auth-token-refresh'),
     path('auth/verify/<str:uidb64>/<str:token>/<int:password_reset>', VerificationView.as_view(), name='auth-verify'),

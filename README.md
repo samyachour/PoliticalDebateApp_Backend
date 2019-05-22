@@ -195,6 +195,32 @@ Body
 
 `HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
 
+#### `auth/change-email/`
+
+- change user password
+- verification email is automatically sent to user's email, clients should express this
+
+PUT
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "new_email": "test@mail.com"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
 #### `debate/<int:pk>`
 
 - get a debate by primary key

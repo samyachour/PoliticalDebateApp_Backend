@@ -1,12 +1,13 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
 from rest_framework.views import status
 from rest_api.models import *
 from .serializers import *
 import json
 from datetime import datetime
+from .views import *
 
 # tests for views
 
@@ -173,6 +174,25 @@ class BaseViewTest(APITestCase):
             }),
             content_type="application/json"
         )
+
+    def change_user_email(self, user, new_email=""):
+        view = ChangeEmailView.as_view()
+        url = reverse(
+            "auth-change-email",
+            kwargs={
+                "version": "v1"
+            }
+        )
+        request = self.requestFactory.put(
+            url,
+            data=json.dumps({
+                "new_email": new_email
+            }),
+            content_type="application/json"
+        )
+        force_authenticate(request, user=user)
+
+        return view(request)
 
     def login_client(self, username="", password=""):
         url = reverse(
@@ -502,6 +522,31 @@ class GetASingleStarredTest(BaseViewTest):
         serialized = StarredSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class AuthChangeEmailTest(BaseViewTest):
+    """
+    Tests for the auth/change-email/ endpoint
+    """
+
+    def test_change_email(self):
+        changeEmailUser = User.objects.create_superuser(
+            username="changeemail_user@mail.com",
+            email="changeemail_user@mail.com",
+            password="changeemail_pass"
+        )
+        # test login with valid credentials
+        self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
+        response = self.change_user_email(changeEmailUser, "changeemail_user1@mail.com")
+        # assert status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            "Success."
+        )
+        # test with incorrect old email
+        response = self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
+        # assert status code is 400 Bad request
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class AuthChangePasswordTest(BaseViewTest):
     """
