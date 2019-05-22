@@ -173,7 +173,7 @@ or
 
 - change user password
 
-POST
+PUT
 
 - Takes:
 
@@ -214,6 +214,25 @@ Header
 Body
 {
     "new_email": "test@mail.com"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `auth/delete/`
+
+- delete user account & all associated data
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 

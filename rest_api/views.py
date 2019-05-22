@@ -277,6 +277,22 @@ class ChangeEmailView(generics.UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class DeleteUsersView(generics.DestroyAPIView):
+    """
+    POST auth/delete/
+    """
+    # This permission class will overide the global permission
+    # class setting
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = User.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.request.user
+
+        self.object.delete() #Triggers cascading deletions on user data existing on other tables
+        return Response("Success.", status=status.HTTP_200_OK)
+
+class RegisterUsersView(generics.CreateAPIView):
     """
     POST auth/register/
     """

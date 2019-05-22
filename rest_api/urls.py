@@ -14,6 +14,7 @@ urlpatterns = [
     path('progress-completed/', ProgressCompleted.as_view(), name="post-progress-completed"),
     path('starred-list/', StarredView.as_view(), name="get-starred-list"),
     path('starred-list/', StarredView.as_view(), name="post-starred-list"),
+    path('auth/delete/', DeleteUsersView.as_view(), name="auth-delete"),
     path('auth/register/', RegisterUsersView.as_view(), name="auth-register"),
     path('auth/change-password/', ChangePasswordView.as_view(), name="auth-change-password"),
     path('auth/change-email/', ChangeEmailView.as_view(), name="auth-change-email"),

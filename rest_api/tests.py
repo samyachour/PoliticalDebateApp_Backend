@@ -159,6 +159,22 @@ class BaseViewTest(APITestCase):
             content_type="application/json"
         )
 
+    def delete_user(self, user):
+        view = DeleteUsersView.as_view()
+        url = reverse(
+            "auth-delete",
+            kwargs={
+                "version": "v1"
+            }
+        )
+        request = self.requestFactory.post(
+            url,
+            content_type="application/json"
+        )
+        force_authenticate(request, user=user)
+
+        return view(request)
+
     def change_user_password(self, old_password="", new_password=""):
         url = reverse(
             "auth-change-password",
@@ -606,3 +622,29 @@ class AuthRegisterUserTest(BaseViewTest):
         response = self.register_a_user("", "")
         # assert status code
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class DeleteUserTest(BaseViewTest):
+    """
+    Tests for the auth/token/obtain endpoint
+    """
+
+    def test_delete_user(self):
+        deleteUser = User.objects.create_superuser(
+            username="todelete_user@mail.com",
+            email="todelete_user@mail.com",
+            password="todelete_pass"
+        )
+        # test login with valid credentials
+        response = self.login_a_user("todelete_user@mail.com", "todelete_pass")
+        # assert access token key exists
+        self.assertIn("access", response.data)
+        # assert refresh token key exists
+        self.assertIn("refresh", response.data)
+        # delete user
+        response = self.delete_user(deleteUser)
+        # assert status code is 200 OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # test login with invalid credentials
+        response = self.login_a_user("todelete_user@mail.com", "todelete_pass")
+        # assert status code is 401 UNAUTHORIZED
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
