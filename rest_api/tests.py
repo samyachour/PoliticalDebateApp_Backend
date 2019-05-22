@@ -127,7 +127,7 @@ class BaseViewTest(APITestCase):
         )
         return self.client.get(url)
 
-    def login_a_user(self, username="", password=""):
+    def login_a_user(self, email="", password=""):
         url = reverse(
             "auth-token-obtain",
             kwargs={
@@ -137,7 +137,7 @@ class BaseViewTest(APITestCase):
         return self.client.post(
             url,
             data=json.dumps({
-                "username": username,
+                "username": email,
                 "password": password
             }),
             content_type="application/json"
@@ -200,7 +200,7 @@ class BaseViewTest(APITestCase):
         self.client.login(username=username, password=password)
         return self.token
 
-    def register_a_user(self, username="", password="", email=""):
+    def register_a_user(self, email="", password=""):
         return self.client.post(
             reverse(
                 "auth-register",
@@ -210,9 +210,8 @@ class BaseViewTest(APITestCase):
             ),
             data=json.dumps(
                 {
-                    "username": username,
-                    "password": password,
-                    "email": email
+                    "email": email,
+                    "password": password
                 }
             ),
             content_type='application/json'
@@ -220,9 +219,11 @@ class BaseViewTest(APITestCase):
 
     def setUp(self):
 
+        self.requestFactory = APIRequestFactory()
+
         # create a admin user
         self.user = User.objects.create_superuser(
-            username="test_user",
+            username="test@mail.com",
             email="test@mail.com",
             password="testing"
         )
@@ -238,7 +239,6 @@ class BaseViewTest(APITestCase):
         self.create_progress_point(self.user, self.borderWall, "Drones cost 1/100th of the price.")
 
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
-
 
         self.valid_progress_point_data = {
             "debate_pk": self.gunControl.pk,
@@ -274,11 +274,11 @@ class ProgressModelTest(BaseViewTest):
         """
         progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
 
-        self.assertEqual(progress_point.user.username, "test_user")
+        self.assertEqual(progress_point.user.username, "test@mail.com")
         self.assertEqual(progress_point.debate.title, "Gun control")
         self.assertEqual(progress_point.completed, False)
         self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
-        self.assertEqual(str(progress_point), "test_user - Gun control")
+        self.assertEqual(str(progress_point), "test@mail.com - Gun control")
 
 class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
@@ -303,7 +303,7 @@ class StarredModelTest(BaseViewTest):
         starred_list = Starred.objects.create(user=self.user)
         starred_list.starred_list.add(self.gunControl)
         self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
-        self.assertEqual(str(starred_list), "test_user - Gun control")
+        self.assertEqual(str(starred_list), "test@mail.com - Gun control")
 
 class GetAllDebatesTest(BaseViewTest):
 
@@ -356,7 +356,7 @@ class AddProgressPointTest(BaseViewTest):
         """
         This test ensures that a single progress point can be added
         """
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_progress_request(
             kind="post",
@@ -383,7 +383,7 @@ class SetProgressPointCompletedTest(BaseViewTest):
         """
         This test ensures that a single progress point can be set as completed
         """
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.set_progress_point_completed_request(
             kind="post",
@@ -411,7 +411,7 @@ class GetASingleProgressPointTest(BaseViewTest):
         This test ensures that a single progress point of a given debate title is returned
         """
         valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.fetch_progress_seen_points(valid_progress.debate.pk)
         # fetch the data from db
@@ -441,7 +441,7 @@ class GetAllProgressPointsTest(BaseViewTest):
         This test ensures that a all progress points can be returned
         """
         valid_progress = Progress.objects.filter(user=self.user)
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.fetch_all_progress_seen_points()
         # fetch the data from db
@@ -455,7 +455,7 @@ class AddToStarredTest(BaseViewTest):
         """
         This test ensures that a single debate can be added to the reading list
         """
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_starred_list_request(
             kind="post",
@@ -494,7 +494,7 @@ class GetASingleStarredTest(BaseViewTest):
         This test ensures that a single progress point of a given debate title is returned
         """
         valid_starred_list = Starred.objects.get(user=self.user)
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.fetch_starred_list()
         # fetch the data from db
@@ -510,7 +510,7 @@ class AuthChangePasswordTest(BaseViewTest):
 
     def test_change_password(self):
         # test login with valid credentials
-        self.login_client('test_user', 'testing')
+        self.login_client('test@mail.com', 'testing')
         response = self.change_user_password("testing", "testing1")
         # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -530,7 +530,7 @@ class AuthLoginUserTest(BaseViewTest):
 
     def test_login_user_with_valid_credentials(self):
         # test login with valid credentials
-        response = self.login_a_user("test_user", "testing")
+        response = self.login_a_user("test@mail.com", "testing")
         # assert access token key exists
         self.assertIn("access", response.data)
         # assert refresh token key exists
@@ -553,43 +553,11 @@ class AuthRegisterUserTest(BaseViewTest):
     Tests for auth/register/ endpoint
     """
     def test_register_a_user_with_valid_data(self):
-        url = reverse(
-            "auth-register",
-            kwargs={
-                "version": "v1"
-            }
-        )
-        response = self.client.post(
-            url,
-            data=json.dumps(
-                {
-                    "username": "new_user",
-                    "password": "new_pass",
-                    "email": "new_user@mail.com"
-                }
-            ),
-            content_type="application/json"
-        )
+        response = self.register_a_user("new_user@mail.com", "new_pass")
         # assert status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_register_a_user_with_invalid_data(self):
-        url = reverse(
-            "auth-register",
-            kwargs={
-                "version": "v1"
-            }
-        )
-        response = self.client.post(
-            url,
-            data=json.dumps(
-                {
-                    "username": "",
-                    "password": "",
-                    "email": ""
-                }
-            ),
-            content_type='application/json'
-        )
+        response = self.register_a_user("", "")
         # assert status code
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

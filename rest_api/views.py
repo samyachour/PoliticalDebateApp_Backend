@@ -7,6 +7,11 @@ from django.contrib.auth import authenticate, login
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from .decorators import *
+from .helpers.tokens import account_verification_token
+from .helpers.emailverification import email_verification
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from django.http import HttpResponse
 
 class ListDebatesView(generics.ListAPIView):
     """
@@ -250,11 +255,50 @@ class RegisterUsers(generics.CreateAPIView):
         if not email or not password:
             return Response(
                 data={
-                    "message": "a username, password and email are required to register a user"
+                    "message": "an email and password are required to register a user"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        # New user's don't have an email attribute until they verify their email
         new_user = User.objects.create_user(
-            username=email, password=password, email=email
+            username=email, password=password
         )
+        try:
+            email_verification.send_email(new_user, request, email)
+        # Throws SMTPexception if email fails to send
+        except:
+            new_user.delete()
+            return Response(
+                data={
+                    "message": "invalid email"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(status=status.HTTP_201_CREATED)
+
+class VerificationView(generics.RetrieveAPIView):
+    """
+    GET auth/verify/<str:uid>/<str:token>/<int:password_reset>
+    """
+    queryset = User.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        try:
+            uid = force_text(urlsafe_base64_decode(kwargs["uidb64"]))
+            user = self.queryset.get(pk=uid)
+        except:
+            user = None
+        if user is not None and account_verification_token.check_token(user, kwargs["token"]):
+
+            if kwargs["password_reset"]:
+                return HttpResponse('Password reset screen')
+            else:
+                # User verified email
+                user.email = user.username
+                user.save()
+
+                return HttpResponse('Email verified!')
+
+        else:
+            return HttpResponse('Activation link is invalid!')

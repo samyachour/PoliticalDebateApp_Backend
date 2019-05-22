@@ -95,6 +95,7 @@ Instructions:
 #### `auth/register/`
 
 - register new user with credentials
+- verification email is automatically sent to user's email, clients should express this
 
 POST
 
