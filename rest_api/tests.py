@@ -1,4 +1,4 @@
-from django.test import TestCase
+username_keyfrom django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
@@ -8,6 +8,7 @@ from .serializers import *
 import json
 from datetime import datetime
 from .views import *
+from .helpers.constants import *
 
 # tests for views
 
@@ -20,9 +21,9 @@ class BaseViewTest(APITestCase):
             return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map)
 
     @staticmethod
-    def create_progress_point(user=None, debate=None, debate_point=""):
-        if user != None and debate != None and debate_point != "":
-            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point])
+    def create_progress_point(user=None, debate=None, debate_point_key=""):
+        if user != None and debate != None and debate_point_key != "":
+            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point_key])
 
     @staticmethod
     def create_starred_list(user=None, debate=None):
@@ -30,146 +31,146 @@ class BaseViewTest(APITestCase):
             starred = Starred.objects.create(user=user)
             starred.starred_list.add(debate)
 
-    def make_a_create_progress_request(self, kind="post", **kwargs):
+    def make_a_create_progress_request(self, kind=post_key, **kwargs):
         """
         Make a post request to create a progress point
         :param kind: HTTP VERB
         :return:
         """
-        if kind == "post":
+        if kind == post_key:
             return self.client.post(
                 reverse(
-                    "post-progress",
+                    post_progress_name,
                     kwargs={
-                        "version": kwargs["version"]
+                        version_key: kwargs[version_key]
                     }
                 ),
-                data=json.dumps(kwargs["data"]),
-                content_type='application/json'
+                data=json.dumps(kwargs[data]),
+                content_type=content_type
             )
         else:
             return None
 
-    def make_a_create_starred_list_request(self, kind="post", **kwargs):
+    def make_a_create_starred_list_request(self, kind=post_key, **kwargs):
         """
         Make a post request to create/add to a reading list
         :param kind: HTTP VERB
         :return:
         """
-        if kind == "post":
+        if kind == post_key:
             return self.client.post(
                 reverse(
-                    "post-starred-list",
+                    post_starred_list_name,
                     kwargs={
-                        "version": kwargs["version"]
+                        version_key: kwargs[version_key]
                     }
                 ),
-                data=json.dumps(kwargs["data"]),
-                content_type='application/json'
+                data=json.dumps(kwargs[data]),
+                content_type=content_type
             )
         else:
             return None
 
-    def set_progress_point_completed_request(self, kind="post", **kwargs):
+    def set_progress_point_completed_request(self, kind=post_key, **kwargs):
         """
         Make a post request to set a progress point as completed
         :param kind: HTTP VERB
         :return:
         """
-        if kind == "post":
+        if kind == post_key:
             return self.client.post(
                 reverse(
-                    "post-progress-completed",
+                    post_progress_completed_name,
                     kwargs={
-                        "version": kwargs["version"]
+                        version_key: kwargs[version_key]
                     }
                 ),
-                data=json.dumps(kwargs["data"]),
-                content_type='application/json'
+                data=json.dumps(kwargs[data]),
+                content_type=content_type
             )
         else:
             return None
 
     def fetch_a_debate(self, pk=None):
         url = reverse(
-            "get-debate",
+            get_debate_name,
             kwargs={
-                "version": "v1",
-                "pk": pk
+                version_key: v1_key,
+                pk_key: pk
             },
         )
         return self.client.get(url)
 
     def fetch_progress_seen_points(self, pk=""):
         url = reverse(
-            "get-progress",
+            get_progress_name,
             kwargs={
-                "version": "v1",
-                "pk": pk
+                version_key: v1_key,
+                pk_key: pk
             },
         )
         return self.client.get(url)
 
     def fetch_all_progress_seen_points(self):
         url = reverse(
-            "get-all-progress",
+            get_all_progress_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             },
         )
         return self.client.get(url)
 
     def fetch_starred_list(self):
         url = reverse(
-            "get-starred-list",
+            get_starred_list_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         return self.client.get(url)
 
     def login_a_user(self, email="", password=""):
         url = reverse(
-            "auth-token-obtain",
+            auth_token_obtain_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         return self.client.post(
             url,
             data=json.dumps({
-                "username": email,
-                "password": password
+                username_key: email,
+                password: password
             }),
-            content_type="application/json"
+            content_type=content_type
         )
 
     def refresh_token(self, token=""):
         url = reverse(
-            "auth-token-refresh",
+            auth_token_refresh_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         return self.client.post(
             url,
             data=json.dumps({
-                "refresh": token
+                refresh_key: token
             }),
-            content_type="application/json"
+            content_type=content_type
         )
 
     def delete_user(self, user):
         view = DeleteUsersView.as_view()
         url = reverse(
-            "auth-delete",
+            auth_delete_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         request = self.requestFactory.post(
             url,
-            content_type="application/json"
+            content_type=content_type
         )
         force_authenticate(request, user=user)
 
@@ -177,34 +178,34 @@ class BaseViewTest(APITestCase):
 
     def change_user_password(self, old_password="", new_password=""):
         url = reverse(
-            "auth-change-password",
+            auth_change_password_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         return self.client.put(
             url,
             data=json.dumps({
-                "old_password": old_password,
-                "new_password": new_password
+                old_password: old_password,
+                new_password_key: new_password
             }),
-            content_type="application/json"
+            content_type=content_type
         )
 
     def change_user_email(self, user, new_email=""):
         view = ChangeEmailView.as_view()
         url = reverse(
-            "auth-change-email",
+            auth_change_email_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         request = self.requestFactory.put(
             url,
             data=json.dumps({
-                "new_email": new_email
+                new_email_key: new_email
             }),
-            content_type="application/json"
+            content_type=content_type
         )
         force_authenticate(request, user=user)
 
@@ -212,9 +213,9 @@ class BaseViewTest(APITestCase):
 
     def login_client(self, username="", password=""):
         url = reverse(
-            "auth-token-obtain",
+            auth_token_obtain_name,
             kwargs={
-                "version": "v1"
+                version_key: v1_key
             }
         )
         # get a token from DRF
@@ -222,13 +223,13 @@ class BaseViewTest(APITestCase):
             url,
             data=json.dumps(
                 {
-                    'username': username,
-                    'password': password
+                    username_key: username,
+                    password_key: password
                 }
             ),
-            content_type='application/json'
+            content_type=content_type
         )
-        self.token = response.data['access']
+        self.token = response.data[access_key]
         # set the token in the header
         self.client.credentials(
             HTTP_AUTHORIZATION='Bearer ' + self.token
@@ -239,18 +240,18 @@ class BaseViewTest(APITestCase):
     def register_a_user(self, email="", password=""):
         return self.client.post(
             reverse(
-                "auth-register",
+                auth_register_name,
                 kwargs={
-                    "version": "v1"
+                    version_key: v1_key
                 }
             ),
             data=json.dumps(
                 {
-                    "email": email,
-                    "password": password
+                    email_key: email,
+                    password_key: password
                 }
             ),
-            content_type='application/json'
+            content_type=content_type
         )
 
     def setUp(self):
@@ -277,30 +278,30 @@ class BaseViewTest(APITestCase):
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
 
         self.valid_progress_point_data = {
-            "debate_pk": self.gunControl.pk,
-            "debate_point": "Civilians can't own tanks though."
+            debate_pk_key: self.gunControl.pk,
+            debate_point_key: "Civilians can't own tanks though."
         }
         self.valid_progress_point_completed_data = {
-            "debate_pk": self.gunControl.pk,
-            "completed": True
+            debate_pk_key: self.gunControl.pk,
+            completed_key: True
         }
         self.invalid_progress_point_data_empty = {
-            "debate_pk": "",
-            "debate_point": ""
+            debate_pk_key: "",
+            debate_point_key: ""
         }
         self.invalid_progress_point_completed_data_empty = {
-            "debate_pk": "",
-            "completed": ""
+            debate_pk_key: "",
+            completed_key: ""
         }
 
         self.valid_starred_list_data = {
-            "debate_pk": self.abortion.pk,
+            debate_pk_key: self.abortion.pk,
         }
         self.invalid_starred_list_data_empty = {
-            "debate_pk": "",
+            debate_pk_key: "",
         }
         self.invalid_starred_list_data = {
-            "debate_pk": 100000000000,
+            debate_pk_key: 100000000000,
         }
 
 class ProgressModelTest(BaseViewTest):
@@ -350,7 +351,7 @@ class GetAllDebatesTest(BaseViewTest):
         """
         # hit the API endpoint
         response = self.client.get(
-            reverse("get-all-debates", kwargs={"version": "v1"})
+            reverse(get_all_debates_name, kwargs={version_key: v1_key})
         )
         # fetch the data from db
         expected = Debate.objects.all()
@@ -381,7 +382,7 @@ class GetASingleDebateTest(BaseViewTest):
         # test with a debate that does not exist
         response = self.fetch_a_debate(100000000000)
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Debate with ID: 100000000000 does not exist"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -395,20 +396,20 @@ class AddProgressPointTest(BaseViewTest):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_progress_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.valid_progress_point_data
         )
-        self.assertEqual(response.data["seen_points"][-1], self.valid_progress_point_data["debate_point"])
+        self.assertEqual(response.data[seen_points_key][-1], self.valid_progress_point_data[debate_point_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # test with invalid data
         response = self.make_a_create_progress_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.invalid_progress_point_data_empty
         )
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Both debate ID and debate point are required to add a progress point"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -422,20 +423,20 @@ class SetProgressPointCompletedTest(BaseViewTest):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.set_progress_point_completed_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.valid_progress_point_completed_data
         )
-        self.assertTrue(response.data["completed"])
+        self.assertTrue(response.data[completed_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # test with invalid data
         response = self.set_progress_point_completed_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.invalid_progress_point_completed_data_empty
         )
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Both debate ID and completed status are required to update completed status"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -458,14 +459,14 @@ class GetASingleProgressPointTest(BaseViewTest):
         # test with a debate that does not exist
         response = self.fetch_progress_seen_points(10000000000)
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Could not find debate with ID 10000000000"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # test with a progress point that does not exist
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Could not retrieve progress"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -494,31 +495,31 @@ class AddToStarredTest(BaseViewTest):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_starred_list_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.valid_starred_list_data
         )
-        self.assertTrue(self.abortion.pk in response.data["starred_list"])
+        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # test with invalid data
         response = self.make_a_create_starred_list_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.invalid_starred_list_data_empty
         )
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "A debate ID is required"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # test with a debate that does not exist
         response = self.make_a_create_starred_list_request(
-            kind="post",
-            version="v1",
+            kind=post_key,
+            version_key=v1_key,
             data=self.invalid_starred_list_data
         )
         self.assertEqual(
-            response.data["message"],
+            response.data[message_key],
             "Could not find debate with ID 100000000000"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -593,15 +594,15 @@ class AuthLoginUserTest(BaseViewTest):
         # test login with valid credentials
         response = self.login_a_user("test@mail.com", "testing")
         # assert access token key exists
-        self.assertIn("access", response.data)
-        # assert refresh token key exists
-        self.assertIn("refresh", response.data)
+        self.assertIn(access_key, response.data)
+        # assert refresh_key token key exists
+        self.assertIn(refresh_key, response.data)
         # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # refresh token
-        response = self.refresh_token(response.data["refresh"])
+        response = self.refresh_token(response.data[refresh_key])
         # assert token key exists
-        self.assertIn("access", response.data)
+        self.assertIn(access_key, response.data)
         # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test login with invalid credentials
@@ -637,9 +638,9 @@ class DeleteUserTest(BaseViewTest):
         # test login with valid credentials
         response = self.login_a_user("todelete_user@mail.com", "todelete_pass")
         # assert access token key exists
-        self.assertIn("access", response.data)
+        self.assertIn(access_key, response.data)
         # assert refresh token key exists
-        self.assertIn("refresh", response.data)
+        self.assertIn(refresh_key, response.data)
         # delete user
         response = self.delete_user(deleteUser)
         # assert status code is 200 OK

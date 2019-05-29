@@ -1,6 +1,6 @@
 ## Political debate app (master)
 
-This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management and also indexes all our debate map documents.
+This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management.
 
 ### The app
 
@@ -113,6 +113,27 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
 
+#### `auth/request-password-reset/`
+
+- request link to reset user password
+- reset link is automatically sent to user's email, clients should express this
+- force_send is if the user hasn't confirmed their email, they can force send the reset link anyway
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "email": "test@mail.com",
+    (optional, defaults to false) "force_send": true
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message) or `HTTP_404_NOT_FOUND`
 
 #### `auth/token/obtain`
 
@@ -197,7 +218,7 @@ Body
 
 #### `auth/change-email/`
 
-- change user password
+- change user email
 - verification email is automatically sent to user's email, clients should express this
 
 PUT
