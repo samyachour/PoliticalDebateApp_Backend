@@ -271,7 +271,8 @@ class RegisterUsersView(generics.CreateAPIView):
 
 class PasswordResetView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'password_reset.html'
+    template_name = 'forms/password_reset.html'
+    queryset = User.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
@@ -315,7 +316,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
 
         user = get_object_or_404(User, username=email)
         # We only set the email field after confirming email
-        if not user.email and not request.data[force_send_key]:
+        if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
                     message_key: "user has not confirmed their email"
@@ -323,7 +324,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            email_verification.send_email(user, request, email, password_reset=true)
+            email_verification.send_email(user, request, email, password_reset=True)
         # Throws SMTPexception if email fails to send
         except:
             return Response(
