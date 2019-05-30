@@ -1,4 +1,4 @@
-username_keyfrom django.test import TestCase
+from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
@@ -42,10 +42,10 @@ class BaseViewTest(APITestCase):
                 reverse(
                     post_progress_name,
                     kwargs={
-                        version_key: kwargs[version_key]
+                        version_key: v1_key
                     }
                 ),
-                data=json.dumps(kwargs[data]),
+                data=json.dumps(kwargs[data_key]),
                 content_type=content_type
             )
         else:
@@ -62,10 +62,10 @@ class BaseViewTest(APITestCase):
                 reverse(
                     post_starred_list_name,
                     kwargs={
-                        version_key: kwargs[version_key]
+                        version_key: v1_key
                     }
                 ),
-                data=json.dumps(kwargs[data]),
+                data=json.dumps(kwargs[data_key]),
                 content_type=content_type
             )
         else:
@@ -82,10 +82,10 @@ class BaseViewTest(APITestCase):
                 reverse(
                     post_progress_completed_name,
                     kwargs={
-                        version_key: kwargs[version_key]
+                        version_key: v1_key
                     }
                 ),
-                data=json.dumps(kwargs[data]),
+                data=json.dumps(kwargs[data_key]),
                 content_type=content_type
             )
         else:
@@ -140,7 +140,7 @@ class BaseViewTest(APITestCase):
             url,
             data=json.dumps({
                 username_key: email,
-                password: password
+                password_key: password
             }),
             content_type=content_type
         )
@@ -186,7 +186,7 @@ class BaseViewTest(APITestCase):
         return self.client.put(
             url,
             data=json.dumps({
-                old_password: old_password,
+                old_password_key: old_password,
                 new_password_key: new_password
             }),
             content_type=content_type
@@ -381,10 +381,6 @@ class GetASingleDebateTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test with a debate that does not exist
         response = self.fetch_a_debate(100000000000)
-        self.assertEqual(
-            response.data[message_key],
-            "Debate with ID: 100000000000 does not exist"
-        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class AddProgressPointTest(BaseViewTest):
@@ -458,17 +454,9 @@ class GetASingleProgressPointTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test with a debate that does not exist
         response = self.fetch_progress_seen_points(10000000000)
-        self.assertEqual(
-            response.data[message_key],
-            "Could not find debate with ID 10000000000"
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # test with a progress point that does not exist
         response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertEqual(
-            response.data[message_key],
-            "Could not retrieve progress"
-        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class GetAllProgressPointsTest(BaseViewTest):
@@ -541,9 +529,6 @@ class GetASingleStarredTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class AuthChangeEmailTest(BaseViewTest):
-    """
-    Tests for the auth/change-email/ endpoint
-    """
 
     def test_change_email(self):
         changeEmailUser = User.objects.create_superuser(
@@ -566,9 +551,6 @@ class AuthChangeEmailTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class AuthChangePasswordTest(BaseViewTest):
-    """
-    Tests for the auth/change-password/ endpoint
-    """
 
     def test_change_password(self):
         # test login with valid credentials
@@ -586,9 +568,6 @@ class AuthChangePasswordTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class AuthLoginUserTest(BaseViewTest):
-    """
-    Tests for the auth/token/obtain endpoint
-    """
 
     def test_login_user_with_valid_credentials(self):
         # test login with valid credentials
@@ -611,9 +590,7 @@ class AuthLoginUserTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class AuthRegisterUserTest(BaseViewTest):
-    """
-    Tests for auth/register/ endpoint
-    """
+
     def test_register_a_user_with_valid_data(self):
         response = self.register_a_user("new_user@mail.com", "new_pass")
         # assert status code is 201 CREATED
@@ -625,9 +602,6 @@ class AuthRegisterUserTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class DeleteUserTest(BaseViewTest):
-    """
-    Tests for the auth/token/obtain endpoint
-    """
 
     def test_delete_user(self):
         deleteUser = User.objects.create_superuser(

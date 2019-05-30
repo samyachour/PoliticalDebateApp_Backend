@@ -92,7 +92,6 @@ class ProgressViewAll(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         progress_points = self.queryset.filter(user=request.user)
-        print(progress_points)
         return Response(ProgressSerializer(progress_points, many=True).data)
 
 class ProgressCompleted(generics.RetrieveAPIView):
@@ -195,13 +194,12 @@ class ChangePasswordView(generics.UpdateAPIView):
     @validate_change_password_post_request_data
     def put(self, request, *args, **kwargs):
         self.object = self.request.user
-        serializer = self.get_serializer(data=request.data)
 
         # Check old password
-        if not self.object.check_password(serializer.data.get(old_password)):
-            return Response({old_password: ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+        if not self.object.check_password(request.data[old_password_key]):
+            return Response({old_password_key: ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
         # set_password also hashes the password that the user will get
-        self.object.set_password(serializer.data.get(new_password_key))
+        self.object.set_password(request.data[new_password_key])
         self.object.save()
         return Response("Success.", status=status.HTTP_200_OK)
 
@@ -214,8 +212,7 @@ class ChangeEmailView(generics.UpdateAPIView):
     @validate_change_email_post_request_data
     def put(self, request, *args, **kwargs):
         self.object = self.request.user
-        serializer = self.get_serializer(data=request.data)
-        new_email = request.data.get(new_email_key, "")
+        new_email = request.data[new_email_key]
 
         try:
             # Set username to email, don't set email property until it's verified
@@ -252,8 +249,8 @@ class RegisterUsersView(generics.CreateAPIView):
 
     @validate_register_user_post_request_data
     def post(self, request, *args, **kwargs):
-        password = request.data.get(password, "")
-        email = request.data.get(email, "")
+        password = request.data[password_key]
+        email = request.data[email_key]
 
         # New user's don't have an email attribute until they verify their email
         new_user = User.objects.create_user(
@@ -314,11 +311,11 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
 
     @validate_request_password_reset_post_request_data
     def post(self, request, *args, **kwargs):
-        email = request.data.get(email, "")
+        email = request.data[email_key]
 
         user = get_object_or_404(User, username=email)
         # We only set the email field after confirming email
-        if not user.email and not request.data.get(force_send_key, ""):
+        if not user.email and not request.data[force_send_key]:
             return Response(
                 data={
                     message_key: "user has not confirmed their email"
