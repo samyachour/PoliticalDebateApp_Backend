@@ -1,6 +1,6 @@
 ## Political debate app (master)
 
-This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management and also indexes all our debate map documents.
+This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management.
 
 ### The app
 
@@ -95,6 +95,7 @@ Instructions:
 #### `auth/register/`
 
 - register new user with credentials
+- verification email is automatically sent to user's email, clients should express this
 
 POST
 
@@ -104,7 +105,6 @@ POST
 Body
 {
     "email": "test@mail.com",
-    "username": "test_username",
     "password": "test_password"
 }
 ```
@@ -113,11 +113,11 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
 
+#### `auth/request-password-reset/`
 
-#### `auth/token/obtain`
-
-- login user to get token for session
-- save refresh and access tokens to secure persistent data
+- request link to reset user password
+- reset link is automatically sent to user's email, clients should express this
+- force_send is if the user hasn't confirmed their email, they can force send the reset link anyway
 
 POST
 
@@ -126,7 +126,29 @@ POST
 ```
 Body
 {
-    "username": "test_username",
+    "email": "test@mail.com",
+    (optional, defaults to false) "force_send": true
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message) or `HTTP_404_NOT_FOUND`
+
+#### `auth/token/obtain`
+
+- login user to get token for session
+- save refresh and access tokens to secure persistent data
+- use the "username" key but pass in the user's email
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "username": "test@mail.com",
     "password": "test_password"
 }
 ```
@@ -172,7 +194,7 @@ or
 
 - change user password
 
-POST
+PUT
 
 - Takes:
 
@@ -187,6 +209,51 @@ Body
 {
     "old_password": "test_old_password",
     "new_password": "test_new_password"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `auth/change-email/`
+
+- change user email
+- verification email is automatically sent to user's email, clients should express this
+
+PUT
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "new_email": "test@mail.com"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `auth/delete/`
+
+- delete user account & all associated data
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
 }
 ```
 
