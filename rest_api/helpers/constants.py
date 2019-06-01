@@ -54,6 +54,10 @@ password_key = "password"
 
 content_type = "application/json"
 
+passwords_do_not_match_key = "passwords_do_not_match"
+password_too_short_key = "password_too_short"
+new_password_confirmation_key = "new_password_confirmation"
+
 # URL names
 get_all_debates_name = "get_all_debates"
 get_debate_name = "get_debate"
@@ -69,11 +73,13 @@ auth_change_password_name = "auth_change_password"
 auth_change_email_name = "auth_change_email"
 auth_token_obtain_name = "auth_token_obtain"
 auth_token_refresh_name = "auth_token_refresh"
-auth_password_reset_name = "auth_password_reset"
+auth_password_reset_form_name = "auth_password_reset_form"
+auth_password_reset_submit_name = "auth_password_reset_submit"
 auth_request_password_reset_name = "auth_request_password_reset"
 auth_verify_name = "auth_verify"
 
 # URL Parts
 auth_string = "auth"
-password_reset_string = "password-reset"
+password_reset_form_string = "password-reset-form"
+password_reset_submit_string = "password-reset-submit"
 verify_string = "verify"

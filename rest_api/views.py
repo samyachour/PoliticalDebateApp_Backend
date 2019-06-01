@@ -269,9 +269,9 @@ class RegisterUsersView(generics.CreateAPIView):
             )
         return Response(status=status.HTTP_201_CREATED)
 
-class PasswordResetView(APIView):
+class PasswordResetFormView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'forms/password_reset.html'
+    template_name = 'password_reset.html'
     queryset = User.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -285,10 +285,21 @@ class PasswordResetView(APIView):
             user.email = user.username
             user.save()
 
-            return Response({'serializer': PasswordResetSerializer()})
+            return Response({'serializer': PasswordResetFormSerializer(),
+                             version_key: v1_key,
+                             uidb64_key: kwargs[uidb64_key],
+                             token_key: kwargs[token_key],
+                             passwords_do_not_match_key: False,
+                             password_too_short_key: False
+                            })
 
         else:
             return HttpResponse('Link is invalid!')
+
+class PasswordResetSubmitView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = PasswordResetSubmitSerializer
 
     def post(self, request, *args, **kwargs):
         try:
@@ -297,11 +308,19 @@ class PasswordResetView(APIView):
         except:
             user = None
         if user is not None and account_verification_token.check_token(user, kwargs[token_key]):
-            # User verified email
-            user.email = user.username
-            user.save()
+            serializer = self.get_serializer(data=request.data)
 
-            return Response({'serializer': PasswordResetSerializer()})
+            if serializer.is_valid():
+                new_password = serializer.data.get(new_password_key)
+                new_password_confirmation = serializer.data.get(new_password_confirmation_key)
+
+                user.set_password(new_password)
+                user.save()
+
+                return HttpResponse('Password successfully changed!')
+
+            else:
+                return HttpResponse('There was a problem. Please try again.')
 
         else:
             return HttpResponse('Link is invalid!')
@@ -319,7 +338,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
         if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
-                    message_key: "user has not confirmed their email"
+                    message_key: "user has not verified their email"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

@@ -21,7 +21,8 @@ urlpatterns = [
     path('{0}/change-email/'.format(auth_string), ChangeEmailView.as_view(), name=auth_change_email_name),
     path('{0}/token/obtain/'.format(auth_string), TokenObtainPairView.as_view(), name=auth_token_obtain_name), # Login
     path('{0}/token/refresh/'.format(auth_string), TokenRefreshView.as_view(), name=auth_token_refresh_name),
-    path('{0}/{1}/<str:{2}>/<str:{3}>'.format(auth_string, password_reset_string, uidb64_key, token_key), PasswordResetView.as_view(), name=auth_password_reset_name),
+    path('{0}/{1}/<str:{2}>/<str:{3}>'.format(auth_string, password_reset_form_string, uidb64_key, token_key), PasswordResetFormView.as_view(), name=auth_password_reset_form_name),
+    path('{0}/{1}/<str:{2}>/<str:{3}>/'.format(auth_string, password_reset_submit_string, uidb64_key, token_key), PasswordResetSubmitView.as_view(), name=auth_password_reset_submit_name),
     path('{0}/request-password-reset/'.format(auth_string), RequestPasswordResetView.as_view(), name=auth_request_password_reset_name),
     path('{0}/{1}/<str:{2}>/<str:{3}>'.format(auth_string, verify_string, uidb64_key, token_key), VerificationView.as_view(), name=auth_verify_name),
 ]

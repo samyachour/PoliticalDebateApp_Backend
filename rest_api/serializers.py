@@ -24,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (username_key, email_key)
 
 # For generating HTML form
-class PasswordResetSerializer(serializers.Serializer):
+class PasswordResetFormSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         max_length=100,
         style={'input_type': 'password', 'placeholder': 'New password'}
@@ -33,3 +33,7 @@ class PasswordResetSerializer(serializers.Serializer):
         max_length=100,
         style={'input_type': 'password', 'placeholder': 'New password'}
     )
+
+class PasswordResetSubmitSerializer(serializers.Serializer):
+    new_password = serializers.CharField(max_length=255, required=True)
+    new_password_confirmation = serializers.CharField(max_length=255, required=True)
