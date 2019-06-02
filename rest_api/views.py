@@ -74,7 +74,7 @@ class ProgressViewAll(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            debate = Debate.objects.get(pk=request.data[debate_pk_key])
+            debate = Debate.objects.get(pk=request.data[pk_key])
             progress_point = self.queryset.get(user=request.user, debate=debate)
 
             existing_seen_points = progress_point.seen_points
@@ -86,7 +86,7 @@ class ProgressViewAll(generics.RetrieveAPIView):
         except Debate.DoesNotExist:
             return Response(
                 data={
-                    message_key: "Could not find debate with ID {}".format(request.data[debate_pk_key])
+                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -117,7 +117,7 @@ class ProgressCompleted(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            debate = Debate.objects.get(pk=request.data[debate_pk_key])
+            debate = Debate.objects.get(pk=request.data[pk_key])
             progress_point = self.queryset.filter(user=request.user, debate=debate)
 
             if progress_point.count() == 1:
@@ -126,14 +126,14 @@ class ProgressCompleted(generics.RetrieveAPIView):
             elif progress_point.count() > 1:
                 return Response(
                     data={
-                        message_key: "Found duplicate progress point for user ID {} and debate ID {}. This should never happen".format(request.user.pk, request.data[debate_pk_key])
+                        message_key: "Found duplicate progress point for user ID {} and debate ID {}. This should never happen".format(request.user.pk, request.data[pk_key])
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
             else:
                 return Response(
                     data={
-                        message_key: "Could not find user progress point with debate ID {}".format(request.data[debate_pk_key])
+                        message_key: "Could not find user progress point with debate ID {}".format(request.data[pk_key])
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -141,7 +141,7 @@ class ProgressCompleted(generics.RetrieveAPIView):
         except Debate.DoesNotExist:
             return Response(
                 data={
-                    message_key: "Could not find debate with ID {}".format(request.data[debate_pk_key])
+                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -160,7 +160,7 @@ class StarredView(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            newDebate = Debate.objects.get(pk=request.data[debate_pk_key])
+            newDebate = Debate.objects.get(pk=request.data[pk_key])
             user_starred = self.queryset.get(user=request.user)
 
             if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
@@ -169,7 +169,7 @@ class StarredView(generics.RetrieveAPIView):
         except Debate.DoesNotExist:
             return Response(
                 data={
-                    message_key: "Could not find debate with ID {}".format(request.data[debate_pk_key])
+                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

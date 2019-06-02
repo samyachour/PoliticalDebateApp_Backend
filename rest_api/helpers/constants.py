@@ -5,8 +5,6 @@ minimum_trigram_similarity = 0.1
 #Request keys
 pk_key = "pk"
 
-debate_pk_key = "debate_pk"
-
 debate_point_key = "debate_point"
 
 completed_key = "completed"

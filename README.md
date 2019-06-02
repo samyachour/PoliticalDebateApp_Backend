@@ -356,7 +356,7 @@ Header
 ```
 Body
 {
-    "debate_pk": 1,
+    "pk": 1,
     "debate_point": "point"
 }
 ```
@@ -391,7 +391,7 @@ Header
 ```
 Body
 {
-    "debate_pk": 1,
+    "pk": 1,
     "completed": True
 }
 ```
@@ -452,7 +452,7 @@ Header
 ```
 Body
 {
-    "debate_pk": 1
+    "pk": 1
 }
 ```
 

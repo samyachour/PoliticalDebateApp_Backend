@@ -33,7 +33,7 @@ def validate_progress_point_get_request_data(fn):
 def validate_progress_post_point_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        debate_title = args[0].request.data.get(debate_pk_key, "")
+        debate_title = args[0].request.data.get(pk_key, "")
         debate_point = args[0].request.data.get(debate_point_key, "")
         if not debate_title or not debate_point:
             return Response(
@@ -48,7 +48,7 @@ def validate_progress_post_point_request_data(fn):
 def validate_progress_post_completed_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        debate_title = args[0].request.data.get(debate_pk_key, "")
+        debate_title = args[0].request.data.get(pk_key, "")
         debate_point = args[0].request.data.get(completed_key, "")
         if not debate_title and not debate_point:
             return Response(
@@ -63,7 +63,7 @@ def validate_progress_post_completed_request_data(fn):
 def validate_starred_list_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        debate_title = args[0].request.data.get(debate_pk_key, "")
+        debate_title = args[0].request.data.get(pk_key, "")
         if not debate_title:
             return Response(
                 data={

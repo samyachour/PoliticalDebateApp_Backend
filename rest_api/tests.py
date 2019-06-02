@@ -288,30 +288,30 @@ class BaseViewTest(APITestCase):
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
 
         self.valid_progress_point_data = {
-            debate_pk_key: self.gunControl.pk,
+            pk_key: self.gunControl.pk,
             debate_point_key: "Civilians can't own tanks though."
         }
         self.valid_progress_point_completed_data = {
-            debate_pk_key: self.gunControl.pk,
+            pk_key: self.gunControl.pk,
             completed_key: True
         }
         self.invalid_progress_point_data_empty = {
-            debate_pk_key: "",
+            pk_key: "",
             debate_point_key: ""
         }
         self.invalid_progress_point_completed_data_empty = {
-            debate_pk_key: "",
+            pk_key: "",
             completed_key: ""
         }
 
         self.valid_starred_list_data = {
-            debate_pk_key: self.abortion.pk,
+            pk_key: self.abortion.pk,
         }
         self.invalid_starred_list_data_empty = {
-            debate_pk_key: "",
+            pk_key: "",
         }
         self.invalid_starred_list_data = {
-            debate_pk_key: 100000000000,
+            pk_key: 100000000000,
         }
 
 class ProgressModelTest(BaseViewTest):
