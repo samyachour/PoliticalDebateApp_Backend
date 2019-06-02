@@ -91,6 +91,16 @@ class BaseViewTest(APITestCase):
         else:
             return None
 
+    def search_debates(self, search_string=""):
+        url = reverse(
+            search_debates_name,
+            kwargs={
+                version_key: v1_key,
+                search_string_key: search_string
+            },
+        )
+        return self.client.get(url)
+
     def fetch_a_debate(self, pk=None):
         url = reverse(
             get_debate_name,
@@ -347,15 +357,28 @@ class GetAllDebatesTest(BaseViewTest):
     def test_get_all_debates(self):
         """
         This test ensures that all debate added in the setUp method
-        exist when we make a GET request to the debate/ endpoint
+        exist when we make a GET request to the debate/search/ endpoint
         """
         # hit the API endpoint
         response = self.client.get(
-            reverse(get_all_debates_name, kwargs={version_key: v1_key})
+            reverse(search_debates_name, kwargs={version_key: v1_key})
         )
         # fetch the data from db
         expected = Debate.objects.all()
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class SearchDebatesTest(BaseViewTest):
+
+    def test_search_debates(self):
+        """
+        This test ensures that we can search our debate database
+        """
+        response = self.search_debates("gun")
+        # fetch the data from db
+        expected = Debate.objects.all().filter(title="Gun control")
+        serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

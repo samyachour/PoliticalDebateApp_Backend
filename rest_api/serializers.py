@@ -6,7 +6,12 @@ from .helpers.constants import *
 class DebateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Debate
-        fields = (pk_key, title_key, last_updated_key, debate_map_key)
+        fields = (pk_key, title_key, last_updated_key, total_points_key, debate_map_key)
+
+class DebateSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Debate
+        fields = (pk_key, title_key, last_updated_key, total_points_key)
 
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
