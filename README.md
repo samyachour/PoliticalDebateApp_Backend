@@ -69,6 +69,7 @@ Instructions:
     - Debate
         - title: String (unique)
         - last_updated: Date
+        - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
         - user: User (foreign key)
