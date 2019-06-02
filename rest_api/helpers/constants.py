@@ -1,5 +1,6 @@
 
 minimum_password_length = 6
+minimum_trigram_similarity = 0.1
 
 #Request keys
 pk_key = "pk"
@@ -47,6 +48,8 @@ title_key = "title"
 
 last_updated_key = "last_updated"
 
+total_points_key = "total_points"
+
 debate_map_key = "debate_map"
 
 username_key = "username"
@@ -54,12 +57,12 @@ password_key = "password"
 
 content_type = "application/json"
 
-passwords_do_not_match_key = "passwords_do_not_match"
-password_too_short_key = "password_too_short"
 new_password_confirmation_key = "new_password_confirmation"
 
+search_string_key = "search_string"
+
 # URL names
-get_all_debates_name = "get_all_debates"
+search_debates_name = "search_debates"
 get_debate_name = "get_debate"
 get_progress_name = "get_progress"
 get_all_progress_name = "get_all_progress"

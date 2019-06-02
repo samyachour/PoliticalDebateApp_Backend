@@ -7,7 +7,8 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    path('debates/', ListDebatesView.as_view(), name=get_all_debates_name),
+    path('debate/search/'.format(search_string_key), SearchDebatesView.as_view(), name=search_debates_name),
+    path('debate/search/<str:{0}>'.format(search_string_key), SearchDebatesView.as_view(), name=search_debates_name),
     path('debate/<int:{0}>'.format(pk_key), DebateDetailView.as_view(), name=get_debate_name),
     path('progress/<int:{0}>'.format(pk_key), ProgressView.as_view(), name=get_progress_name),
     path('progress/', ProgressViewAll.as_view(), name=get_all_progress_name),

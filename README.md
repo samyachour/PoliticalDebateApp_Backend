@@ -41,13 +41,6 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 - Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
 - Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
 
-#### Usage
-
-- Useful commands:
-    - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - django: `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
-    - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
-
 #### Setup
 
 Dependencies:
@@ -56,6 +49,7 @@ Dependencies:
 - [Django rest framework](https://www.django-rest-framework.org) 3.x
 - [Django rest framework SimpleJWT](https://github.com/davesque/django-rest-framework-simplejwt) 3.x
 - [PostgreSQL 11.x](https://www.postgresql.org) (manual)
+    - [Trigram Similarity](https://www.postgresql.org/docs/current/pgtrgm.html)
 - [Psycopg2](http://initd.org/psycopg/) 2.x
 
 Instructions:
@@ -274,11 +268,12 @@ GET
 
 or `HTTP_404_NOT_FOUND`
 
-#### `debates/`
+#### `debate/search/<str:search_string>`
 
-- get all debates
-- will only ever return a maximum of 100 debates (50 w/ pro & con combined)
-- should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
+- searches debate database with given string as query
+- an empty string (i.e. no characters after `/`) will return all the debates
+- results come sorted in terms of recency with a limit of 100 total
+- the debate maps do not come in this call
 
 GET
 

@@ -15,11 +15,25 @@ from .helpers.constants import *
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
+from django.contrib.postgres.search import TrigramSimilarity
 
-class ListDebatesView(generics.ListAPIView):
+class SearchDebatesView(generics.ListAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        # Just give the user the most recent debates
+        if search_string_key not in kwargs:
+            debates = self.queryset.order_by('-' + last_updated_key)[:100]
+        else:
+            search_string = kwargs[search_string_key]
+            debates = self.queryset.annotate(
+                        similarity=TrigramSimilarity(title_key, search_string),
+                      ).filter(similarity__gt=minimum_trigram_similarity).order_by('-' + last_updated_key)[:100]
+
+        serializer = DebateSearchSerializer(instance=debates, many=True)
+        return Response(serializer.data)
 
 class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Debate.objects.all()
