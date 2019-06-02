@@ -14,6 +14,7 @@ class Debate(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     # debate subtitle
     last_updated = models.DateField(default=datetime.today, null=False)
+    total_points = models.IntegerField(default=0, null=False)
     debate_map = JSONField(default=get_default_data_dict, null=False)
 
     def __str__(self):

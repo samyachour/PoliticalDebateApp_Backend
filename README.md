@@ -1,6 +1,6 @@
 ## Political debate app (master)
 
-This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management and also indexes all our debate map documents.
+This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management.
 
 ### The app
 
@@ -41,13 +41,6 @@ For our backend we use the [Django Rest Framework](https://www.django-rest-frame
 - Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
 - Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
 
-#### Usage
-
-- Useful commands:
-    - on start: `source venv/bin/activate` `pg_ctl -D /usr/local/var/postgres start` (or `stop`)
-    - django: `python manage.py makemigrations` `python manage.py migrate` `python manage.py test` `python manage.py runserver`
-    - psql: `psql -d PoliticalDebateApp -U politicaldebateappowner` `\l` `\q` `\du` `drop database "(database)";` `create database "(database)";` `grant all privileges on database "(database)" to (user);` `create database postgres;`
-
 #### Setup
 
 Dependencies:
@@ -56,6 +49,7 @@ Dependencies:
 - [Django rest framework](https://www.django-rest-framework.org) 3.x
 - [Django rest framework SimpleJWT](https://github.com/davesque/django-rest-framework-simplejwt) 3.x
 - [PostgreSQL 11.x](https://www.postgresql.org) (manual)
+    - [Trigram Similarity](https://www.postgresql.org/docs/current/pgtrgm.html)
 - [Psycopg2](http://initd.org/psycopg/) 2.x
 
 Instructions:
@@ -75,6 +69,7 @@ Instructions:
     - Debate
         - title: String (unique)
         - last_updated: Date
+        - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
         - user: User (foreign key)
@@ -95,6 +90,7 @@ Instructions:
 #### `auth/register/`
 
 - register new user with credentials
+- verification email is automatically sent to user's email, clients should express this
 
 POST
 
@@ -104,7 +100,6 @@ POST
 Body
 {
     "email": "test@mail.com",
-    "username": "test_username",
     "password": "test_password"
 }
 ```
@@ -113,11 +108,11 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
 
+#### `auth/request-password-reset/`
 
-#### `auth/token/obtain`
-
-- login user to get token for session
-- save refresh and access tokens to secure persistent data
+- request link to reset user password
+- reset link is automatically sent to user's email, clients should express this
+- force_send is if the user hasn't confirmed their email, they can force send the reset link anyway
 
 POST
 
@@ -126,7 +121,29 @@ POST
 ```
 Body
 {
-    "username": "test_username",
+    "email": "test@mail.com",
+    (optional, defaults to false) "force_send": true
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message) or `HTTP_404_NOT_FOUND`
+
+#### `auth/token/obtain`
+
+- login user to get token for session
+- save refresh and access tokens to secure persistent data
+- use the "username" key but pass in the user's email
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "username": "test@mail.com",
     "password": "test_password"
 }
 ```
@@ -172,7 +189,7 @@ or
 
 - change user password
 
-POST
+PUT
 
 - Takes:
 
@@ -194,6 +211,51 @@ Body
 
 `HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
 
+#### `auth/change-email/`
+
+- change user email
+- verification email is automatically sent to user's email, clients should express this
+
+PUT
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "new_email": "test@mail.com"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
+#### `auth/delete/`
+
+- delete user account & all associated data
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+
 #### `debate/<int:pk>`
 
 - get a debate by primary key
@@ -207,11 +269,12 @@ GET
 
 or `HTTP_404_NOT_FOUND`
 
-#### `debates/`
+#### `debate/search/<str:search_string>`
 
-- get all debates
-- will only ever return a maximum of 100 debates (50 w/ pro & con combined)
-- should be 2 debates for every topic postfixed with either a `_pro` or a `_con`
+- searches debate database with given string as query
+- an empty string (i.e. no characters after `/`) will return all the debates
+- results come sorted in terms of recency with a limit of 100 total
+- the debate maps do not come in this call
 
 GET
 
