@@ -32,11 +32,6 @@ class BaseViewTest(APITestCase):
             starred.starred_list.add(debate)
 
     def make_a_create_progress_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to create a progress point
-        :param kind: HTTP VERB
-        :return:
-        """
         if kind == post_key:
             return self.client.post(
                 reverse(
@@ -52,11 +47,6 @@ class BaseViewTest(APITestCase):
             return None
 
     def make_a_create_starred_list_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to create/add to a reading list
-        :param kind: HTTP VERB
-        :return:
-        """
         if kind == post_key:
             return self.client.post(
                 reverse(
@@ -288,9 +278,6 @@ class BaseViewTest(APITestCase):
 
 class ProgressModelTest(BaseViewTest):
     def test_basic_create_a_progress_point(self):
-        """"
-        This test ensures that the progress point created exists
-        """
         progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
 
         self.assertEqual(progress_point.user.username, "test@mail.com")
@@ -301,9 +288,6 @@ class ProgressModelTest(BaseViewTest):
 
 class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
-        """"
-        This test ensures that the debate created exists
-        """
         debate = Debate.objects.create(
             title="Test debate",
             last_updated=self.today,
@@ -316,9 +300,6 @@ class DebateModelTest(BaseViewTest):
 
 class StarredModelTest(BaseViewTest):
     def test_basic_create_a_starred_list(self):
-        """"
-        This test ensures that the reading list created exists
-        """
         starred_list = Starred.objects.create(user=self.user)
         starred_list.starred_list.add(self.gunControl)
         self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
@@ -327,10 +308,6 @@ class StarredModelTest(BaseViewTest):
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        """
-        This test ensures that all debate added in the setUp method
-        exist when we make a GET request to the debate/search/ endpoint
-        """
         # hit the API endpoint
         response = self.client.get(
             reverse(search_debates_name, kwargs={version_key: v1_key})
@@ -344,9 +321,6 @@ class GetAllDebatesTest(BaseViewTest):
 class SearchDebatesTest(BaseViewTest):
 
     def test_search_debates(self):
-        """
-        This test ensures that we can search our debate database
-        """
         response = self.search_debates("gun")
         # fetch the data from db
         expected = Debate.objects.all().filter(title="Gun control")
@@ -357,10 +331,6 @@ class SearchDebatesTest(BaseViewTest):
 class GetASingleDebateTest(BaseViewTest):
 
     def test_get_a_debate(self):
-        """
-        This test ensures that a single debate of a given title is
-        returned
-        """
         valid_debate = Debate.objects.get(pk=self.gunControl.pk)
         serialized = DebateSerializer(valid_debate)
         # hit the API endpoint
@@ -381,9 +351,6 @@ class GetASingleDebateTest(BaseViewTest):
 class AddProgressPointTest(BaseViewTest):
 
     def test_create_a_progress_point(self):
-        """
-        This test ensures that a single progress point can be added
-        """
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_progress_request(
@@ -406,12 +373,9 @@ class AddProgressPointTest(BaseViewTest):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class GetASingleProgressPointTest(BaseViewTest):
+class GetASingleDebateProgressPointsTest(BaseViewTest):
 
-    def test_get_a_progress_point(self):
-        """
-        This test ensures that a single progress point of a given debate title is returned
-        """
+    def test_get_debate_progress_points(self):
         valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
@@ -427,12 +391,9 @@ class GetASingleProgressPointTest(BaseViewTest):
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-class GetAllProgressPointsTest(BaseViewTest):
+class GetAllDebateProgressPointsTest(BaseViewTest):
 
-    def test_get_all_progress_points(self):
-        """
-        This test ensures that a all progress points can be returned
-        """
+    def test_get_all_debate_progress_points(self):
         valid_progress = Progress.objects.filter(user=self.user)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
@@ -445,9 +406,6 @@ class GetAllProgressPointsTest(BaseViewTest):
 class AddToStarredTest(BaseViewTest):
 
     def test_create_a_starred_list(self):
-        """
-        This test ensures that a single debate can be added to the reading list
-        """
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.make_a_create_starred_list_request(
