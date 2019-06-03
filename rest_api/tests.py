@@ -262,8 +262,8 @@ class BaseViewTest(APITestCase):
         self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : "rebuttal"}, 1)
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
-        self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
-        self.create_progress_point(self.user, self.borderWall, "Drones cost 1/100th of the price.")
+        self.create_progress_point(self.user, self.abortion, "Is it a woman's right to choose?")
+        self.create_progress_point(self.user, self.borderWall, "Is it an effective border security tool?")
 
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
 
@@ -391,8 +391,8 @@ class AddProgressPointTest(BaseViewTest):
             version_key=v1_key,
             data=self.valid_progress_point_data
         )
-        self.assertEqual(response.data[seen_points_key][-1], self.valid_progress_point_data[debate_point_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_progress_seen_points(self.valid_progress_point_data[pk_key])
         self.assertTrue(response.data[completed_key])
         # test with invalid data
         response = self.make_a_create_progress_request(
@@ -417,8 +417,7 @@ class GetASingleProgressPointTest(BaseViewTest):
         # hit the API endpoint
         response = self.fetch_progress_seen_points(valid_progress.debate.pk)
         # fetch the data from db
-        expected = Progress.objects.get(user=valid_progress.user, debate=valid_progress.debate)
-        serialized = ProgressSerializer(expected)
+        serialized = ProgressSerializer(valid_progress)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test with a debate that does not exist
@@ -456,8 +455,9 @@ class AddToStarredTest(BaseViewTest):
             version_key=v1_key,
             data=self.valid_starred_list_data
         )
-        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_starred_list()
+        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
         # test with invalid data
         response = self.make_a_create_starred_list_request(
             kind=post_key,
@@ -481,12 +481,9 @@ class AddToStarredTest(BaseViewTest):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class GetASingleStarredTest(BaseViewTest):
+class GetStarredTest(BaseViewTest):
 
-    def test_get_a_starred_list(self):
-        """
-        This test ensures that a single progress point of a given debate title is returned
-        """
+    def test_starred_list(self):
         valid_starred_list = Starred.objects.get(user=self.user)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint

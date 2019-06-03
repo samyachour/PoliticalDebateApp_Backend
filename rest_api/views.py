@@ -88,10 +88,7 @@ class ProgressViewAll(generics.RetrieveAPIView):
                 seen_points=[request.data[debate_point_key]]
             )
 
-        return Response(
-            data=ProgressSerializer(progress_point).data,
-            status=status.HTTP_201_CREATED
-        )
+        return Response("Success", status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
@@ -128,10 +125,7 @@ class StarredView(generics.RetrieveAPIView):
             user_starred.starred_list.add(newDebate)
 
 
-        return Response(
-            data=StarredSerializer(user_starred).data,
-            status=status.HTTP_201_CREATED
-        )
+        return Response("Success", status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
@@ -228,7 +222,7 @@ class RegisterUsersView(generics.CreateAPIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        return Response(status=status.HTTP_201_CREATED)
+        return Response("Success.", status=status.HTTP_201_CREATED)
 
 class PasswordResetFormView(APIView):
     renderer_classes = [TemplateHTMLRenderer]

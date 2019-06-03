@@ -363,16 +363,7 @@ Body
 
 - Returns:
 
-```
-{
-    "debate": 1,
-    "completed": False,
-    "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
 
 #### `starred-list/`
 
@@ -423,11 +414,4 @@ Body
 
 - Returns:
 
-```
-{
-    "starred_list": [
-        1, 2, 3... (debate (unique) IDs)
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
