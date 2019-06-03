@@ -374,41 +374,6 @@ Body
 ```
 or `HTTP_400_BAD_REQUEST`
 
-#### `progress-completed/`
-
-- set progress completion status for a user's debate
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "pk": 1,
-    "completed": True
-}
-```
-
-- Returns:
-
-```
-{
-    "debate": 1,
-    "completed": True,
-    "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`
-
 #### `starred-list/`
 
 - get all debates user has starred

@@ -16,9 +16,9 @@ class BaseViewTest(APITestCase):
     client = APIClient()
 
     @staticmethod
-    def create_debate(title="", last_updated=None, debate_map=None):
+    def create_debate(title="", last_updated=None, debate_map=None, total_points=0):
         if title != "" and last_updated != None and debate_map != None:
-            return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map)
+            return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map, total_points=total_points)
 
     @staticmethod
     def create_progress_point(user=None, debate=None, debate_point_key=""):
@@ -61,26 +61,6 @@ class BaseViewTest(APITestCase):
             return self.client.post(
                 reverse(
                     post_starred_list_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
-
-    def set_progress_point_completed_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to set a progress point as completed
-        :param kind: HTTP VERB
-        :return:
-        """
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_progress_completed_name,
                     kwargs={
                         version_key: v1_key
                     }
@@ -276,10 +256,10 @@ class BaseViewTest(APITestCase):
         )
         self.today = datetime.today()
         # add test data
-        self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : ["rebuttal"]})
-        self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : ["rebuttal"]})
-        self.borderWall = self.create_debate("The border wall", self.today, {"Is it an effective border security tool?" : ["rebuttal"]})
-        self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : ["rebuttal"]})
+        self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : "rebuttal", "Civilians can't own tanks though.": "rebuttal"}, 2)
+        self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : "rebuttal"}, 1)
+        self.borderWall = self.create_debate("The border wall", self.today, {"Is it an effective border security tool?" : "rebuttal"}, 1)
+        self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : "rebuttal"}, 1)
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
         self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
@@ -289,19 +269,11 @@ class BaseViewTest(APITestCase):
 
         self.valid_progress_point_data = {
             pk_key: self.gunControl.pk,
-            debate_point_key: "Civilians can't own tanks though."
-        }
-        self.valid_progress_point_completed_data = {
-            pk_key: self.gunControl.pk,
-            completed_key: True
+            debate_point_key: "Should we ban assault rifles?"
         }
         self.invalid_progress_point_data_empty = {
             pk_key: "",
             debate_point_key: ""
-        }
-        self.invalid_progress_point_completed_data_empty = {
-            pk_key: "",
-            completed_key: ""
         }
 
         self.valid_starred_list_data = {
@@ -421,6 +393,7 @@ class AddProgressPointTest(BaseViewTest):
         )
         self.assertEqual(response.data[seen_points_key][-1], self.valid_progress_point_data[debate_point_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data[completed_key])
         # test with invalid data
         response = self.make_a_create_progress_request(
             kind=post_key,
@@ -430,33 +403,6 @@ class AddProgressPointTest(BaseViewTest):
         self.assertEqual(
             response.data[message_key],
             "Both debate ID and debate point are required to add a progress point"
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-class SetProgressPointCompletedTest(BaseViewTest):
-
-    def test_set_progress_point_completed(self):
-        """
-        This test ensures that a single progress point can be set as completed
-        """
-        self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
-        response = self.set_progress_point_completed_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.valid_progress_point_completed_data
-        )
-        self.assertTrue(response.data[completed_key])
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # test with invalid data
-        response = self.set_progress_point_completed_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_progress_point_completed_data_empty
-        )
-        self.assertEqual(
-            response.data[message_key],
-            "Both debate ID and completed status are required to update completed status"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

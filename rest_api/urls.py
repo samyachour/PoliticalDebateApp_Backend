@@ -13,7 +13,6 @@ urlpatterns = [
     path('progress/<int:{0}>'.format(pk_key), ProgressView.as_view(), name=get_progress_name),
     path('progress/', ProgressViewAll.as_view(), name=get_all_progress_name),
     path('progress/', ProgressView.as_view(), name=post_progress_name),
-    path('progress-completed/', ProgressCompleted.as_view(), name=post_progress_completed_name),
     path('starred-list/', StarredView.as_view(), name=get_starred_list_name),
     path('starred-list/', StarredView.as_view(), name=post_starred_list_name),
     path('{0}/delete/'.format(auth_string), DeleteUsersView.as_view(), name=auth_delete_name),

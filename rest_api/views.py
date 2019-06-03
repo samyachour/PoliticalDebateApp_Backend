@@ -52,18 +52,9 @@ class ProgressView(generics.RetrieveAPIView):
 
     @validate_progress_point_get_request_data
     def get(self, request, *args, **kwargs):
-
-        try:
-            debate = get_object_or_404(Debate, pk=kwargs[pk_key])
-            progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
-            return Response(ProgressSerializer(progress_point).data)
-        except Debate.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not find debate with ID {}".format(kwargs[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        debate = get_object_or_404(Debate, pk=kwargs[pk_key])
+        progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
+        return Response(ProgressSerializer(progress_point).data)
 
 class ProgressViewAll(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
@@ -77,11 +68,10 @@ class ProgressViewAll(generics.RetrieveAPIView):
             debate = Debate.objects.get(pk=request.data[pk_key])
             progress_point = self.queryset.get(user=request.user, debate=debate)
 
-            existing_seen_points = progress_point.seen_points
-            if request.data[debate_point_key] not in existing_seen_points:
-                existing_seen_points.append(request.data[debate_point_key])
-                # Can't call 'update' on an object (which is what .get() returns)
-                self.queryset.filter(user=request.user, debate=debate).update(seen_points=existing_seen_points)
+            if request.data[debate_point_key] not in progress_point.seen_points:
+                progress_point.seen_points.append(request.data[debate_point_key])
+                progress_point.completed = debate.total_points == len(progress_point.seen_points)
+                progress_point.save()
 
         except Debate.DoesNotExist:
             return Response(
@@ -107,49 +97,6 @@ class ProgressViewAll(generics.RetrieveAPIView):
 
         progress_points = self.queryset.filter(user=request.user)
         return Response(ProgressSerializer(progress_points, many=True).data)
-
-class ProgressCompleted(generics.RetrieveAPIView):
-    queryset = Progress.objects.all()
-    serializer_class = ProgressSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-    @validate_progress_post_completed_request_data
-    def post(self, request, *args, **kwargs):
-
-        try:
-            debate = Debate.objects.get(pk=request.data[pk_key])
-            progress_point = self.queryset.filter(user=request.user, debate=debate)
-
-            if progress_point.count() == 1:
-                progress_point.update(completed=request.data[completed_key])
-                progress_point = self.queryset.get(user=request.user, debate=debate)
-            elif progress_point.count() > 1:
-                return Response(
-                    data={
-                        message_key: "Found duplicate progress point for user ID {} and debate ID {}. This should never happen".format(request.user.pk, request.data[pk_key])
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            else:
-                return Response(
-                    data={
-                        message_key: "Could not find user progress point with debate ID {}".format(request.data[pk_key])
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-        except Debate.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        return Response(
-            data=ProgressSerializer(progress_point).data,
-            status=status.HTTP_201_CREATED
-        )
 
 class StarredView(generics.RetrieveAPIView):
     queryset = Starred.objects.all()
