@@ -400,7 +400,7 @@ Header
 ```
 or `HTTP_404_NOT_FOUND`
 
-#### `starred_list/`
+#### `starred-list/`
 
 - add new debate to user's starred list
 
