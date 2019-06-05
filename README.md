@@ -56,7 +56,7 @@ Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
 - install latest postegresql with homebrew `brew install postgresql`
 - run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
-- create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
+- create a secrets.py file in PoliticalDebateApp/ with the constants `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
 
 ### Architecture
 
@@ -274,6 +274,7 @@ or `HTTP_404_NOT_FOUND`
 - searches debate database with given string as query
 - an empty string (i.e. no characters after `/`) will return all the debates
 - results come sorted in terms of recency with a limit of 100 total
+- supports fuzzy string comparison
 - the debate maps do not come in this call
 
 GET
