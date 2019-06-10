@@ -18,6 +18,7 @@ def validate_debate_get_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
+
 # PROGRESS
 
 def validate_progress_point_get_request_data(fn):
@@ -48,6 +49,7 @@ def validate_progress_post_point_request_data(fn):
             )
         return fn(*args, **kwargs)
     return decorated
+
 
 # STARRED
 
@@ -81,7 +83,9 @@ def validate_starred_post_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
+
 # AUTH
+
 def validate_register_user_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object

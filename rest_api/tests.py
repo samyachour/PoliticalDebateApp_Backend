@@ -59,7 +59,7 @@ class BaseViewTest(APITestCase):
         if kind == post_key:
             return self.client.post(
                 reverse(
-                    post_progress_name,
+                    get_all_post_progress_name,
                     kwargs={
                         version_key: v1_key
                     }
@@ -69,6 +69,18 @@ class BaseViewTest(APITestCase):
             )
         else:
             return None
+
+    def post_progress_batch(self, data):
+        return self.client.put(
+            reverse(
+                post_progress_batch_name,
+                kwargs={
+                    version_key: v1_key,
+                },
+            ),
+            data=json.dumps(data),
+            content_type=content_type
+        )
 
     def fetch_progress_seen_points(self, pk=""):
         url = reverse(
@@ -82,7 +94,7 @@ class BaseViewTest(APITestCase):
 
     def fetch_all_progress_seen_points(self):
         url = reverse(
-            get_all_progress_name,
+            get_all_post_progress_name,
             kwargs={
                 version_key: v1_key
             },
@@ -301,6 +313,22 @@ class BaseViewTest(APITestCase):
             pk_key: "",
             debate_point_key: ""
         }
+        self.valid_progress_point_batch_data = {
+            all_debate_points_key: [
+                {
+                    debate_key: self.vetting.pk,
+                    seen_points_key: ["Are we doing enough?"]
+                }
+            ]
+        }
+        self.invalid_progress_point_batch_data = {
+            all_debate_points_key: [
+                {
+                    "incorrect_key": self.vetting.pk,
+                    seen_points_key: 2
+                }
+            ]
+        }
 
         self.valid_starred_data = {
             starred_list_key: [self.borderWall.pk, self.abortion.pk],
@@ -416,6 +444,23 @@ class AddProgressPointTest(BaseViewTest):
         self.assertEqual(
             response.data[message_key],
             progress_point_post_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class AddProgressPointBatchTest(BaseViewTest):
+
+    def test_create_a_progress_point_batch(self):
+        self.login_client('test@mail.com', 'testing')
+        # hit the API endpoint
+        response = self.post_progress_batch(data=self.valid_progress_point_batch_data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_progress_seen_points(self.vetting.pk)
+        self.assertTrue(response.data[completed_key])
+        # test with invalid data
+        response = self.post_progress_batch(data=self.invalid_progress_point_batch_data)
+        self.assertEqual(
+            response.data[message_key],
+            progress_point_batch_post_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

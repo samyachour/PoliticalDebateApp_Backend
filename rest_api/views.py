@@ -77,15 +77,15 @@ class ProgressViewAll(generics.RetrieveAPIView):
 
         try:
             debate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
-            progress_point = self.queryset.get(user=request.user, debate=debate)
+            progress_points = self.queryset.get(user=request.user, debate=debate)
 
-            if request.data[debate_point_key] not in progress_point.seen_points:
-                progress_point.seen_points.append(request.data[debate_point_key])
-                progress_point.completed = debate.total_points == len(progress_point.seen_points)
-                progress_point.save()
+            if request.data[debate_point_key] not in progress_points.seen_points:
+                progress_points.seen_points.append(request.data[debate_point_key])
+                progress_points.completed = debate.total_points <= len(progress_points.seen_points)
+                progress_points.save()
 
         except Progress.DoesNotExist:
-            progress_point = Progress.objects.create(
+            progress_points = Progress.objects.create(
                 user=request.user,
                 debate=debate,
                 seen_points=[request.data[debate_point_key]]
@@ -97,6 +97,45 @@ class ProgressViewAll(generics.RetrieveAPIView):
 
         progress_points = self.queryset.filter(user=request.user)
         return Response(ProgressSerializer(progress_points, many=True).data)
+
+class ProgressBatchView(generics.UpdateAPIView):
+    queryset = Progress.objects.all()
+    serializer_class = ProgressBatchInputSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            for progress in serializer.data[all_debate_points_key]:
+                try:
+                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
+                    progress_points = self.queryset.get(user=request.user, debate=debate)
+
+                    # Merge the new seen points w/ existing avoiding duplicates
+                    all_seen_points = list(set(progress_points.seen_points).union(set(progress[seen_points_key])))
+
+                    progress_points.update(seen_points = all_seen_points,
+                    completed=debate.total_points <= len(all_seen_points))
+                    progress_point.save()
+
+                except Progress.DoesNotExist:
+                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
+                    progress_points = Progress.objects.create(
+                        user=request.user,
+                        debate=debate,
+                        completed=debate.total_points <= len(progress[seen_points_key]),
+                        seen_points=[progress[seen_points_key]]
+                    )
+
+            return Response("Success", status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                data={
+                    message_key: progress_point_batch_post_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 

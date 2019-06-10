@@ -203,6 +203,44 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
 
+##### `progress/batch/`
+
+- add an array of debates' seen points to user's progress
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "all_debate_points": [
+        {
+            "debate": 1,
+            "seen_points": [
+                "main - test_point", "secondary - test_point", "secondary - test_point"...
+            ]
+        },
+        {
+            "debate": 2,
+            "seen_points": [
+                "main - test_point", "secondary - test_point", "secondary - test_point"...
+            ]
+        }
+    ]
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
 ---
 #### STARRED
 
