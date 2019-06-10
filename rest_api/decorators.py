@@ -50,14 +50,24 @@ def validate_starred_post_request_data(fn):
         # args[0] == GenericView Object
         starred_debate_ids = args[0].request.data.get(starred_list_key, "")
         unstarred_debate_ids = args[0].request.data.get(unstarred_list_key, "")
-        if not (starred_debate_ids or unstarred_debate_ids) or
-        type(starred_debate_ids) is not list or type(unstarred_debate_ids) is not list
-        or (len(starred_debate_ids) + len(unstarred_debate_ids) == 0)
-        or (len(starred_debate_ids) > 0 && type(starred_debate_ids[0]) is not int
-        or (len(unstarred_debate_ids) > 0 && type(unstarred_debate_ids[0]) is not int:
+        if (type(starred_debate_ids) is not list) or (type(unstarred_debate_ids) is not list):
             return Response(
                 data={
-                    message_key: starred_post_error
+                    message_key: starred_post_type_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif (len(starred_debate_ids) + len(unstarred_debate_ids) == 0):
+            return Response(
+                data={
+                    message_key: starred_post_empty_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif (len(starred_debate_ids) > 0 and type(starred_debate_ids[0]) is not int) or (len(unstarred_debate_ids) > 0 and type(unstarred_debate_ids[0]) is not int):
+            return Response(
+                data={
+                    message_key: starred_post_format_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

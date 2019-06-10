@@ -49,7 +49,7 @@ class BaseViewTest(APITestCase):
     def post_starred_request(self, data):
         return self.client.post(
             reverse(
-                post_starred_list_batch_name,
+                starred_name,
                 kwargs={
                     version_key: v1_key,
                 },
@@ -99,7 +99,7 @@ class BaseViewTest(APITestCase):
 
     def fetch_starred_list(self):
         url = reverse(
-            get_starred_list_name,
+            starred_name,
             kwargs={
                 version_key: v1_key
             }
@@ -263,25 +263,19 @@ class BaseViewTest(APITestCase):
             debate_point_key: ""
         }
 
-        self.valid_starred_list_data = {
-            pk_key: self.abortion.pk,
-        }
-        self.invalid_starred_list_data_empty = {
-            pk_key: "",
-        }
-        self.invalid_starred_list_data = {
-            pk_key: 100000000000,
-        }
-
-        self.valid_starred_list_batch_data = {
-            starred_list_key: [self.borderWall.pk],
+        self.valid_starred_data = {
+            starred_list_key: [self.borderWall.pk, self.abortion.pk],
             unstarred_list_key: []
         }
-        self.invalid_starred_list_batch_data_empty = {
+        self.valid_unstarred_data = {
+            starred_list_key: [],
+            unstarred_list_key: [self.abortion.pk]
+        }
+        self.invalid_starred_data_empty = {
             starred_list_key: [],
             unstarred_list_key: []
         }
-        self.invalid_starred_list_batch_data = {
+        self.invalid_starred_data = {
             starred_list_key: ["1"],
             unstarred_list_key: []
         }
@@ -415,31 +409,39 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
 
 class AddStarredTest(BaseViewTest):
 
-    def test_create_a_starred_batch_list(self):
+    def test_star_unstar_debates(self):
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
+        # star debates
         response = self.post_starred_request(
-            data=self.valid_starred_list_batch_data
+            data=self.valid_starred_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
         self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
+        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
+        # unstar debate
+        response = self.post_starred_request(
+            data=self.valid_unstarred_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_starred_list()
+        self.assertFalse(self.abortion.pk in response.data[starred_list_key])
         # test with invalid data
         response = self.post_starred_request(
-            data=self.invalid_starred_list_batch_data_empty
+            data=self.invalid_starred_data_empty
         )
         self.assertEqual(
             response.data[message_key],
-            "An array of debate ID's are required"
+            starred_post_empty_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # test with a string array
         response = self.post_starred_request(
-            data=self.invalid_starred_list_batch_data
+            data=self.invalid_starred_data
         )
         self.assertEqual(
             response.data[message_key],
-            "An array of debate ID's are required"
+            starred_post_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
