@@ -15,48 +15,12 @@ from .helpers.constants import *
 class BaseViewTest(APITestCase):
     client = APIClient()
 
+    # DEBATES
+
     @staticmethod
     def create_debate(title="", last_updated=None, debate_map=None, total_points=0):
         if title != "" and last_updated != None and debate_map != None:
             return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map, total_points=total_points)
-
-    @staticmethod
-    def create_progress_point(user=None, debate=None, debate_point_key=""):
-        if user != None and debate != None and debate_point_key != "":
-            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point_key])
-
-    @staticmethod
-    def create_starred_list(user=None, debate=None):
-        if user != None and debate != None:
-            starred = Starred.objects.create(user=user)
-            starred.starred_list.add(debate)
-
-    def create_progress(self, kind=post_key, **kwargs):
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_progress_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
-
-    def post_starred_request(self, data):
-        return self.client.post(
-            reverse(
-                starred_name,
-                kwargs={
-                    version_key: v1_key,
-                },
-            ),
-            data=json.dumps(data),
-            content_type=content_type
-        )
 
     def search_debates(self, search_string=""):
         url = reverse(
@@ -78,6 +42,34 @@ class BaseViewTest(APITestCase):
         )
         return self.client.get(url)
 
+
+
+
+
+
+
+    # PROGRESS
+
+    @staticmethod
+    def create_progress_point(user=None, debate=None, debate_point_key=""):
+        if user != None and debate != None and debate_point_key != "":
+            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point_key])
+
+    def create_progress(self, kind=post_key, **kwargs):
+        if kind == post_key:
+            return self.client.post(
+                reverse(
+                    post_progress_name,
+                    kwargs={
+                        version_key: v1_key
+                    }
+                ),
+                data=json.dumps(kwargs[data_key]),
+                content_type=content_type
+            )
+        else:
+            return None
+
     def fetch_progress_seen_points(self, pk=""):
         url = reverse(
             get_progress_name,
@@ -97,6 +89,32 @@ class BaseViewTest(APITestCase):
         )
         return self.client.get(url)
 
+
+
+
+
+
+
+    # STARRED
+
+    @staticmethod
+    def create_starred_list(user=None, debate=None):
+        if user != None and debate != None:
+            starred = Starred.objects.create(user=user)
+            starred.starred_list.add(debate)
+
+    def post_starred_request(self, data):
+        return self.client.post(
+            reverse(
+                starred_name,
+                kwargs={
+                    version_key: v1_key,
+                },
+            ),
+            data=json.dumps(data),
+            content_type=content_type
+        )
+
     def fetch_starred_list(self):
         url = reverse(
             starred_name,
@@ -105,6 +123,18 @@ class BaseViewTest(APITestCase):
             }
         )
         return self.client.get(url)
+
+
+
+
+
+
+
+
+
+
+
+    # AUTH
 
     def login_a_user(self, email="", password=""):
         url = reverse(
@@ -231,6 +261,14 @@ class BaseViewTest(APITestCase):
             content_type=content_type
         )
 
+
+
+
+
+
+
+
+
     def setUp(self):
 
         self.requestFactory = APIRequestFactory()
@@ -242,6 +280,7 @@ class BaseViewTest(APITestCase):
             password="testing"
         )
         self.today = datetime.today()
+
         # add test data
         self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : "rebuttal", "Civilians can't own tanks though.": "rebuttal"}, 2)
         self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : "rebuttal"}, 1)
@@ -280,15 +319,7 @@ class BaseViewTest(APITestCase):
             unstarred_list_key: []
         }
 
-class ProgressModelTest(BaseViewTest):
-    def test_basic_create_a_progress_point(self):
-        progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
-
-        self.assertEqual(progress_point.user.username, "test@mail.com")
-        self.assertEqual(progress_point.debate.title, "Gun control")
-        self.assertEqual(progress_point.completed, False)
-        self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
-        self.assertEqual(str(progress_point), "test@mail.com - Gun control")
+# DEBATES
 
 class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
@@ -301,13 +332,6 @@ class DebateModelTest(BaseViewTest):
         self.assertEqual(debate.last_updated, self.today)
         self.assertEqual(debate.debate_map, {"Test point": ["rebuttal"]})
         self.assertEqual(str(debate), "Test debate updated {}".format(self.today))
-
-class StarredModelTest(BaseViewTest):
-    def test_basic_create_a_starred_list(self):
-        starred_list = Starred.objects.create(user=self.user)
-        starred_list.starred_list.add(self.gunControl)
-        self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
-        self.assertEqual(str(starred_list), "test@mail.com - Gun control")
 
 class GetAllDebatesTest(BaseViewTest):
 
@@ -351,6 +375,24 @@ class GetASingleDebateTest(BaseViewTest):
         # test with a debate that does not exist
         response = self.fetch_a_debate(100000000000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+
+# PROGRESS
+
+class ProgressModelTest(BaseViewTest):
+    def test_basic_create_a_progress_point(self):
+        progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
+
+        self.assertEqual(progress_point.user.username, "test@mail.com")
+        self.assertEqual(progress_point.debate.title, "Gun control")
+        self.assertEqual(progress_point.completed, False)
+        self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
+        self.assertEqual(str(progress_point), "test@mail.com - Gun control")
 
 class AddProgressPointTest(BaseViewTest):
 
@@ -407,6 +449,21 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+
+
+
+
+
+
+# STARRED
+
+class StarredModelTest(BaseViewTest):
+    def test_basic_create_a_starred_list(self):
+        starred_list = Starred.objects.create(user=self.user)
+        starred_list.starred_list.add(self.gunControl)
+        self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
+        self.assertEqual(str(starred_list), "test@mail.com - Gun control")
+
 class AddStarredTest(BaseViewTest):
 
     def test_star_unstar_debates(self):
@@ -457,6 +514,14 @@ class GetStarredTest(BaseViewTest):
         serialized = StarredSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+
+
+
+
+
+# AUTH
 
 class AuthChangeEmailTest(BaseViewTest):
 
