@@ -365,7 +365,7 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
 
-#### `starred-list/`
+#### `starred/`
 
 - get all debates user has starred
 
@@ -391,35 +391,10 @@ Header
 ```
 or `HTTP_404_NOT_FOUND`
 
-#### `starred-list/`
+#### `starred/`
 
-- add new debate to user's starred list
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "pk": 1
-}
-```
-
-- Returns:
-
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
-
-#### `starred-list/batch/`
-
-- add new debate to user's starred list as a batch
-- meant for syncing local data with backend in one call
+- update user's starred debates
+- can sync local data w/ backend in one call
 
 POST
 
@@ -434,7 +409,8 @@ Header
 ```
 Body
 {
-    "starred_list": [1, 2, 3, 4]
+    "starred_list": [1, 2, 3, 4],
+    "unstarred_list": [5, 6]
 }
 ```
 

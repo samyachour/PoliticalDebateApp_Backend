@@ -92,50 +92,32 @@ class StarredView(generics.RetrieveAPIView):
     serializer_class = StarredSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    @validate_starred_list_post_request_data
+    @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
-
-        newDebate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
         user_starred = get_object_or_404(self.queryset, user=request.user)
 
-        if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
-            user_starred.starred_list.add(newDebate)
-            return Response("Success", status=status.HTTP_201_CREATED)
-        else:
-            return Response(
-                data={
-                    message_key: "User has already starred debate {}".format(request.data[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    def get(self, request, *args, **kwargs):
-
-        starred = get_object_or_404(self.queryset, user=request.user)
-        return Response(StarredSerializer(starred).data)
-
-
-class StarredListBatchView(generics.RetrieveAPIView):
-    queryset = Starred.objects.all()
-    serializer_class = StarredSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-    @validate_starred_list_batch_post_request_data
-    def post(self, request, *args, **kwargs):
-
-        debate_ids = request.data[starred_list_key]
-        for pk_index in range(0, len(debate_ids)):
-            pk = debate_ids[pk_index]
+        unstarred_debate_ids = request.data[unstarred_list_key]
+        for pk_index in range(0, len(unstarred_debate_ids)):
+            pk = unstarred_debate_ids[pk_index]
             newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-            user_starred = get_object_or_404(self.queryset, user=request.user)
 
-            # Don't need to return error for re-starring, batch calls are for offline data sync we can't be sure there won't be overlap
+            if user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                user_starred.starred_list.remove(newDebate)
+
+        starred_debate_ids = request.data[starred_list_key]
+        for pk_index in range(0, len(starred_debate_ids)):
+            pk = starred_debate_ids[pk_index]
+            newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
             if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
                 user_starred.starred_list.add(newDebate)
 
         return Response("Success", status=status.HTTP_201_CREATED)
 
+    def get(self, request, *args, **kwargs):
+
+        starred = get_object_or_404(self.queryset, user=request.user)
+        return Response(StarredSerializer(starred).data)
 
 class ChangePasswordView(generics.UpdateAPIView):
     # This permission class will overide the global permission

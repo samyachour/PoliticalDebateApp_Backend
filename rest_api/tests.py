@@ -31,7 +31,7 @@ class BaseViewTest(APITestCase):
             starred = Starred.objects.create(user=user)
             starred.starred_list.add(debate)
 
-    def make_a_create_progress_request(self, kind=post_key, **kwargs):
+    def create_progress(self, kind=post_key, **kwargs):
         if kind == post_key:
             return self.client.post(
                 reverse(
@@ -46,22 +46,7 @@ class BaseViewTest(APITestCase):
         else:
             return None
 
-    def make_a_create_starred_list_request(self, kind=post_key, **kwargs):
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_starred_list_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
-
-    def make_a_post_starred_list_batch_request(self, data):
+    def post_starred_request(self, data):
         return self.client.post(
             reverse(
                 post_starred_list_batch_name,
@@ -290,12 +275,15 @@ class BaseViewTest(APITestCase):
 
         self.valid_starred_list_batch_data = {
             starred_list_key: [self.borderWall.pk],
+            unstarred_list_key: []
         }
         self.invalid_starred_list_batch_data_empty = {
             starred_list_key: [],
+            unstarred_list_key: []
         }
         self.invalid_starred_list_batch_data = {
             starred_list_key: ["1"],
+            unstarred_list_key: []
         }
 
 class ProgressModelTest(BaseViewTest):
@@ -375,7 +363,7 @@ class AddProgressPointTest(BaseViewTest):
     def test_create_a_progress_point(self):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
-        response = self.make_a_create_progress_request(
+        response = self.create_progress(
             kind=post_key,
             version_key=v1_key,
             data=self.valid_progress_point_data
@@ -384,14 +372,14 @@ class AddProgressPointTest(BaseViewTest):
         response = self.fetch_progress_seen_points(self.valid_progress_point_data[pk_key])
         self.assertTrue(response.data[completed_key])
         # test with invalid data
-        response = self.make_a_create_progress_request(
+        response = self.create_progress(
             kind=post_key,
             version_key=v1_key,
             data=self.invalid_progress_point_data_empty
         )
         self.assertEqual(
             response.data[message_key],
-            "Both debate ID and debate point are required to add a progress point"
+            progress_point_post_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -425,62 +413,19 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-class AddToStarredTest(BaseViewTest):
-
-    def test_create_a_starred_list(self):
-        self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.valid_starred_list_data
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_starred_list()
-        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
-        # try starring a debate that's already been starred
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.valid_starred_list_data
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data[message_key],
-            "User has already starred debate {}".format(self.valid_starred_list_data[pk_key])
-        )
-        # test with invalid data
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_starred_list_data_empty
-        )
-        self.assertEqual(
-            response.data[message_key],
-            "A debate ID is required"
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # test with a debate that does not exist
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_starred_list_data
-        )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-class AddStarredBatchTest(BaseViewTest):
+class AddStarredTest(BaseViewTest):
 
     def test_create_a_starred_batch_list(self):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
-        response = self.make_a_post_starred_list_batch_request(
+        response = self.post_starred_request(
             data=self.valid_starred_list_batch_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
         self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
         # test with invalid data
-        response = self.make_a_post_starred_list_batch_request(
+        response = self.post_starred_request(
             data=self.invalid_starred_list_batch_data_empty
         )
         self.assertEqual(
@@ -489,7 +434,7 @@ class AddStarredBatchTest(BaseViewTest):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # test with a string array
-        response = self.make_a_post_starred_list_batch_request(
+        response = self.post_starred_request(
             data=self.invalid_starred_list_batch_data
         )
         self.assertEqual(
