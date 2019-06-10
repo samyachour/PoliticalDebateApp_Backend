@@ -2,7 +2,7 @@
 minimum_password_length = 6
 minimum_trigram_similarity = 0.1
 
-#Request keys
+# Request keys
 pk_key = "pk"
 
 debate_point_key = "debate_point"

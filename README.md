@@ -87,175 +87,10 @@ Instructions:
 - use `%20` for spaces
 - when you see numbers associated with model types (e.g. `debate: 1`) the number is the ID (unique primary key (`pk`))
 
-#### `auth/register/`
+---
+#### DEBATES
 
-- register new user with credentials
-- verification email is automatically sent to user's email, clients should express this
-
-POST
-
-- Takes:
-
-```
-Body
-{
-    "email": "test@mail.com",
-    "password": "test_password"
-}
-```
-
-- Returns:
-
-`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
-
-#### `auth/request-password-reset/`
-
-- request link to reset user password
-- reset link is automatically sent to user's email, clients should express this
-- force_send is if the user hasn't confirmed their email, they can force send the reset link anyway
-
-POST
-
-- Takes:
-
-```
-Body
-{
-    "email": "test@mail.com",
-    (optional, defaults to false) "force_send": true
-}
-```
-
-- Returns:
-
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
-
-#### `auth/token/obtain`
-
-- login user to get token for session
-- save refresh and access tokens to secure persistent data
-- use the "username" key but pass in the user's email
-
-POST
-
-- Takes:
-
-```
-Body
-{
-    "username": "test@mail.com",
-    "password": "test_password"
-}
-```
-
-- Returns:
-
-```
-{
-    "refresh": (new JSON Web Refresh Token)
-    "access": (new JSON Web Access Token)
-}
-```
-or `HTTP_401_UNAUTHORIZED`
-
-#### `auth/token/refresh`
-
-- when you get a 401, refresh your access token
-- access token expires every 10 minutes
-- refresh window is up to 30 days
-
-POST
-
-- Takes:
-
-```
-Body
-{
-    "refresh": (existing JSON Web Refresh token)
-}
-```
-
-- Returns:
-
-```
-{
-    "access": (new JSON Web Access Token)
-}
-```
-or `HTTP_400_BAD_REQUEST`
-
-#### `auth/change-password/`
-
-- change user password
-
-PUT
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "old_password": "test_old_password",
-    "new_password": "test_new_password"
-}
-```
-
-- Returns:
-
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
-
-#### `auth/change-email/`
-
-- change user email
-- verification email is automatically sent to user's email, clients should express this
-
-PUT
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "new_email": "test@mail.com"
-}
-```
-
-- Returns:
-
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
-
-#### `auth/delete/`
-
-- delete user account & all associated data
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
-
-#### `debate/<int:pk>`
+##### `debate/<int:pk>`
 
 - get a debate by primary key
 - load entire map into memory and use to present map flow to users marking points as seen as you go
@@ -268,7 +103,7 @@ GET
 
 or `HTTP_404_NOT_FOUND`
 
-#### `debate/search/<str:search_string>`
+##### `debate/search/<str:search_string>`
 
 - searches debate database with given string as query
 - an empty string (i.e. no characters after `/`) will return all the debates
@@ -282,7 +117,10 @@ GET
 
 [See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
 
-#### `progress/<int:pk>`
+---
+#### PROGRESS
+
+##### `progress/<int:pk>`
 
 - get user's seen points for given debate
 
@@ -310,7 +148,7 @@ Header
 ```
 or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
 
-#### `progress/`
+##### `progress/`
 
 - get all debates user has made progress on
 
@@ -339,7 +177,7 @@ Header
 ]
 ```
 
-#### `progress/`
+##### `progress/`
 
 - add new seen point to user's debate progress
 
@@ -365,7 +203,10 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
 
-#### `starred/`
+---
+#### STARRED
+
+##### `starred/`
 
 - get all debates user has starred
 
@@ -391,7 +232,7 @@ Header
 ```
 or `HTTP_404_NOT_FOUND`
 
-#### `starred/`
+##### `starred/`
 
 - update user's starred debates
 - can sync local data w/ backend in one call
@@ -417,3 +258,174 @@ Body
 - Returns:
 
 `HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
+---
+#### AUTH
+
+##### `auth/register/`
+
+- register new user with credentials
+- verification email is automatically sent to user's email, clients should express this
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "email": "test@mail.com",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
+
+##### `auth/request-password-reset/`
+
+- request link to reset user password
+- reset link is automatically sent to user's email, clients should express this
+- force_send is if the user hasn't confirmed their email, they can force send the reset link anyway
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "email": "test@mail.com",
+    (optional, defaults to false) "force_send": true
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
+
+##### `auth/token/obtain`
+
+- login user to get token for session
+- save refresh and access tokens to secure persistent data
+- use the "username" key but pass in the user's email
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "username": "test@mail.com",
+    "password": "test_password"
+}
+```
+
+- Returns:
+
+```
+{
+    "refresh": (new JSON Web Refresh Token)
+    "access": (new JSON Web Access Token)
+}
+```
+or `HTTP_401_UNAUTHORIZED`
+
+##### `auth/token/refresh`
+
+- when you get a 401, refresh your access token
+- access token expires every 10 minutes
+- refresh window is up to 30 days
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "refresh": (existing JSON Web Refresh token)
+}
+```
+
+- Returns:
+
+```
+{
+    "access": (new JSON Web Access Token)
+}
+```
+or `HTTP_400_BAD_REQUEST`
+
+##### `auth/change-password/`
+
+- change user password
+
+PUT
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "old_password": "test_old_password",
+    "new_password": "test_new_password"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+
+##### `auth/change-email/`
+
+- change user email
+- verification email is automatically sent to user's email, clients should express this
+
+PUT
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "new_email": "test@mail.com"
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+
+##### `auth/delete/`
+
+- delete user account & all associated data
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`

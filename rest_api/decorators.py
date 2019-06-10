@@ -2,6 +2,8 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from .helpers.constants import *
 
+# DEBATES
+
 def validate_debate_get_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
@@ -15,6 +17,8 @@ def validate_debate_get_request_data(fn):
             )
         return fn(*args, **kwargs)
     return decorated
+
+# PROGRESS
 
 def validate_progress_point_get_request_data(fn):
     def decorated(*args, **kwargs):
@@ -45,6 +49,8 @@ def validate_progress_post_point_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
+# STARRED
+
 def validate_starred_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
@@ -64,16 +70,18 @@ def validate_starred_post_request_data(fn):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif (len(starred_debate_ids) > 0 and type(starred_debate_ids[0]) is not int) or (len(unstarred_debate_ids) > 0 and type(unstarred_debate_ids[0]) is not int):
-            return Response(
-                data={
-                    message_key: starred_post_format_error
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        for pk in starred_debate_ids + unstarred_debate_ids:
+            if type(pk) is not int:
+                return Response(
+                    data={
+                        message_key: starred_post_format_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         return fn(*args, **kwargs)
     return decorated
 
+# AUTH
 def validate_register_user_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object

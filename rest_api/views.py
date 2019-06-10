@@ -17,6 +17,8 @@ from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
 
+# DEBATES
+
 class SearchDebatesView(generics.ListAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
@@ -44,6 +46,15 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get(self, request, *args, **kwargs):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
+
+
+
+
+
+
+
+
+# PROGRESS
 
 class ProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
@@ -87,6 +98,14 @@ class ProgressViewAll(generics.RetrieveAPIView):
         progress_points = self.queryset.filter(user=request.user)
         return Response(ProgressSerializer(progress_points, many=True).data)
 
+
+
+
+
+
+
+# STARRED
+
 class StarredView(generics.RetrieveAPIView):
     queryset = Starred.objects.all()
     serializer_class = StarredSerializer
@@ -94,23 +113,33 @@ class StarredView(generics.RetrieveAPIView):
 
     @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
-        user_starred = get_object_or_404(self.queryset, user=request.user)
-
-        unstarred_debate_ids = request.data[unstarred_list_key]
-        for pk_index in range(0, len(unstarred_debate_ids)):
-            pk = unstarred_debate_ids[pk_index]
-            newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-
-            if user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                user_starred.starred_list.remove(newDebate)
-
         starred_debate_ids = request.data[starred_list_key]
-        for pk_index in range(0, len(starred_debate_ids)):
-            pk = starred_debate_ids[pk_index]
-            newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+        unstarred_debate_ids = request.data[unstarred_list_key]
 
-            if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                user_starred.starred_list.add(newDebate)
+        try:
+            user_starred = self.queryset.get(user=request.user)
+
+            for pk_index in range(0, len(unstarred_debate_ids)):
+                pk = unstarred_debate_ids[pk_index]
+                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+
+                if user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                    user_starred.starred_list.remove(newDebate)
+
+            for pk_index in range(0, len(starred_debate_ids)):
+                pk = starred_debate_ids[pk_index]
+                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+
+                if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                    user_starred.starred_list.add(newDebate)
+
+        except Starred.DoesNotExist:
+            user_starred = Starred.objects.create(user=user)
+            for pk_index in range(0, len(starred_debate_ids)):
+                pk = starred_debate_ids[pk_index]
+                if pk not in unstarred_debate_ids:
+                    newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+                    user_starred.starred_list.add(newDebate)
 
         return Response("Success", status=status.HTTP_201_CREATED)
 
@@ -118,6 +147,14 @@ class StarredView(generics.RetrieveAPIView):
 
         starred = get_object_or_404(self.queryset, user=request.user)
         return Response(StarredSerializer(starred).data)
+
+
+
+
+
+
+
+# AUTH
 
 class ChangePasswordView(generics.UpdateAPIView):
     # This permission class will overide the global permission
