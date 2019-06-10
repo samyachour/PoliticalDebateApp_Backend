@@ -17,6 +17,8 @@ from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
 
+# DEBATES
+
 class SearchDebatesView(generics.ListAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
@@ -45,6 +47,15 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
 
+
+
+
+
+
+
+
+# PROGRESS
+
 class ProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
@@ -65,24 +76,16 @@ class ProgressViewAll(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            debate = Debate.objects.get(pk=request.data[pk_key])
-            progress_point = self.queryset.get(user=request.user, debate=debate)
+            debate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
+            progress_points = self.queryset.get(user=request.user, debate=debate)
 
-            if request.data[debate_point_key] not in progress_point.seen_points:
-                progress_point.seen_points.append(request.data[debate_point_key])
-                progress_point.completed = debate.total_points == len(progress_point.seen_points)
-                progress_point.save()
-
-        except Debate.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if request.data[debate_point_key] not in progress_points.seen_points:
+                progress_points.seen_points.append(request.data[debate_point_key])
+                progress_points.completed = debate.total_points <= len(progress_points.seen_points)
+                progress_points.save()
 
         except Progress.DoesNotExist:
-            progress_point = Progress.objects.create(
+            progress_points = Progress.objects.create(
                 user=request.user,
                 debate=debate,
                 seen_points=[request.data[debate_point_key]]
@@ -95,50 +98,102 @@ class ProgressViewAll(generics.RetrieveAPIView):
         progress_points = self.queryset.filter(user=request.user)
         return Response(ProgressSerializer(progress_points, many=True).data)
 
+class ProgressBatchView(generics.UpdateAPIView):
+    queryset = Progress.objects.all()
+    serializer_class = ProgressBatchInputSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            for progress in serializer.data[all_debate_points_key]:
+                try:
+                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
+                    progress_points = self.queryset.get(user=request.user, debate=debate)
+
+                    # Merge the new seen points w/ existing avoiding duplicates
+                    all_seen_points = list(set(progress_points.seen_points).union(set(progress[seen_points_key])))
+
+                    progress_points.update(seen_points = all_seen_points,
+                    completed=debate.total_points <= len(all_seen_points))
+                    progress_point.save()
+
+                except Progress.DoesNotExist:
+                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
+                    progress_points = Progress.objects.create(
+                        user=request.user,
+                        debate=debate,
+                        completed=debate.total_points <= len(progress[seen_points_key]),
+                        seen_points=[progress[seen_points_key]]
+                    )
+
+            return Response("Success", status=status.HTTP_201_CREATED)
+        else:
+            return Response(
+                data={
+                    message_key: progress_point_batch_post_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+
+
+
+
+
+# STARRED
+
 class StarredView(generics.RetrieveAPIView):
     queryset = Starred.objects.all()
     serializer_class = StarredSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
-    @validate_starred_list_post_request_data
+    @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
+        starred_debate_ids = request.data[starred_list_key]
+        unstarred_debate_ids = request.data[unstarred_list_key]
 
         try:
-            newDebate = Debate.objects.get(pk=request.data[pk_key])
             user_starred = self.queryset.get(user=request.user)
 
-            if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                user_starred.starred_list.add(newDebate)
+            for pk_index in range(0, len(unstarred_debate_ids)):
+                pk = unstarred_debate_ids[pk_index]
+                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
-        except Debate.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                if user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                    user_starred.starred_list.remove(newDebate)
+
+            for pk_index in range(0, len(starred_debate_ids)):
+                pk = starred_debate_ids[pk_index]
+                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+
+                if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                    user_starred.starred_list.add(newDebate)
 
         except Starred.DoesNotExist:
-            user_starred = Starred.objects.create(
-                user=request.user
-            )
-            user_starred.starred_list.add(newDebate)
-
+            user_starred = Starred.objects.create(user=user)
+            for pk_index in range(0, len(starred_debate_ids)):
+                pk = starred_debate_ids[pk_index]
+                if pk not in unstarred_debate_ids:
+                    newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+                    user_starred.starred_list.add(newDebate)
 
         return Response("Success", status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
-        try:
-            starred = self.queryset.get(user=request.user)
-            return Response(StarredSerializer(starred).data)
-        except Starred.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not retrieve reading list"
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
+        starred = get_object_or_404(self.queryset, user=request.user)
+        return Response(StarredSerializer(starred).data)
+
+
+
+
+
+
+
+# AUTH
 
 class ChangePasswordView(generics.UpdateAPIView):
     # This permission class will overide the global permission

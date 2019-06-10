@@ -7,14 +7,28 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
+
+    # DEBATES
+
     path('debate/search/'.format(search_string_key), SearchDebatesView.as_view(), name=search_debates_name),
     path('debate/search/<str:{0}>'.format(search_string_key), SearchDebatesView.as_view(), name=search_debates_name),
     path('debate/<int:{0}>'.format(pk_key), DebateDetailView.as_view(), name=get_debate_name),
+
+
+    # PROGRESS
+
     path('progress/<int:{0}>'.format(pk_key), ProgressView.as_view(), name=get_progress_name),
-    path('progress/', ProgressViewAll.as_view(), name=get_all_progress_name),
-    path('progress/', ProgressView.as_view(), name=post_progress_name),
-    path('starred-list/', StarredView.as_view(), name=get_starred_list_name),
-    path('starred-list/', StarredView.as_view(), name=post_starred_list_name),
+    path('progress/', ProgressViewAll.as_view(), name=get_all_post_progress_name),
+    path('progress/batch/', ProgressBatchView.as_view(), name=post_progress_batch_name),
+
+
+    # STARRED
+
+    path('starred/', StarredView.as_view(), name=starred_name),
+
+
+    # AUTH
+
     path('{0}/delete/'.format(auth_string), DeleteUsersView.as_view(), name=auth_delete_name),
     path('{0}/register/'.format(auth_string), RegisterUsersView.as_view(), name=auth_register_name),
     path('{0}/change-password/'.format(auth_string), ChangePasswordView.as_view(), name=auth_change_password_name),

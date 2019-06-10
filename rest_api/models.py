@@ -9,6 +9,8 @@ def get_default_data_dict():
 def get_default_data_array():
     return []
 
+# DEBATES
+
 class Debate(models.Model):
     # debate title
     title = models.CharField(max_length=255, null=False, unique=True)
@@ -20,6 +22,8 @@ class Debate(models.Model):
     def __str__(self):
         return "{} updated {}".format(self.title, self.last_updated)
 
+# PROGRESS
+
 class Progress(models.Model):
     # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
@@ -30,6 +34,8 @@ class Progress(models.Model):
 
     def __str__(self):
         return "{} - {}".format(self.user.username, self.debate.title)
+
+# STARRED
 
 class Starred(models.Model):
     # settings.AUTH_USER_MODEL uses User from django.contrib.auth.models unless you define a custom user in the future
