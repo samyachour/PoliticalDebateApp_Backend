@@ -59,6 +59,20 @@ def validate_starred_list_post_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
+def validate_starred_list_batch_post_request_data(fn):
+    def decorated(*args, **kwargs):
+        # args[0] == GenericView Object
+        debate_ids = args[0].request.data.get(starred_list_key, "")
+        if not debate_ids or type(debate_ids) is not list or len(debate_ids) < 1 or type(debate_ids[0]) is not int:
+            return Response(
+                data={
+                    message_key: "An array of debate ID's are required"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return fn(*args, **kwargs)
+    return decorated
+
 def validate_register_user_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object

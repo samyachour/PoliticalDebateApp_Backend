@@ -3,6 +3,7 @@ from .models import *
 from django.contrib.auth.models import User
 from .helpers.constants import *
 
+# Model serializers
 class DebateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Debate
@@ -28,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (username_key, email_key)
 
-# For generating HTML form
+# Form serializers
 class PasswordResetFormSerializer(serializers.Serializer):
     new_password = serializers.CharField(
         max_length=100,

@@ -106,7 +106,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
+`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
 
 #### `auth/request-password-reset/`
 
@@ -128,7 +128,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message) or `HTTP_404_NOT_FOUND`
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
 
 #### `auth/token/obtain`
 
@@ -182,8 +182,7 @@ Body
     "access": (new JSON Web Access Token)
 }
 ```
-or
-`HTTP_400_BAD_REQUEST` (with error message)
+or `HTTP_400_BAD_REQUEST`
 
 #### `auth/change-password/`
 
@@ -209,7 +208,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
 
 #### `auth/change-email/`
 
@@ -235,7 +234,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
 
 #### `auth/delete/`
 
@@ -364,7 +363,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
 
 #### `starred-list/`
 
@@ -415,4 +414,30 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
+#### `starred-list/batch/`
+
+- add new debate to user's starred list as a batch
+- meant for syncing local data with backend in one call
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "starred_list": [1, 2, 3, 4]
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`

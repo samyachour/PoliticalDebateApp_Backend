@@ -15,6 +15,7 @@ urlpatterns = [
     path('progress/', ProgressView.as_view(), name=post_progress_name),
     path('starred-list/', StarredView.as_view(), name=get_starred_list_name),
     path('starred-list/', StarredView.as_view(), name=post_starred_list_name),
+    path('starred-list/batch/', StarredListBatchView.as_view(), name=post_starred_list_batch_name),
     path('{0}/delete/'.format(auth_string), DeleteUsersView.as_view(), name=auth_delete_name),
     path('{0}/register/'.format(auth_string), RegisterUsersView.as_view(), name=auth_register_name),
     path('{0}/change-password/'.format(auth_string), ChangePasswordView.as_view(), name=auth_change_password_name),

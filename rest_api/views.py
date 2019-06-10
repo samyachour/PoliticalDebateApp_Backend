@@ -65,21 +65,13 @@ class ProgressViewAll(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            debate = Debate.objects.get(pk=request.data[pk_key])
+            debate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
             progress_point = self.queryset.get(user=request.user, debate=debate)
 
             if request.data[debate_point_key] not in progress_point.seen_points:
                 progress_point.seen_points.append(request.data[debate_point_key])
                 progress_point.completed = debate.total_points == len(progress_point.seen_points)
                 progress_point.save()
-
-        except Debate.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         except Progress.DoesNotExist:
             progress_point = Progress.objects.create(
@@ -103,42 +95,47 @@ class StarredView(generics.RetrieveAPIView):
     @validate_starred_list_post_request_data
     def post(self, request, *args, **kwargs):
 
-        try:
-            newDebate = Debate.objects.get(pk=request.data[pk_key])
-            user_starred = self.queryset.get(user=request.user)
+        newDebate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
+        user_starred = get_object_or_404(self.queryset, user=request.user)
 
-            if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                user_starred.starred_list.add(newDebate)
-
-        except Debate.DoesNotExist:
+        if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
+            user_starred.starred_list.add(newDebate)
+            return Response("Success", status=status.HTTP_201_CREATED)
+        else:
             return Response(
                 data={
-                    message_key: "Could not find debate with ID {}".format(request.data[pk_key])
+                    message_key: "User has already starred debate {}".format(request.data[pk_key])
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        except Starred.DoesNotExist:
-            user_starred = Starred.objects.create(
-                user=request.user
-            )
-            user_starred.starred_list.add(newDebate)
+    def get(self, request, *args, **kwargs):
 
+        starred = get_object_or_404(self.queryset, user=request.user)
+        return Response(StarredSerializer(starred).data)
+
+
+class StarredListBatchView(generics.RetrieveAPIView):
+    queryset = Starred.objects.all()
+    serializer_class = StarredSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @validate_starred_list_batch_post_request_data
+    def post(self, request, *args, **kwargs):
+
+        debate_ids = request.data[starred_list_key]
+        for pk_index in range(0, len(debate_ids)):
+            pk = debate_ids[pk_index]
+            newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
+            user_starred = get_object_or_404(self.queryset, user=request.user)
+
+            # Don't need to return error for re-starring, batch calls are for offline data sync we can't be sure there won't be overlap
+
+            if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
+                user_starred.starred_list.add(newDebate)
 
         return Response("Success", status=status.HTTP_201_CREATED)
 
-    def get(self, request, *args, **kwargs):
-
-        try:
-            starred = self.queryset.get(user=request.user)
-            return Response(StarredSerializer(starred).data)
-        except Starred.DoesNotExist:
-            return Response(
-                data={
-                    message_key: "Could not retrieve reading list"
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
 
 class ChangePasswordView(generics.UpdateAPIView):
     # This permission class will overide the global permission

@@ -61,6 +61,18 @@ class BaseViewTest(APITestCase):
         else:
             return None
 
+    def make_a_post_starred_list_batch_request(self, data):
+        return self.client.post(
+            reverse(
+                post_starred_list_batch_name,
+                kwargs={
+                    version_key: v1_key,
+                },
+            ),
+            data=json.dumps(data),
+            content_type=content_type
+        )
+
     def search_debates(self, search_string=""):
         url = reverse(
             search_debates_name,
@@ -276,6 +288,16 @@ class BaseViewTest(APITestCase):
             pk_key: 100000000000,
         }
 
+        self.valid_starred_list_batch_data = {
+            starred_list_key: [self.borderWall.pk],
+        }
+        self.invalid_starred_list_batch_data_empty = {
+            starred_list_key: [],
+        }
+        self.invalid_starred_list_batch_data = {
+            starred_list_key: ["1"],
+        }
+
 class ProgressModelTest(BaseViewTest):
     def test_basic_create_a_progress_point(self):
         progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
@@ -416,6 +438,17 @@ class AddToStarredTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
         self.assertTrue(self.abortion.pk in response.data[starred_list_key])
+        # try starring a debate that's already been starred
+        response = self.make_a_create_starred_list_request(
+            kind=post_key,
+            version_key=v1_key,
+            data=self.valid_starred_list_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data[message_key],
+            "User has already starred debate {}".format(self.valid_starred_list_data[pk_key])
+        )
         # test with invalid data
         response = self.make_a_create_starred_list_request(
             kind=post_key,
@@ -433,9 +466,35 @@ class AddToStarredTest(BaseViewTest):
             version_key=v1_key,
             data=self.invalid_starred_list_data
         )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class AddStarredBatchTest(BaseViewTest):
+
+    def test_create_a_starred_batch_list(self):
+        self.login_client('test@mail.com', 'testing')
+        # hit the API endpoint
+        response = self.make_a_post_starred_list_batch_request(
+            data=self.valid_starred_list_batch_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_starred_list()
+        self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
+        # test with invalid data
+        response = self.make_a_post_starred_list_batch_request(
+            data=self.invalid_starred_list_batch_data_empty
+        )
         self.assertEqual(
             response.data[message_key],
-            "Could not find debate with ID 100000000000"
+            "An array of debate ID's are required"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # test with a string array
+        response = self.make_a_post_starred_list_batch_request(
+            data=self.invalid_starred_list_batch_data
+        )
+        self.assertEqual(
+            response.data[message_key],
+            "An array of debate ID's are required"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
