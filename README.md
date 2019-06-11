@@ -56,7 +56,7 @@ Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
 - install latest postegresql with homebrew `brew install postgresql`
 - run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
-- create a secrets.py file in PoliticalDebateApp/ with the variables `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
+- create a secrets.py file in PoliticalDebateApp/ with the constants `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
 
 ### Architecture
 
@@ -68,13 +68,14 @@ Instructions:
     - Token
     - Debate
         - title: String (unique)
+        - short_title: String
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
-        - completed: Bool
+        - completed_percentage: Int
         - seen_points: Array[String (Debate.debate_map[point])]
     - Starred
         - user: User (foreign key)
@@ -87,7 +88,220 @@ Instructions:
 - use `%20` for spaces
 - when you see numbers associated with model types (e.g. `debate: 1`) the number is the ID (unique primary key (`pk`))
 
-#### `auth/register/`
+---
+#### DEBATES
+
+##### `debate/<int:pk>`
+
+- get a debate by primary key
+- load entire map into memory and use to present map flow to users marking points as seen as you go
+
+GET
+
+- Returns:
+
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
+
+or `HTTP_404_NOT_FOUND`
+
+##### `debate/search/<str:search_string>`
+
+- searches debate database with given string as query
+- an empty string (i.e. no characters after `/`) will return all the debates
+- results come sorted in terms of recency with a limit of 100 total
+- supports fuzzy string comparison
+- the debate maps do not come in this call
+
+GET
+
+- Returns:
+
+[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
+
+---
+#### PROGRESS
+
+##### `progress/<int:pk>`
+
+- get user's seen points for given debate
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "debate": 1,
+    "completed_percentage": 10,
+    "seen_points": [
+        "main - test_point", "secondary - test_point", "secondary - test_point"...
+    ]
+}
+```
+or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
+
+##### `progress/`
+
+- get all debates user has made progress on
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+```
+[
+    {
+        "debate": 1,
+        "completed_percentage": 15,
+        "seen_points": [
+            "main - test_point", "secondary - test_point", "secondary - test_point"...
+        ]
+    }
+]
+```
+
+##### `progress/`
+
+- add new seen point to user's debate progress
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "pk": 1,
+    "debate_point": "point"
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
+##### `progress/batch/`
+
+- add an array of debates' seen points to user's progress
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "all_debate_points": [
+        {
+            "debate": 1,
+            "seen_points": [
+                "main - test_point", "secondary - test_point", "secondary - test_point"...
+            ]
+        },
+        {
+            "debate": 2,
+            "seen_points": [
+                "main - test_point", "secondary - test_point", "secondary - test_point"...
+            ]
+        }
+    ]
+}
+```
+
+- Returns:
+
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
+---
+#### STARRED
+
+##### `starred/`
+
+- get all debates user has starred
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+```
+{
+    "starred_list": [
+        1, 2, 3...
+    ]
+}
+```
+or `HTTP_404_NOT_FOUND`
+
+##### `starred/`
+
+- update user's starred debates
+- can sync local data w/ backend in one call
+
+POST
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+```
+Body
+{
+    "starred_list": [1, 2, 3, 4],
+    "unstarred_list": [5, 6]
+}
+```
+
+- Returns:
+
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+
+---
+#### AUTH
+
+##### `auth/register/`
 
 - register new user with credentials
 - verification email is automatically sent to user's email, clients should express this
@@ -106,9 +320,9 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message)
+`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
 
-#### `auth/request-password-reset/`
+##### `auth/request-password-reset/`
 
 - request link to reset user password
 - reset link is automatically sent to user's email, clients should express this
@@ -128,9 +342,9 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` (with error message) or `HTTP_404_NOT_FOUND`
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
 
-#### `auth/token/obtain`
+##### `auth/token/obtain`
 
 - login user to get token for session
 - save refresh and access tokens to secure persistent data
@@ -158,7 +372,7 @@ Body
 ```
 or `HTTP_401_UNAUTHORIZED`
 
-#### `auth/token/refresh`
+##### `auth/token/refresh`
 
 - when you get a 401, refresh your access token
 - access token expires every 10 minutes
@@ -182,10 +396,9 @@ Body
     "access": (new JSON Web Access Token)
 }
 ```
-or
-`HTTP_400_BAD_REQUEST` (with error message)
+or `HTTP_400_BAD_REQUEST`
 
-#### `auth/change-password/`
+##### `auth/change-password/`
 
 - change user password
 
@@ -209,9 +422,9 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
 
-#### `auth/change-email/`
+##### `auth/change-email/`
 
 - change user email
 - verification email is automatically sent to user's email, clients should express this
@@ -235,9 +448,9 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
 
-#### `auth/delete/`
+##### `auth/delete/`
 
 - delete user account & all associated data
 
@@ -255,214 +468,3 @@ Header
 - Returns:
 
 `HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
-
-#### `debate/<int:pk>`
-
-- get a debate by primary key
-- load entire map into memory and use to present map flow to users marking points as seen as you go
-
-GET
-
-- Returns:
-
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
-
-or `HTTP_404_NOT_FOUND`
-
-#### `debate/search/<str:search_string>`
-
-- searches debate database with given string as query
-- an empty string (i.e. no characters after `/`) will return all the debates
-- results come sorted in terms of recency with a limit of 100 total
-- the debate maps do not come in this call
-
-GET
-
-- Returns:
-
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
-
-#### `progress/<int:pk>`
-
-- get user's seen points for given debate
-
-GET
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-```
-{
-    "debate": 1,
-    "completed": False,
-    "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
-    ]
-}
-```
-or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
-
-#### `progress/`
-
-- get all debates user has made progress on
-
-GET
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-```
-[
-    {
-        "debate": 1,
-        "completed": False,
-        "seen_points": [
-            "main - test_point", "secondary - test_point", "secondary - test_point"...
-        ]
-    }
-]
-```
-
-#### `progress/`
-
-- add new seen point to user's debate progress
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "debate_pk": 1,
-    "debate_point": "point"
-}
-```
-
-- Returns:
-
-```
-{
-    "debate": 1,
-    "completed": False,
-    "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`
-
-#### `progress-completed/`
-
-- set progress completion status for a user's debate
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "debate_pk": 1,
-    "completed": True
-}
-```
-
-- Returns:
-
-```
-{
-    "debate": 1,
-    "completed": True,
-    "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`
-
-#### `starred-list/`
-
-- get all debates user has starred
-
-GET
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-```
-{
-    "starred_list": [
-        1, 2, 3...
-    ]
-}
-```
-or `HTTP_404_NOT_FOUND`
-
-#### `starred_list/`
-
-- add new debate to user's starred list
-
-POST
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-```
-Body
-{
-    "debate_pk": 1
-}
-```
-
-- Returns:
-
-```
-{
-    "starred_list": [
-        1, 2, 3... (debate (unique) IDs)
-    ]
-}
-```
-or `HTTP_400_BAD_REQUEST`

@@ -15,81 +15,12 @@ from .helpers.constants import *
 class BaseViewTest(APITestCase):
     client = APIClient()
 
+    # DEBATES
+
     @staticmethod
-    def create_debate(title="", last_updated=None, debate_map=None):
+    def create_debate(title="", short_title="", last_updated=None, debate_map=None, total_points=0):
         if title != "" and last_updated != None and debate_map != None:
-            return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map)
-
-    @staticmethod
-    def create_progress_point(user=None, debate=None, debate_point_key=""):
-        if user != None and debate != None and debate_point_key != "":
-            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point_key])
-
-    @staticmethod
-    def create_starred_list(user=None, debate=None):
-        if user != None and debate != None:
-            starred = Starred.objects.create(user=user)
-            starred.starred_list.add(debate)
-
-    def make_a_create_progress_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to create a progress point
-        :param kind: HTTP VERB
-        :return:
-        """
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_progress_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
-
-    def make_a_create_starred_list_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to create/add to a reading list
-        :param kind: HTTP VERB
-        :return:
-        """
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_starred_list_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
-
-    def set_progress_point_completed_request(self, kind=post_key, **kwargs):
-        """
-        Make a post request to set a progress point as completed
-        :param kind: HTTP VERB
-        :return:
-        """
-        if kind == post_key:
-            return self.client.post(
-                reverse(
-                    post_progress_completed_name,
-                    kwargs={
-                        version_key: v1_key
-                    }
-                ),
-                data=json.dumps(kwargs[data_key]),
-                content_type=content_type
-            )
-        else:
-            return None
+            return Debate.objects.create(title=title, short_title=short_title, last_updated=last_updated, debate_map=debate_map, total_points=total_points)
 
     def search_debates(self, search_string=""):
         url = reverse(
@@ -111,6 +42,46 @@ class BaseViewTest(APITestCase):
         )
         return self.client.get(url)
 
+
+
+
+
+
+
+    # PROGRESS
+
+    @staticmethod
+    def create_progress_point(user=None, debate=None, debate_point_key=""):
+        if user != None and debate != None and debate_point_key != "":
+            Progress.objects.create(user=user, debate=debate, completed_percentage=(1 / (debate.total_points * 1.0)) * 100, seen_points=[debate_point_key])
+
+    def create_progress(self, kind=post_key, **kwargs):
+        if kind == post_key:
+            return self.client.post(
+                reverse(
+                    get_all_post_progress_name,
+                    kwargs={
+                        version_key: v1_key
+                    }
+                ),
+                data=json.dumps(kwargs[data_key]),
+                content_type=content_type
+            )
+        else:
+            return None
+
+    def post_progress_batch(self, data):
+        return self.client.put(
+            reverse(
+                post_progress_batch_name,
+                kwargs={
+                    version_key: v1_key,
+                },
+            ),
+            data=json.dumps(data),
+            content_type=content_type
+        )
+
     def fetch_progress_seen_points(self, pk=""):
         url = reverse(
             get_progress_name,
@@ -123,21 +94,59 @@ class BaseViewTest(APITestCase):
 
     def fetch_all_progress_seen_points(self):
         url = reverse(
-            get_all_progress_name,
+            get_all_post_progress_name,
             kwargs={
                 version_key: v1_key
             },
         )
         return self.client.get(url)
 
+
+
+
+
+
+
+    # STARRED
+
+    @staticmethod
+    def create_starred_list(user=None, debate=None):
+        if user != None and debate != None:
+            starred = Starred.objects.create(user=user)
+            starred.starred_list.add(debate)
+
+    def post_starred_request(self, data):
+        return self.client.post(
+            reverse(
+                starred_name,
+                kwargs={
+                    version_key: v1_key,
+                },
+            ),
+            data=json.dumps(data),
+            content_type=content_type
+        )
+
     def fetch_starred_list(self):
         url = reverse(
-            get_starred_list_name,
+            starred_name,
             kwargs={
                 version_key: v1_key
             }
         )
         return self.client.get(url)
+
+
+
+
+
+
+
+
+
+
+
+    # AUTH
 
     def login_a_user(self, email="", password=""):
         url = reverse(
@@ -264,6 +273,14 @@ class BaseViewTest(APITestCase):
             content_type=content_type
         )
 
+
+
+
+
+
+
+
+
     def setUp(self):
 
         self.requestFactory = APIRequestFactory()
@@ -275,63 +292,65 @@ class BaseViewTest(APITestCase):
             password="testing"
         )
         self.today = datetime.today()
+
         # add test data
-        self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : ["rebuttal"]})
-        self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : ["rebuttal"]})
-        self.borderWall = self.create_debate("The border wall", self.today, {"Is it an effective border security tool?" : ["rebuttal"]})
-        self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : ["rebuttal"]})
+        self.gunControl = self.create_debate("Should we ban assault rifles?", "Assault rifle ban", self.today, {"Should we ban assault rifles?" : "rebuttal", "Civilians can't own tanks though.": "rebuttal"}, 2)
+        self.abortion = self.create_debate("Is it a woman's right to choose?", "Abortion rights", self.today, {"Is it a woman's right to choose?" : "rebuttal"}, 1)
+        self.borderWall = self.create_debate("Is the border wall an effective idea?", "Border wall", self.today, {"Is it an effective border security tool?" : "rebuttal"}, 1)
+        self.vetting = self.create_debate("Are we doing enough vetting?", "Vetting", self.today, {"Are we doing enough?" : "rebuttal"}, 1)
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
-        self.create_progress_point(self.user, self.abortion, "We allow parents to refuse to donate organs to their child.")
-        self.create_progress_point(self.user, self.borderWall, "Drones cost 1/100th of the price.")
+        self.create_progress_point(self.user, self.abortion, "Is it a woman's right to choose?")
+        self.create_progress_point(self.user, self.borderWall, "Is it an effective border security tool?")
 
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
 
         self.valid_progress_point_data = {
-            debate_pk_key: self.gunControl.pk,
-            debate_point_key: "Civilians can't own tanks though."
-        }
-        self.valid_progress_point_completed_data = {
-            debate_pk_key: self.gunControl.pk,
-            completed_key: True
+            pk_key: self.gunControl.pk,
+            debate_point_key: "Should we ban assault rifles?"
         }
         self.invalid_progress_point_data_empty = {
-            debate_pk_key: "",
+            pk_key: "",
             debate_point_key: ""
         }
-        self.invalid_progress_point_completed_data_empty = {
-            debate_pk_key: "",
-            completed_key: ""
+        self.valid_progress_point_batch_data = {
+            all_debate_points_key: [
+                {
+                    debate_key: self.vetting.pk,
+                    seen_points_key: ["Are we doing enough?"]
+                }
+            ]
+        }
+        self.invalid_progress_point_batch_data = {
+            all_debate_points_key: [
+                {
+                    "incorrect_key": self.vetting.pk,
+                    seen_points_key: 2
+                }
+            ]
         }
 
-        self.valid_starred_list_data = {
-            debate_pk_key: self.abortion.pk,
+        self.valid_starred_data = {
+            starred_list_key: [self.borderWall.pk, self.abortion.pk],
+            unstarred_list_key: []
         }
-        self.invalid_starred_list_data_empty = {
-            debate_pk_key: "",
+        self.valid_unstarred_data = {
+            starred_list_key: [],
+            unstarred_list_key: [self.abortion.pk]
         }
-        self.invalid_starred_list_data = {
-            debate_pk_key: 100000000000,
+        self.invalid_starred_data_empty = {
+            starred_list_key: [],
+            unstarred_list_key: []
+        }
+        self.invalid_starred_data = {
+            starred_list_key: ["1"],
+            unstarred_list_key: []
         }
 
-class ProgressModelTest(BaseViewTest):
-    def test_basic_create_a_progress_point(self):
-        """"
-        This test ensures that the progress point created exists
-        """
-        progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
-
-        self.assertEqual(progress_point.user.username, "test@mail.com")
-        self.assertEqual(progress_point.debate.title, "Gun control")
-        self.assertEqual(progress_point.completed, False)
-        self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
-        self.assertEqual(str(progress_point), "test@mail.com - Gun control")
+# DEBATES
 
 class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
-        """"
-        This test ensures that the debate created exists
-        """
         debate = Debate.objects.create(
             title="Test debate",
             last_updated=self.today,
@@ -342,23 +361,9 @@ class DebateModelTest(BaseViewTest):
         self.assertEqual(debate.debate_map, {"Test point": ["rebuttal"]})
         self.assertEqual(str(debate), "Test debate updated {}".format(self.today))
 
-class StarredModelTest(BaseViewTest):
-    def test_basic_create_a_starred_list(self):
-        """"
-        This test ensures that the reading list created exists
-        """
-        starred_list = Starred.objects.create(user=self.user)
-        starred_list.starred_list.add(self.gunControl)
-        self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
-        self.assertEqual(str(starred_list), "test@mail.com - Gun control")
-
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        """
-        This test ensures that all debate added in the setUp method
-        exist when we make a GET request to the debate/search/ endpoint
-        """
         # hit the API endpoint
         response = self.client.get(
             reverse(search_debates_name, kwargs={version_key: v1_key})
@@ -372,9 +377,6 @@ class GetAllDebatesTest(BaseViewTest):
 class SearchDebatesTest(BaseViewTest):
 
     def test_search_debates(self):
-        """
-        This test ensures that we can search our debate database
-        """
         response = self.search_debates("gun")
         # fetch the data from db
         expected = Debate.objects.all().filter(title="Gun control")
@@ -385,10 +387,6 @@ class SearchDebatesTest(BaseViewTest):
 class GetASingleDebateTest(BaseViewTest):
 
     def test_get_a_debate(self):
-        """
-        This test ensures that a single debate of a given title is
-        returned
-        """
         valid_debate = Debate.objects.get(pk=self.gunControl.pk)
         serialized = DebateSerializer(valid_debate)
         # hit the API endpoint
@@ -406,73 +404,75 @@ class GetASingleDebateTest(BaseViewTest):
         response = self.fetch_a_debate(100000000000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+
+
+
+
+
+
+# PROGRESS
+
+class ProgressModelTest(BaseViewTest):
+    def test_basic_create_a_progress_point(self):
+        progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
+
+        self.assertEqual(progress_point.user.username, "test@mail.com")
+        self.assertEqual(progress_point.debate.title, "Should we ban assault rifles?")
+        self.assertEqual(progress_point.completed_percentage, 50)
+        self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
+        self.assertEqual(str(progress_point), "test@mail.com - Should we ban assault rifles?")
+
 class AddProgressPointTest(BaseViewTest):
 
     def test_create_a_progress_point(self):
-        """
-        This test ensures that a single progress point can be added
-        """
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
-        response = self.make_a_create_progress_request(
+        response = self.create_progress(
             kind=post_key,
             version_key=v1_key,
             data=self.valid_progress_point_data
         )
-        self.assertEqual(response.data[seen_points_key][-1], self.valid_progress_point_data[debate_point_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_progress_seen_points(self.valid_progress_point_data[pk_key])
+        self.assertEqual(response.data[completed_percentage_key], 100)
         # test with invalid data
-        response = self.make_a_create_progress_request(
+        response = self.create_progress(
             kind=post_key,
             version_key=v1_key,
             data=self.invalid_progress_point_data_empty
         )
         self.assertEqual(
             response.data[message_key],
-            "Both debate ID and debate point are required to add a progress point"
+            progress_point_post_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class SetProgressPointCompletedTest(BaseViewTest):
+class AddProgressPointBatchTest(BaseViewTest):
 
-    def test_set_progress_point_completed(self):
-        """
-        This test ensures that a single progress point can be set as completed
-        """
+    def test_create_a_progress_point_batch(self):
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
-        response = self.set_progress_point_completed_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.valid_progress_point_completed_data
-        )
-        self.assertTrue(response.data[completed_key])
+        response = self.post_progress_batch(data=self.valid_progress_point_batch_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_progress_seen_points(self.vetting.pk)
+        self.assertEqual(response.data[completed_percentage_key], 100)
         # test with invalid data
-        response = self.set_progress_point_completed_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_progress_point_completed_data_empty
-        )
+        response = self.post_progress_batch(data=self.invalid_progress_point_batch_data)
         self.assertEqual(
             response.data[message_key],
-            "Both debate ID and completed status are required to update completed status"
+            progress_point_batch_post_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class GetASingleProgressPointTest(BaseViewTest):
+class GetASingleDebateProgressPointsTest(BaseViewTest):
 
-    def test_get_a_progress_point(self):
-        """
-        This test ensures that a single progress point of a given debate title is returned
-        """
+    def test_get_debate_progress_points(self):
         valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
         response = self.fetch_progress_seen_points(valid_progress.debate.pk)
         # fetch the data from db
-        expected = Progress.objects.get(user=valid_progress.user, debate=valid_progress.debate)
-        serialized = ProgressSerializer(expected)
+        serialized = ProgressSerializer(valid_progress)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # test with a debate that does not exist
@@ -482,12 +482,9 @@ class GetASingleProgressPointTest(BaseViewTest):
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-class GetAllProgressPointsTest(BaseViewTest):
+class GetAllDebateProgressPointsTest(BaseViewTest):
 
-    def test_get_all_progress_points(self):
-        """
-        This test ensures that a all progress points can be returned
-        """
+    def test_get_all_debate_progress_points(self):
         valid_progress = Progress.objects.filter(user=self.user)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
@@ -497,50 +494,62 @@ class GetAllProgressPointsTest(BaseViewTest):
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-class AddToStarredTest(BaseViewTest):
 
-    def test_create_a_starred_list(self):
-        """
-        This test ensures that a single debate can be added to the reading list
-        """
+
+
+
+
+
+# STARRED
+
+class StarredModelTest(BaseViewTest):
+    def test_basic_create_a_starred_list(self):
+        starred_list = Starred.objects.create(user=self.user)
+        starred_list.starred_list.add(self.gunControl)
+        self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
+        self.assertEqual(str(starred_list), "test@mail.com - Should we ban assault rifles?")
+
+class AddStarredTest(BaseViewTest):
+
+    def test_star_unstar_debates(self):
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.valid_starred_list_data
+        # star debates
+        response = self.post_starred_request(
+            data=self.valid_starred_data
         )
-        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_starred_list()
+        self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
+        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
+        # unstar debate
+        response = self.post_starred_request(
+            data=self.valid_unstarred_data
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.fetch_starred_list()
+        self.assertFalse(self.abortion.pk in response.data[starred_list_key])
         # test with invalid data
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_starred_list_data_empty
+        response = self.post_starred_request(
+            data=self.invalid_starred_data_empty
         )
         self.assertEqual(
             response.data[message_key],
-            "A debate ID is required"
+            starred_post_empty_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # test with a debate that does not exist
-        response = self.make_a_create_starred_list_request(
-            kind=post_key,
-            version_key=v1_key,
-            data=self.invalid_starred_list_data
+        # test with a string array
+        response = self.post_starred_request(
+            data=self.invalid_starred_data
         )
         self.assertEqual(
             response.data[message_key],
-            "Could not find debate with ID 100000000000"
+            starred_post_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class GetASingleStarredTest(BaseViewTest):
+class GetStarredTest(BaseViewTest):
 
-    def test_get_a_starred_list(self):
-        """
-        This test ensures that a single progress point of a given debate title is returned
-        """
+    def test_starred_list(self):
         valid_starred_list = Starred.objects.get(user=self.user)
         self.login_client('test@mail.com', 'testing')
         # hit the API endpoint
@@ -550,6 +559,14 @@ class GetASingleStarredTest(BaseViewTest):
         serialized = StarredSerializer(expected)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+
+
+
+
+
+# AUTH
 
 class AuthChangeEmailTest(BaseViewTest):
 
