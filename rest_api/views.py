@@ -81,13 +81,14 @@ class ProgressViewAll(generics.RetrieveAPIView):
 
             if request.data[debate_point_key] not in progress_points.seen_points:
                 progress_points.seen_points.append(request.data[debate_point_key])
-                progress_points.completed = debate.total_points <= len(progress_points.seen_points)
+                progress_points.completed_percentage = (len(progress_points.seen_points) / (debate.total_points * 1.0)) * 100
                 progress_points.save()
 
         except Progress.DoesNotExist:
             progress_points = Progress.objects.create(
                 user=request.user,
                 debate=debate,
+                completed_percentage= (1 / (debate.total_points * 1.0)) * 100,
                 seen_points=[request.data[debate_point_key]]
             )
 
@@ -116,15 +117,14 @@ class ProgressBatchView(generics.UpdateAPIView):
                     all_seen_points = list(set(progress_points.seen_points).union(set(progress[seen_points_key])))
 
                     progress_points.update(seen_points = all_seen_points,
-                    completed=debate.total_points <= len(all_seen_points))
+                    completed_percentage = (len(all_seen_points) / (debate.total_points * 1.0)) * 100)
                     progress_point.save()
 
                 except Progress.DoesNotExist:
-                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
                     progress_points = Progress.objects.create(
                         user=request.user,
                         debate=debate,
-                        completed=debate.total_points <= len(progress[seen_points_key]),
+                        completed_percentage=(len(progress[seen_points_key]) / (debate.total_points * 1.0)) * 100,
                         seen_points=[progress[seen_points_key]]
                     )
 

@@ -68,13 +68,14 @@ Instructions:
     - Token
     - Debate
         - title: String (unique)
+        - short_title: String
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
-        - completed: Bool
+        - completed_percentage: Int
         - seen_points: Array[String (Debate.debate_map[point])]
     - Starred
         - user: User (foreign key)
@@ -140,7 +141,7 @@ Header
 ```
 {
     "debate": 1,
-    "completed": False,
+    "completed_percentage": 10,
     "seen_points": [
         "main - test_point", "secondary - test_point", "secondary - test_point"...
     ]
@@ -169,7 +170,7 @@ Header
 [
     {
         "debate": 1,
-        "completed": False,
+        "completed_percentage": 15,
         "seen_points": [
             "main - test_point", "secondary - test_point", "secondary - test_point"...
         ]

@@ -12,9 +12,8 @@ def get_default_data_array():
 # DEBATES
 
 class Debate(models.Model):
-    # debate title
     title = models.CharField(max_length=255, null=False, unique=True)
-    # debate subtitle
+    short_title = models.CharField(max_length=255, default="", null=False)
     last_updated = models.DateField(default=datetime.today, null=False)
     total_points = models.IntegerField(default=0, null=False)
     debate_map = JSONField(default=get_default_data_dict, null=False)
@@ -29,7 +28,7 @@ class Progress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
 
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, default=None, null=False)
-    completed = models.BooleanField(default=False)
+    completed_percentage = models.IntegerField(default=0, null=False)
     seen_points = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
 
     def __str__(self):

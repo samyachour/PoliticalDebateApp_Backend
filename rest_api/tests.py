@@ -18,9 +18,9 @@ class BaseViewTest(APITestCase):
     # DEBATES
 
     @staticmethod
-    def create_debate(title="", last_updated=None, debate_map=None, total_points=0):
+    def create_debate(title="", short_title="", last_updated=None, debate_map=None, total_points=0):
         if title != "" and last_updated != None and debate_map != None:
-            return Debate.objects.create(title=title, last_updated=last_updated, debate_map=debate_map, total_points=total_points)
+            return Debate.objects.create(title=title, short_title=short_title, last_updated=last_updated, debate_map=debate_map, total_points=total_points)
 
     def search_debates(self, search_string=""):
         url = reverse(
@@ -53,7 +53,7 @@ class BaseViewTest(APITestCase):
     @staticmethod
     def create_progress_point(user=None, debate=None, debate_point_key=""):
         if user != None and debate != None and debate_point_key != "":
-            Progress.objects.create(user=user, debate=debate, seen_points=[debate_point_key])
+            Progress.objects.create(user=user, debate=debate, completed_percentage=(1 / (debate.total_points * 1.0)) * 100, seen_points=[debate_point_key])
 
     def create_progress(self, kind=post_key, **kwargs):
         if kind == post_key:
@@ -294,10 +294,10 @@ class BaseViewTest(APITestCase):
         self.today = datetime.today()
 
         # add test data
-        self.gunControl = self.create_debate("Gun control", self.today, {"Should we ban assault rifles?" : "rebuttal", "Civilians can't own tanks though.": "rebuttal"}, 2)
-        self.abortion = self.create_debate("Abortion", self.today, {"Is it a woman's right to choose?" : "rebuttal"}, 1)
-        self.borderWall = self.create_debate("The border wall", self.today, {"Is it an effective border security tool?" : "rebuttal"}, 1)
-        self.vetting = self.create_debate("Vetting", self.today, {"Are we doing enough?" : "rebuttal"}, 1)
+        self.gunControl = self.create_debate("Should we ban assault rifles?", "Assault rifle ban", self.today, {"Should we ban assault rifles?" : "rebuttal", "Civilians can't own tanks though.": "rebuttal"}, 2)
+        self.abortion = self.create_debate("Is it a woman's right to choose?", "Abortion rights", self.today, {"Is it a woman's right to choose?" : "rebuttal"}, 1)
+        self.borderWall = self.create_debate("Is the border wall an effective idea?", "Border wall", self.today, {"Is it an effective border security tool?" : "rebuttal"}, 1)
+        self.vetting = self.create_debate("Are we doing enough vetting?", "Vetting", self.today, {"Are we doing enough?" : "rebuttal"}, 1)
 
         self.create_progress_point(self.user, self.gunControl, "Civilians can't own tanks though.")
         self.create_progress_point(self.user, self.abortion, "Is it a woman's right to choose?")
@@ -417,10 +417,10 @@ class ProgressModelTest(BaseViewTest):
         progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
 
         self.assertEqual(progress_point.user.username, "test@mail.com")
-        self.assertEqual(progress_point.debate.title, "Gun control")
-        self.assertEqual(progress_point.completed, False)
+        self.assertEqual(progress_point.debate.title, "Should we ban assault rifles?")
+        self.assertEqual(progress_point.completed_percentage, 50)
         self.assertEqual(progress_point.seen_points, ["Civilians can't own tanks though."])
-        self.assertEqual(str(progress_point), "test@mail.com - Gun control")
+        self.assertEqual(str(progress_point), "test@mail.com - Should we ban assault rifles?")
 
 class AddProgressPointTest(BaseViewTest):
 
@@ -434,7 +434,7 @@ class AddProgressPointTest(BaseViewTest):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_progress_seen_points(self.valid_progress_point_data[pk_key])
-        self.assertTrue(response.data[completed_key])
+        self.assertEqual(response.data[completed_percentage_key], 100)
         # test with invalid data
         response = self.create_progress(
             kind=post_key,
@@ -455,7 +455,7 @@ class AddProgressPointBatchTest(BaseViewTest):
         response = self.post_progress_batch(data=self.valid_progress_point_batch_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertTrue(response.data[completed_key])
+        self.assertEqual(response.data[completed_percentage_key], 100)
         # test with invalid data
         response = self.post_progress_batch(data=self.invalid_progress_point_batch_data)
         self.assertEqual(
@@ -507,7 +507,7 @@ class StarredModelTest(BaseViewTest):
         starred_list = Starred.objects.create(user=self.user)
         starred_list.starred_list.add(self.gunControl)
         self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
-        self.assertEqual(str(starred_list), "test@mail.com - Gun control")
+        self.assertEqual(str(starred_list), "test@mail.com - Should we ban assault rifles?")
 
 class AddStarredTest(BaseViewTest):
 

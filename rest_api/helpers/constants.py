@@ -2,65 +2,51 @@
 minimum_password_length = 6
 minimum_trigram_similarity = 0.1
 
+content_type = "application/json"
+v1_key = "v1"
+post_key = "post"
+version_key = "version"
+data_key = "data"
+
 # Request keys
 pk_key = "pk"
 
+message_key = "message"
+
+debate_key = "debate"
+
 debate_point_key = "debate_point"
 
-completed_key = "completed"
+search_string_key = "search_string"
 
-token_key = "token"
+title_key = "title"
+short_title_key = "short_title"
+last_updated_key = "last_updated"
+total_points_key = "total_points"
+debate_map_key = "debate_map"
 
-email_key = "email"
-
-new_email_key = "new_email"
-
-old_password_key = "old_password"
-new_password_key = "new_password"
-
-force_send_key = "force_send"
-
-uidb64_key = "uidb64"
-
-message_key = "message"
+seen_points_key = "seen_points"
+completed_percentage_key = "completed_percentage"
+all_debate_points_key = "all_debate_points"
 
 starred_list_key = "starred_list"
 unstarred_list_key = "unstarred_list"
 
+token_key = "token"
 access_key = "access"
-
 refresh_key = "refresh"
 
-debate_key = "debate"
+email_key = "email"
+new_email_key = "new_email"
 
-seen_points_key = "seen_points"
-
-all_debate_points_key = "all_debate_points"
-
-post_key = "post"
-
-v1_key = "v1"
-
-version_key = "version"
-
-data_key = "data"
-
-title_key = "title"
-
-last_updated_key = "last_updated"
-
-total_points_key = "total_points"
-
-debate_map_key = "debate_map"
+old_password_key = "old_password"
+new_password_key = "new_password"
+new_password_confirmation_key = "new_password_confirmation"
+force_send_key = "force_send"
+uidb64_key = "uidb64"
 
 username_key = "username"
 password_key = "password"
-
-content_type = "application/json"
-
-new_password_confirmation_key = "new_password_confirmation"
-
-search_string_key = "search_string"
 
 # URL names
 search_debates_name = "search_debates"
