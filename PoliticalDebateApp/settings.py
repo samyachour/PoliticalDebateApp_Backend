@@ -82,7 +82,7 @@ REST_FRAMEWORK = {
 
         # PROGRESS
 
-        'ProgressDetail': '10/minute', # Same as DebteDetail
+        'ProgressDetail': '10/minute', # Same as DebateDetail
         'AllProgress': '30/minute', # Whenever a user makes progress
         'ProgressBatch': '5/day',
 

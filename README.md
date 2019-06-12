@@ -86,6 +86,7 @@ Instructions:
 
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
 - use `%20` for spaces
+- all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77)
 
 ---
 #### DEBATES
