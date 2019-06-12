@@ -23,6 +23,7 @@ class SearchDebatesView(generics.ListAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = 'SearchDebates'
 
     def get(self, request, *args, **kwargs):
         # Just give the user the most recent debates
@@ -41,6 +42,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = 'DebateDetail'
 
     @validate_debate_get_request_data
     def get(self, request, *args, **kwargs):
@@ -56,10 +58,11 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # PROGRESS
 
-class ProgressView(generics.RetrieveAPIView):
+class ProgressDetailView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_scope = 'ProgressDetail'
 
     @validate_progress_point_get_request_data
     def get(self, request, *args, **kwargs):
@@ -67,10 +70,11 @@ class ProgressView(generics.RetrieveAPIView):
         progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
         return Response(ProgressSerializer(progress_point).data)
 
-class ProgressViewAll(generics.RetrieveAPIView):
+class AllProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_scope = 'AllProgress'
 
     @validate_progress_post_point_request_data
     def post(self, request, *args, **kwargs):
@@ -97,12 +101,13 @@ class ProgressViewAll(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         progress_points = self.queryset.filter(user=request.user)
-        return Response(ProgressSerializer(progress_points, many=True).data)
+        return Response(ProgressAllSerializer(progress_points, many=True).data)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressBatchInputSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_scope = 'ProgressBatch'
 
     def put(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -149,24 +154,25 @@ class StarredView(generics.RetrieveAPIView):
     queryset = Starred.objects.all()
     serializer_class = StarredSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    throttle_scope = 'Starred'
 
     @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
-        starred_debate_ids = request.data[starred_list_key]
-        unstarred_debate_ids = request.data[unstarred_list_key]
+        starred_debate_pks = request.data[starred_list_key]
+        unstarred_debate_pks = request.data[unstarred_list_key]
 
         try:
             user_starred = self.queryset.get(user=request.user)
 
-            for pk_index in range(0, len(unstarred_debate_ids)):
-                pk = unstarred_debate_ids[pk_index]
+            for pk_index in range(0, len(unstarred_debate_pks)):
+                pk = unstarred_debate_pks[pk_index]
                 newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
                 if user_starred.starred_list.filter(pk=newDebate.pk).exists():
                     user_starred.starred_list.remove(newDebate)
 
-            for pk_index in range(0, len(starred_debate_ids)):
-                pk = starred_debate_ids[pk_index]
+            for pk_index in range(0, len(starred_debate_pks)):
+                pk = starred_debate_pks[pk_index]
                 newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
                 if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
@@ -174,9 +180,9 @@ class StarredView(generics.RetrieveAPIView):
 
         except Starred.DoesNotExist:
             user_starred = Starred.objects.create(user=user)
-            for pk_index in range(0, len(starred_debate_ids)):
-                pk = starred_debate_ids[pk_index]
-                if pk not in unstarred_debate_ids:
+            for pk_index in range(0, len(starred_debate_pks)):
+                pk = starred_debate_pks[pk_index]
+                if pk not in unstarred_debate_pks:
                     newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
                     user_starred.starred_list.add(newDebate)
 
@@ -200,6 +206,7 @@ class ChangePasswordView(generics.UpdateAPIView):
     # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
+    throttle_scope = 'ChangePassword'
 
     @validate_change_password_post_request_data
     def put(self, request, *args, **kwargs):
@@ -218,6 +225,7 @@ class ChangeEmailView(generics.UpdateAPIView):
     # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
+    throttle_scope = 'ChangeEmail'
 
     @validate_change_email_post_request_data
     def put(self, request, *args, **kwargs):
@@ -239,7 +247,7 @@ class ChangeEmailView(generics.UpdateAPIView):
         self.object.save()
         return Response("Success.", status=status.HTTP_200_OK)
 
-class DeleteUsersView(generics.DestroyAPIView):
+class DeleteUserView(generics.DestroyAPIView):
     """
     POST auth/delete/
     """
@@ -247,6 +255,7 @@ class DeleteUsersView(generics.DestroyAPIView):
     # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
+    throttle_scope = 'DeleteUser'
 
     def post(self, request, *args, **kwargs):
         self.object = self.request.user
@@ -254,8 +263,9 @@ class DeleteUsersView(generics.DestroyAPIView):
         self.object.delete() #Triggers cascading deletions on user data existing on other tables
         return Response("Success.", status=status.HTTP_200_OK)
 
-class RegisterUsersView(generics.CreateAPIView):
+class RegisterUserView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
+    throttle_scope = 'RegisterUser'
 
     @validate_register_user_post_request_data
     def post(self, request, *args, **kwargs):
@@ -283,6 +293,7 @@ class PasswordResetFormView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'password_reset.html'
     queryset = User.objects.all()
+    throttle_scope = 'PasswordResetForm'
 
     def get(self, request, *args, **kwargs):
         try:
@@ -310,6 +321,7 @@ class PasswordResetSubmitView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = PasswordResetSubmitSerializer
+    throttle_scope = 'PasswordResetSubmit'
 
     def post(self, request, *args, **kwargs):
         try:
@@ -322,7 +334,6 @@ class PasswordResetSubmitView(generics.UpdateAPIView):
 
             if serializer.is_valid():
                 new_password = serializer.data.get(new_password_key)
-                new_password_confirmation = serializer.data.get(new_password_confirmation_key)
 
                 user.set_password(new_password)
                 user.save()
@@ -338,6 +349,7 @@ class PasswordResetSubmitView(generics.UpdateAPIView):
 class RequestPasswordResetView(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny,)
     queryset = User.objects.all()
+    throttle_scope = 'RequestPasswordReset'
 
     @validate_request_password_reset_post_request_data
     def post(self, request, *args, **kwargs):
@@ -366,6 +378,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
 
 class VerificationView(generics.RetrieveAPIView):
     queryset = User.objects.all()
+    throttle_scope = 'Verification'
 
     def get(self, request, *args, **kwargs):
         try:

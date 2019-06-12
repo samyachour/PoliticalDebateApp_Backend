@@ -17,8 +17,8 @@ urlpatterns = [
 
     # PROGRESS
 
-    path('progress/<int:{0}>'.format(pk_key), ProgressView.as_view(), name=get_progress_name),
-    path('progress/', ProgressViewAll.as_view(), name=get_all_post_progress_name),
+    path('progress/<int:{0}>'.format(pk_key), ProgressDetailView.as_view(), name=get_progress_name),
+    path('progress/', AllProgressView.as_view(), name=get_all_post_progress_name),
     path('progress/batch/', ProgressBatchView.as_view(), name=post_progress_batch_name),
 
 
@@ -29,8 +29,8 @@ urlpatterns = [
 
     # AUTH
 
-    path('{0}/delete/'.format(auth_string), DeleteUsersView.as_view(), name=auth_delete_name),
-    path('{0}/register/'.format(auth_string), RegisterUsersView.as_view(), name=auth_register_name),
+    path('{0}/delete/'.format(auth_string), DeleteUserView.as_view(), name=auth_delete_name),
+    path('{0}/register/'.format(auth_string), RegisterUserView.as_view(), name=auth_register_name),
     path('{0}/change-password/'.format(auth_string), ChangePasswordView.as_view(), name=auth_change_password_name),
     path('{0}/change-email/'.format(auth_string), ChangeEmailView.as_view(), name=auth_change_email_name),
     path('{0}/token/obtain/'.format(auth_string), TokenObtainPairView.as_view(), name=auth_token_obtain_name), # Login

@@ -180,7 +180,7 @@ class BaseViewTest(APITestCase):
         )
 
     def delete_user(self, user):
-        view = DeleteUsersView.as_view()
+        view = DeleteUserView.as_view()
         url = reverse(
             auth_delete_name,
             kwargs={
@@ -490,7 +490,7 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
         # hit the API endpoint
         response = self.fetch_all_progress_seen_points()
         # fetch the data from db
-        serialized = ProgressSerializer(valid_progress, many=True)
+        serialized = ProgressAllSerializer(valid_progress, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
