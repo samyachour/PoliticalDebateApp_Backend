@@ -24,6 +24,11 @@ class ProgressSerializer(serializers.ModelSerializer):
         model = Progress
         fields = (debate_key, completed_percentage_key, seen_points_key,)
 
+class ProgressAllSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Progress
+        fields = (debate_key, completed_percentage_key,)
+
 # For batch post request validation
 class ProgressBatchSerializer(serializers.ModelSerializer):
     class Meta:

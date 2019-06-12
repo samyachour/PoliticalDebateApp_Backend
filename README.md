@@ -86,7 +86,6 @@ Instructions:
 
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
 - use `%20` for spaces
-- when you see numbers associated with model types (e.g. `debate: 1`) the number is the ID (unique primary key (`pk`))
 
 ---
 #### DEBATES
@@ -152,6 +151,7 @@ or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
 ##### `progress/`
 
 - get all debates user has made progress on
+- the seen points do not come in this call
 
 GET
 
@@ -170,10 +170,7 @@ Header
 [
     {
         "debate": 1,
-        "completed_percentage": 15,
-        "seen_points": [
-            "main - test_point", "secondary - test_point", "secondary - test_point"...
-        ]
+        "completed_percentage": 15
     }
 ]
 ```
