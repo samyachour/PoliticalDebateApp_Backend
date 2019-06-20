@@ -102,6 +102,9 @@ REST_FRAMEWORK = {
         'PasswordResetSubmit': '5/day',
         'RequestPasswordReset': '5/day',
         'Verification': '5/day',
+        'TokenObtainPairView': '5/day',
+        'TokenRefreshView': '6/hour', # access token expires every 10 min
+
 
     }
 }

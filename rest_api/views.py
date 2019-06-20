@@ -16,6 +16,10 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 # DEBATES
 
@@ -395,3 +399,10 @@ class VerificationView(generics.RetrieveAPIView):
 
         else:
             return HttpResponse('Activation link is invalid!')
+
+# Need to override to give throttle scopes
+class TokenObtainPairView(TokenObtainPairView):
+    throttle_scope = 'TokenObtainPairView'
+
+class TokenRefreshView(TokenRefreshView):
+    throttle_scope = 'TokenRefreshView'
