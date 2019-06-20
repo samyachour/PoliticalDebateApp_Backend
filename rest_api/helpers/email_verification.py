@@ -17,7 +17,7 @@ class EmailVerification():
         verification_link_arr = verification_link_arr[ : verification_link_arr.index(auth_string) + 1]
 
         if password_reset:
-            verification_link = "/".join(verification_link_arr) + "/{0}/{1}/{2}".format(password_reset_string, uid, token)
+            verification_link = "/".join(verification_link_arr) + "/{0}/{1}/{2}".format(password_reset_form_string, uid, token)
 
             send_mail(
                 'Reset your PoliticalDebateApp password.',

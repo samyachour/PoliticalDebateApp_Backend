@@ -45,6 +45,9 @@ new_password_confirmation_key = "new_password_confirmation"
 force_send_key = "force_send"
 uidb64_key = "uidb64"
 
+passwords_do_not_match_key = "passwords_do_not_match"
+password_too_short_key = "passwords_too_short"
+
 username_key = "username"
 password_key = "password"
 
