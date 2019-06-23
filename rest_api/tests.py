@@ -283,6 +283,18 @@ class BaseViewTest(APITestCase):
 
     def setUp(self):
 
+        # Turn off throttling
+        SearchDebatesView.throttle_scope = ""
+        DebateDetailView.throttle_scope = ""
+        ProgressDetailView.throttle_scope = ""
+        AllProgressView.throttle_scope = ""
+        StarredView.throttle_scope = ""
+        ChangeEmailView.throttle_scope = ""
+        DeleteUserView.throttle_scope = ""
+        RegisterUserView.throttle_scope = ""
+        TokenObtainPairView.throttle_scope = ""
+        TokenRefreshView.throttle_scope = ""
+
         self.requestFactory = APIRequestFactory()
 
         # create a admin user
