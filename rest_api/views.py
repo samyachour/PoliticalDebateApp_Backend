@@ -402,7 +402,7 @@ class VerificationView(generics.RetrieveAPIView):
 
 # Need to override to give throttle scopes
 class TokenObtainPairView(TokenObtainPairView):
-    throttle_scope = 'TokenObtainPairView'
+    throttle_scope = 'TokenObtainPair'
 
 class TokenRefreshView(TokenRefreshView):
-    throttle_scope = 'TokenRefreshView'
+    throttle_scope = 'TokenRefresh'
