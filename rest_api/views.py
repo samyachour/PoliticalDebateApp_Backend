@@ -100,7 +100,7 @@ class AllProgressView(generics.RetrieveAPIView):
                 seen_points=[request.data[debate_point_key]]
             )
 
-        return Response("Success", status=status.HTTP_201_CREATED)
+        return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
@@ -137,7 +137,7 @@ class ProgressBatchView(generics.UpdateAPIView):
                         seen_points=[progress[seen_points_key]]
                     )
 
-            return Response("Success", status=status.HTTP_201_CREATED)
+            return Response(success_response, status=status.HTTP_201_CREATED)
         else:
             return Response(
                 data={
@@ -190,7 +190,7 @@ class StarredView(generics.RetrieveAPIView):
                     newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
                     user_starred.starred_list.add(newDebate)
 
-        return Response("Success", status=status.HTTP_201_CREATED)
+        return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
@@ -222,7 +222,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         # set_password also hashes the password that the user will get
         self.object.set_password(request.data[new_password_key])
         self.object.save()
-        return Response("Success.", status=status.HTTP_200_OK)
+        return Response(success_response, status=status.HTTP_200_OK)
 
 class ChangeEmailView(generics.UpdateAPIView):
     # This permission class will overide the global permission
@@ -244,12 +244,12 @@ class ChangeEmailView(generics.UpdateAPIView):
         except:
             return Response(
                 data={
-                    message_key: "invalid email"
+                    message_key: invalid_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
         self.object.save()
-        return Response("Success.", status=status.HTTP_200_OK)
+        return Response(success_response, status=status.HTTP_200_OK)
 
 class DeleteUserView(generics.DestroyAPIView):
     """
@@ -265,7 +265,7 @@ class DeleteUserView(generics.DestroyAPIView):
         self.object = self.request.user
 
         self.object.delete() #Triggers cascading deletions on user data existing on other tables
-        return Response("Success.", status=status.HTTP_200_OK)
+        return Response(success_response, status=status.HTTP_200_OK)
 
 class RegisterUserView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
@@ -287,11 +287,11 @@ class RegisterUserView(generics.CreateAPIView):
             new_user.delete()
             return Response(
                 data={
-                    message_key: "invalid email"
+                    message_key: invalid_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        return Response("Success.", status=status.HTTP_201_CREATED)
+        return Response(success_response, status=status.HTTP_201_CREATED)
 
 class PasswordResetFormView(APIView):
     renderer_classes = [TemplateHTMLRenderer]
@@ -319,7 +319,7 @@ class PasswordResetFormView(APIView):
                             })
 
         else:
-            return HttpResponse('Link is invalid!')
+            return HttpResponse(invalid_link_error)
 
 class PasswordResetSubmitView(generics.UpdateAPIView):
     queryset = User.objects.all()
@@ -345,10 +345,10 @@ class PasswordResetSubmitView(generics.UpdateAPIView):
                 return HttpResponse('Password successfully changed!')
 
             else:
-                return HttpResponse('There was a problem. Please try again.')
+                return HttpResponse('There was a problem, please try again.')
 
         else:
-            return HttpResponse('Link is invalid!')
+            return HttpResponse(invalid_link_error)
 
 class RequestPasswordResetView(generics.RetrieveAPIView):
     permission_classes = (permissions.AllowAny,)
@@ -364,7 +364,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
         if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
-                    message_key: "user has not verified their email"
+                    message_key: "User has not verified their email"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -374,11 +374,11 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
         except:
             return Response(
                 data={
-                    message_key: "invalid email"
+                    message_key: invalid_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        return Response("Success.", status=status.HTTP_200_OK)
+        return Response(success_response, status=status.HTTP_200_OK)
 
 class VerificationView(generics.RetrieveAPIView):
     queryset = User.objects.all()

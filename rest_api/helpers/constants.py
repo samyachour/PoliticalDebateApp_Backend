@@ -75,7 +75,14 @@ password_reset_form_string = "password-reset-form"
 password_reset_submit_string = "password-reset-submit"
 verify_string = "verify"
 
+# Success messages
+
+success_response = "Success"
+
 # Error messages
+invalid_email_error = "Invalid email"
+invalid_link_error = "Link is invalid"
+
 progress_point_post_error = "Both debate ID and debate point are required to add a progress point"
 debate_get_error = "A debate ID is required"
 progress_point_get_error = "A debate ID is required"
