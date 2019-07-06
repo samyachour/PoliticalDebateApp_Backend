@@ -68,11 +68,14 @@ REST_FRAMEWORK = {
     # Permission settings
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ],
-    'DEFAULT_THROTTLE_CLASSES': (
+    ]
+}
+
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = (
         'rest_framework.throttling.ScopedRateThrottle',
-    ),
-    'DEFAULT_THROTTLE_RATES': {
+    )
+    REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
 
         # DEBATES
 
@@ -107,7 +110,6 @@ REST_FRAMEWORK = {
 
 
     }
-}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=10),
