@@ -80,7 +80,7 @@ verify_string = "verify"
 success_response = "Success"
 
 # Error messages
-invalid_email_error = "Invalid email"
+invalid_email_error = "Could not send, email is invalid."
 invalid_link_error = "Link is invalid"
 
 progress_point_post_error = "Both debate ID and debate point are required to add a progress point"

@@ -234,7 +234,7 @@ class ChangeEmailView(generics.UpdateAPIView):
     @validate_change_email_post_request_data
     def put(self, request, *args, **kwargs):
         self.object = self.request.user
-        new_email = request.data[new_email_key]
+        new_email = request.data[new_email_key].lower()
 
         try:
             # Set username to email, don't set email property until it's verified
@@ -274,7 +274,7 @@ class RegisterUserView(generics.CreateAPIView):
     @validate_register_user_post_request_data
     def post(self, request, *args, **kwargs):
         password = request.data[password_key]
-        email = request.data[email_key]
+        email = request.data[email_key].lower()
 
         # New user's don't have an email attribute until they verify their email
         new_user = User.objects.create_user(
@@ -357,14 +357,14 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
 
     @validate_request_password_reset_post_request_data
     def post(self, request, *args, **kwargs):
-        email = request.data[email_key]
+        email = request.data[email_key].lower()
 
         user = get_object_or_404(User, username=email)
         # We only set the email field after confirming email
         if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
-                    message_key: "User has not verified their email"
+                    message_key: "Please verify your email."
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
