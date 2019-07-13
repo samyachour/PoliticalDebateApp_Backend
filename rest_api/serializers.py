@@ -56,7 +56,7 @@ class ProgressBatchSerializer(serializers.ModelSerializer):
         fields = (debate_key, seen_points_key,)
 
 class ProgressBatchInputSerializer(serializers.Serializer):
-    all_debate_points = ProgressSerializer(many=True)
+    all_debate_points = ProgressBatchSerializer(many=True)
 
 
 # STARRED

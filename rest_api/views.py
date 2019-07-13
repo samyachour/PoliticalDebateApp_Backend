@@ -84,28 +84,29 @@ class AllProgressView(generics.RetrieveAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            debate = get_object_or_404(Debate.objects.all(), pk=request.data[pk_key])
-            progress_points = self.queryset.get(user=request.user, debate=debate)
+            debate = get_object_or_404(Debate.objects.all(), pk=request.data[debate_pk_key])
+            new_point = get_object_or_404(Point.objects.all(), pk=request.data[point_pk_key])
+            progress = self.queryset.get(user=request.user, debate=debate)
 
-            if request.data[debate_point_key] not in progress_points.seen_points:
-                progress_points.seen_points.append(request.data[debate_point_key])
-                progress_points.completed_percentage = (len(progress_points.seen_points) / (debate.total_points * 1.0)) * 100
-                progress_points.save()
+            if new_point not in progress.seen_points.all():
+                progress.seen_points.add(new_point)
+                progress.update(completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100)
+                progress.save()
 
         except Progress.DoesNotExist:
             progress_points = Progress.objects.create(
                 user=request.user,
                 debate=debate,
-                completed_percentage= (1 / (debate.total_points * 1.0)) * 100,
-                seen_points=[request.data[debate_point_key]]
+                completed_percentage= (1 / (debate.total_points * 1.0)) * 100
             )
+            progress_points.seen_points.add(new_point)
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
-        progress_points = self.queryset.filter(user=request.user)
-        return Response(ProgressAllSerializer(progress_points, many=True).data)
+        progress = self.queryset.filter(user=request.user)
+        return Response(ProgressAllSerializer(progress, many=True).data)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
@@ -117,25 +118,34 @@ class ProgressBatchView(generics.UpdateAPIView):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            for progress in serializer.data[all_debate_points_key]:
+            for progress_input in serializer.data[all_debate_points_key]:
                 try:
-                    debate = get_object_or_404(Debate.objects.all(), pk=progress[debate_key])
-                    progress_points = self.queryset.get(user=request.user, debate=debate)
+                    debate = Debate.objects.all().get(pk=progress_input[debate_key])
+                    new_points = progress_input[seen_points_key]
+                    progress = self.queryset.get(user=request.user, debate=debate)
 
-                    # Merge the new seen points w/ existing avoiding duplicates
-                    all_seen_points = list(set(progress_points.seen_points).union(set(progress[seen_points_key])))
-
-                    progress_points.update(seen_points = all_seen_points,
-                    completed_percentage = (len(all_seen_points) / (debate.total_points * 1.0)) * 100)
-                    progress_point.save()
+                except Debate.DoesNotExist:
+                    # Fail silently in finding the debate object because we could receive a batch request with an old debate that has since been deleted
+                    pass
 
                 except Progress.DoesNotExist:
-                    progress_points = Progress.objects.create(
+                    progress = Progress.objects.create(
                         user=request.user,
                         debate=debate,
-                        completed_percentage=(len(progress[seen_points_key]) / (debate.total_points * 1.0)) * 100,
-                        seen_points=[progress[seen_points_key]]
+                        completed_percentage=(len(progress_input[seen_points_key]) / (debate.total_points * 1.0)) * 100
                     )
+
+                all_points = Point.objects.all()
+                for new_point_pk in new_points:
+                    try:
+                        new_point = all_points.get(pk=new_point_pk)
+                        progress.seen_points.add(new_point)
+                    except Point.DoesNotExist:
+                        # Fail silently in finding the new point object because we could receive a batch request with old debate points that have since been deleted
+                        pass
+
+                progress.update(completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100)
+                progress.save()
 
             return Response(success_response, status=status.HTTP_201_CREATED)
         else:
@@ -166,29 +176,29 @@ class StarredView(generics.RetrieveAPIView):
         unstarred_debate_pks = request.data[unstarred_list_key]
 
         try:
-            user_starred = self.queryset.get(user=request.user)
+            starred = self.queryset.get(user=request.user)
 
             for pk_index in range(0, len(unstarred_debate_pks)):
                 pk = unstarred_debate_pks[pk_index]
                 newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
-                if user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                    user_starred.starred_list.remove(newDebate)
+                if starred.starred_list.filter(pk=newDebate.pk).exists():
+                    starred.starred_list.remove(newDebate)
 
             for pk_index in range(0, len(starred_debate_pks)):
                 pk = starred_debate_pks[pk_index]
                 newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
 
-                if not user_starred.starred_list.filter(pk=newDebate.pk).exists():
-                    user_starred.starred_list.add(newDebate)
+                if not starred.starred_list.filter(pk=newDebate.pk).exists():
+                    starred.starred_list.add(newDebate)
 
         except Starred.DoesNotExist:
-            user_starred = Starred.objects.create(user=user)
+            starred = Starred.objects.create(user=user)
             for pk_index in range(0, len(starred_debate_pks)):
                 pk = starred_debate_pks[pk_index]
                 if pk not in unstarred_debate_pks:
                     newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-                    user_starred.starred_list.add(newDebate)
+                    starred.starred_list.add(newDebate)
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
@@ -388,17 +398,18 @@ class VerificationView(generics.RetrieveAPIView):
         try:
             uid = force_text(urlsafe_base64_decode(kwargs[uidb64_key]))
             user = self.queryset.get(pk=uid)
+
+            if account_verification_token.check_token(user, kwargs[token_key]):
+                # User verified email
+                user.email = user.username
+                user.save()
+
+                return HttpResponse('Email verified!')
+
+            else:
+                return HttpResponse(invalid_link_error)
         except:
-            user = None
-        if user is not None and account_verification_token.check_token(user, kwargs[token_key]):
-            # User verified email
-            user.email = user.username
-            user.save()
-
-            return HttpResponse('Email verified!')
-
-        else:
-            return HttpResponse('Activation link is invalid!')
+            return HttpResponse(invalid_link_error)
 
 # Need to override to give throttle scopes
 class TokenObtainPairView(TokenObtainPairView):

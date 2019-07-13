@@ -10,6 +10,8 @@ data_key = "data"
 
 # Request keys
 pk_key = "pk"
+debate_pk_key = "debate_pk"
+point_pk_key = "point_pk"
 
 message_key = "message"
 
@@ -92,9 +94,10 @@ success_response = "Success"
 invalid_email_error = "Could not send, email is invalid."
 invalid_link_error = "Link is invalid"
 
-progress_point_post_error = "Both debate ID and debate point are required to add a progress point"
 debate_get_error = "A debate ID is required"
+progress_point_post_error = "Both debate ID and debate point ID are required to add a progress point"
 progress_point_get_error = "A debate ID is required"
+invalid_point_pk_error = "Could not find point associated with that ID"
 progress_point_batch_post_error = "Incorrect format must be array of seen progress points"
 starred_post_type_error = "Starred and unstarred values must be array types"
 starred_post_empty_error = "No starred or unstarred data passed"

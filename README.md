@@ -203,8 +203,8 @@ Header
 ```
 Body
 {
-    "pk": 1,
-    "debate_point": "point"
+    "debate_pk": 1,
+    "point_pk": 1
 }
 ```
 
@@ -214,7 +214,7 @@ Body
 
 ##### `progress/batch/`
 
-- add an array of debates' seen points to user's progress
+- add an array of debates' seen points' IDs to user's progress
 
 POST
 
@@ -233,13 +233,13 @@ Body
         {
             "debate": 1,
             "seen_points": [
-                "main - test_point", "secondary - test_point", "secondary - test_point"...
+                1, 2, 3, 4...
             ]
         },
         {
             "debate": 2,
             "seen_points": [
-                "main - test_point", "secondary - test_point", "secondary - test_point"...
+                1, 2, 3, 4...
             ]
         }
     ]
