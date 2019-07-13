@@ -25,6 +25,15 @@ last_updated_key = "last_updated"
 total_points_key = "total_points"
 debate_map_key = "debate_map"
 
+description_key = "description"
+hyperlinks_key = "hyperlinks"
+images_key = "images"
+rebuttals_key = "rebuttals"
+
+name_key = "name"
+substring_key = "substring"
+url_key = "url"
+
 seen_points_key = "seen_points"
 completed_percentage_key = "completed_percentage"
 all_debate_points_key = "all_debate_points"

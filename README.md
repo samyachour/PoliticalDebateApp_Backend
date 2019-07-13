@@ -61,26 +61,36 @@ Instructions:
 ### Architecture
 
 - Here are our current models:
-    - User (default Django User model)
-        - username: String
-        - email: String
-        - password: String
-    - Token
     - Debate
         - title: String (unique)
         - short_title: String
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
+    - Point
+        - debate: Debate (foreign key)
+        - rebuttals: Points (ManyToMany)
+    - PointImage
+        - point: Point (foreign key)
+        - name: String
+        - url: URL
+    - PointHyperlink
+        - point: Point (foreign key)
+        - substring: String
+        - url: URL
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
         - completed_percentage: Int
-        - seen_points: Array[String (Debate.debate_map[point])]
+        - seen_points: Points (ManyToMany)
     - Starred
         - user: User (foreign key)
         - starred_list: Debates (ManyToMany)
-
+    - User (default Django User model)
+        - username: String
+        - email: String
+        - password: String
+    - Token
 
 ### Endpoints
 

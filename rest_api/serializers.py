@@ -6,7 +6,27 @@ from .helpers.constants import *
 
 # DEBATES
 
+class PointImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PointImage
+        fields = (name_key, url_key)
+
+class PointHyperlinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PointHyperlink
+        fields = (substring_key, url_key)
+
+class PointSerializer(serializers.ModelSerializer):
+    images = PointImageSerializer(many=True)
+    hyperlinks = PointHyperlinkSerializer(many=True)
+
+    class Meta:
+        model = Point
+        fields = (pk_key, description_key, images_key, hyperlinks_key, rebuttals_key)
+
 class DebateSerializer(serializers.ModelSerializer):
+    debate_map = PointSerializer(many=True)
+
     class Meta:
         model = Debate
         fields = (pk_key, title_key, short_title_key, last_updated_key, total_points_key, debate_map_key)

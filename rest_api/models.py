@@ -16,10 +16,24 @@ class Debate(models.Model):
     short_title = models.CharField(max_length=255, default="", null=False)
     last_updated = models.DateField(default=datetime.today, null=False)
     total_points = models.IntegerField(default=0, null=False)
-    debate_map = JSONField(default=get_default_data_dict, null=False)
 
     def __str__(self):
         return "{} updated {}".format(self.title, self.last_updated)
+
+class Point(models.Model):
+    debate = models.ForeignKey(Debate, on_delete=models.CASCADE)
+    description = models.CharField(max_length=255, null=False)
+    rebuttals = models.ManyToManyField('self', symmetrical=False)
+
+class PointImage(models.Model):
+    point = models.ForeignKey(Point, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, null=False)
+    url = models.URLField(max_length=255, null=False)
+
+class PointHyperlink(models.Model):
+    point = models.ForeignKey(Point, on_delete=models.CASCADE)
+    substring = models.CharField(max_length=255, null=False)
+    url = models.URLField(max_length=255, null=False)
 
 # PROGRESS
 
@@ -29,7 +43,7 @@ class Progress(models.Model):
 
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, default=None, null=False)
     completed_percentage = models.IntegerField(default=0, null=False)
-    seen_points = ArrayField(models.CharField(max_length=255, null=False), default=get_default_data_array, null=False)
+    seen_points = models.ManyToManyField(Point)
 
     def __str__(self):
         return "{} - {}".format(self.user.username, self.debate.title)
