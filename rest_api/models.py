@@ -27,8 +27,9 @@ class Point(models.Model):
 
 class PointImage(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, null=False)
     url = models.URLField(max_length=255, null=False)
+    source = models.CharField(max_length=255, null=False)
+    name = models.CharField(max_length=255, null=True)
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)

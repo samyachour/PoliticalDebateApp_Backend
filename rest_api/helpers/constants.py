@@ -35,6 +35,7 @@ rebuttals_key = "rebuttals"
 name_key = "name"
 substring_key = "substring"
 url_key = "url"
+source_key = "source"
 
 seen_points_key = "seen_points"
 completed_percentage_key = "completed_percentage"

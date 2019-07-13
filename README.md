@@ -72,8 +72,9 @@ Instructions:
         - rebuttals: Points (ManyToMany)
     - PointImage
         - point: Point (foreign key)
-        - name: String
         - url: URL
+        - source: String
+        - name: String (optional)
     - PointHyperlink
         - point: Point (foreign key)
         - substring: String

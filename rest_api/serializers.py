@@ -9,7 +9,7 @@ from .helpers.constants import *
 class PointImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PointImage
-        fields = (name_key, url_key)
+        fields = (url_key, source_key, name_key)
 
 class PointHyperlinkSerializer(serializers.ModelSerializer):
     class Meta:
