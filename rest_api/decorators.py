@@ -38,9 +38,9 @@ def validate_progress_point_get_request_data(fn):
 def validate_progress_post_point_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        debate_title = args[0].request.data.get(pk_key, "")
-        debate_point = args[0].request.data.get(debate_point_key, "")
-        if not debate_title or not debate_point:
+        debate = args[0].request.data.get(debate_pk_key, "")
+        point = args[0].request.data.get(point_pk_key, "")
+        if not debate or not point:
             return Response(
                 data={
                     message_key: progress_point_post_error

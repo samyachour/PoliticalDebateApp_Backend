@@ -61,26 +61,37 @@ Instructions:
 ### Architecture
 
 - Here are our current models:
-    - User (default Django User model)
-        - username: String
-        - email: String
-        - password: String
-    - Token
     - Debate
         - title: String (unique)
         - short_title: String
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
+    - Point
+        - debate: Debate (foreign key)
+        - rebuttals: Points (ManyToMany)
+    - PointImage
+        - point: Point (foreign key)
+        - url: URL
+        - source: String
+        - name: String (optional)
+    - PointHyperlink
+        - point: Point (foreign key)
+        - substring: String
+        - url: URL
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
         - completed_percentage: Int
-        - seen_points: Array[String (Debate.debate_map[point])]
+        - seen_points: Points (ManyToMany)
     - Starred
         - user: User (foreign key)
         - starred_list: Debates (ManyToMany)
-
+    - User (default Django User model)
+        - username: String
+        - email: String
+        - password: String
+    - Token
 
 ### Endpoints
 
@@ -143,7 +154,7 @@ Header
     "debate": 1,
     "completed_percentage": 10,
     "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
+        1, 2, 3, 4...
     ]
 }
 ```
@@ -193,8 +204,8 @@ Header
 ```
 Body
 {
-    "pk": 1,
-    "debate_point": "point"
+    "debate_pk": 1,
+    "point_pk": 1
 }
 ```
 
@@ -204,7 +215,7 @@ Body
 
 ##### `progress/batch/`
 
-- add an array of debates' seen points to user's progress
+- add an array of debates' seen points' IDs to user's progress
 
 POST
 
@@ -223,13 +234,13 @@ Body
         {
             "debate": 1,
             "seen_points": [
-                "main - test_point", "secondary - test_point", "secondary - test_point"...
+                1, 2, 3, 4...
             ]
         },
         {
             "debate": 2,
             "seen_points": [
-                "main - test_point", "secondary - test_point", "secondary - test_point"...
+                1, 2, 3, 4...
             ]
         }
     ]
@@ -238,7 +249,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, or `HTTP_400_BAD_REQUEST`
 
 ---
 #### STARRED
