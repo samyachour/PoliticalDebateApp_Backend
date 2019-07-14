@@ -29,7 +29,7 @@ class PointImage(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
     url = models.URLField(max_length=255, null=False)
     source = models.CharField(max_length=255, null=False)
-    name = models.CharField(max_length=255, null=True)
+    name = models.CharField(max_length=255, null=True) # images might already have names or not need them
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)

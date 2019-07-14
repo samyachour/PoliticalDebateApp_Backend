@@ -154,7 +154,7 @@ Header
     "debate": 1,
     "completed_percentage": 10,
     "seen_points": [
-        "main - test_point", "secondary - test_point", "secondary - test_point"...
+        1, 2, 3, 4...
     ]
 }
 ```
@@ -249,7 +249,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, or `HTTP_400_BAD_REQUEST`
 
 ---
 #### STARRED

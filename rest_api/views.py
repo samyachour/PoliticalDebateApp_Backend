@@ -89,7 +89,7 @@ class AllProgressView(generics.RetrieveAPIView):
             progress = self.queryset.get(user=request.user, debate=debate)
 
             progress.seen_points.add(new_point) # add uses a set semantic to prevent duplicates
-            progress.update(completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100)
+            progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
             progress.save()
 
         except Progress.DoesNotExist:
@@ -143,7 +143,7 @@ class ProgressBatchView(generics.UpdateAPIView):
                         # Fail silently in finding the new point object because we could receive a batch request with old debate points that have since been deleted
                         pass
 
-                progress.update(completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100)
+                progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
                 progress.save()
 
             return Response(success_response, status=status.HTTP_201_CREATED)
