@@ -10,6 +10,8 @@ data_key = "data"
 
 # Request keys
 pk_key = "pk"
+debate_pk_key = "debate_pk"
+point_pk_key = "point_pk"
 
 message_key = "message"
 
@@ -24,6 +26,16 @@ short_title_key = "short_title"
 last_updated_key = "last_updated"
 total_points_key = "total_points"
 debate_map_key = "debate_map"
+
+description_key = "description"
+hyperlinks_key = "hyperlinks"
+images_key = "images"
+rebuttals_key = "rebuttals"
+
+name_key = "name"
+substring_key = "substring"
+url_key = "url"
+source_key = "source"
 
 seen_points_key = "seen_points"
 completed_percentage_key = "completed_percentage"
@@ -44,6 +56,9 @@ new_password_key = "new_password"
 new_password_confirmation_key = "new_password_confirmation"
 force_send_key = "force_send"
 uidb64_key = "uidb64"
+
+passwords_do_not_match_key = "passwords_do_not_match"
+password_too_short_key = "passwords_too_short"
 
 username_key = "username"
 password_key = "password"
@@ -72,10 +87,18 @@ password_reset_form_string = "password-reset-form"
 password_reset_submit_string = "password-reset-submit"
 verify_string = "verify"
 
+# Success messages
+
+success_response = "Success"
+
 # Error messages
-progress_point_post_error = "Both debate ID and debate point are required to add a progress point"
+invalid_email_error = "Could not send, email is invalid."
+invalid_link_error = "Link is invalid"
+
 debate_get_error = "A debate ID is required"
+progress_point_post_error = "Both debate ID and debate point ID are required to add a progress point"
 progress_point_get_error = "A debate ID is required"
+invalid_point_pk_error = "Could not find point associated with that ID"
 progress_point_batch_post_error = "Incorrect format must be array of seen progress points"
 starred_post_type_error = "Starred and unstarred values must be array types"
 starred_post_empty_error = "No starred or unstarred data passed"

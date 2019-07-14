@@ -38,9 +38,9 @@ def validate_progress_point_get_request_data(fn):
 def validate_progress_post_point_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        debate_title = args[0].request.data.get(pk_key, "")
-        debate_point = args[0].request.data.get(debate_point_key, "")
-        if not debate_title or not debate_point:
+        debate = args[0].request.data.get(debate_pk_key, "")
+        point = args[0].request.data.get(point_pk_key, "")
+        if not debate or not point:
             return Response(
                 data={
                     message_key: progress_point_post_error
@@ -56,23 +56,23 @@ def validate_progress_post_point_request_data(fn):
 def validate_starred_post_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
-        starred_debate_ids = args[0].request.data.get(starred_list_key, "")
-        unstarred_debate_ids = args[0].request.data.get(unstarred_list_key, "")
-        if (type(starred_debate_ids) is not list) or (type(unstarred_debate_ids) is not list):
+        starred_debate_pks = args[0].request.data.get(starred_list_key, "")
+        unstarred_debate_pks = args[0].request.data.get(unstarred_list_key, "")
+        if (type(starred_debate_pks) is not list) or (type(unstarred_debate_pks) is not list):
             return Response(
                 data={
                     message_key: starred_post_type_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        elif (len(starred_debate_ids) + len(unstarred_debate_ids) == 0):
+        elif (len(starred_debate_pks) + len(unstarred_debate_pks) == 0):
             return Response(
                 data={
                     message_key: starred_post_empty_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        for pk in starred_debate_ids + unstarred_debate_ids:
+        for pk in starred_debate_pks + unstarred_debate_pks:
             if type(pk) is not int:
                 return Response(
                     data={

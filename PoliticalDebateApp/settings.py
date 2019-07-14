@@ -68,8 +68,48 @@ REST_FRAMEWORK = {
     # Permission settings
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ],
+    ]
 }
+
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = (
+        'rest_framework.throttling.ScopedRateThrottle',
+    )
+    REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
+
+        # DEBATES
+
+        'SearchDebates': '15/minute',
+        'DebateDetail': '10/minute',
+
+
+        # PROGRESS
+
+        'ProgressDetail': '10/minute', # Same as DebateDetail
+        'AllProgress': '30/minute', # Whenever a user makes progress
+        'ProgressBatch': '5/day',
+
+
+        # STARRED
+
+        'Starred': '15/minute',
+
+
+        # AUTH
+
+        'ChangePassword': '5/day',
+        'ChangeEmail': '5/day',
+        'DeleteUser': '5/day',
+        'RegisterUser': '5/day',
+        'PasswordResetForm': '10/hour', # Happens when a user refreshes the page
+        'PasswordResetSubmit': '5/day',
+        'RequestPasswordReset': '5/day',
+        'Verification': '5/day',
+        'TokenObtainPair': '5/day',
+        'TokenRefresh': '6/hour', # access token expires every 10 min
+
+
+    }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=10),
