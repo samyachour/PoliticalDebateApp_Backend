@@ -299,8 +299,8 @@ class BaseViewTest(APITestCase):
         ChangeEmailView.throttle_scope = ""
         DeleteUserView.throttle_scope = ""
         RegisterUserView.throttle_scope = ""
-        TokenObtainPairView.throttle_scope = ""
-        TokenRefreshView.throttle_scope = ""
+        CustomTokenObtainPairView.throttle_scope = ""
+        CustomTokenRefreshView.throttle_scope = ""
 
         self.requestFactory = APIRequestFactory()
 

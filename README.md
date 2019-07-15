@@ -64,6 +64,7 @@ Instructions:
     - Debate
         - title: String (unique)
         - short_title: String
+        - tags: String (optional)
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
@@ -117,7 +118,7 @@ or `HTTP_404_NOT_FOUND`
 
 ##### `debate/search/<str:search_string>`
 
-- searches debate database with given string as query
+- searches debate database with the given string as a query comparing to the title and tags fields
 - an empty string (i.e. no characters after `/`) will return all the debates
 - results come sorted in terms of recency with a limit of 100 total
 - supports fuzzy string comparison

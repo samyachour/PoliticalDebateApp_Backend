@@ -16,6 +16,7 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models.functions import Greatest
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -32,12 +33,13 @@ class SearchDebatesView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         # Just give the user the most recent debates
         if search_string_key not in kwargs:
-            debates = self.queryset.order_by('-' + last_updated_key)[:100]
+            debates = self.queryset.order_by('-' + last_updated_key)[:maximum_debate_query]
         else:
             search_string = kwargs[search_string_key]
             debates = self.queryset.annotate(
-                        similarity=TrigramSimilarity(title_key, search_string),
-                      ).filter(similarity__gt=minimum_trigram_similarity).order_by('-' + last_updated_key)[:100]
+                        similarity=Greatest(TrigramSimilarity(title_key, search_string),
+                                            TrigramSimilarity(tags_key, search_string)),
+                      ).filter(similarity__gt=minimum_trigram_similarity).order_by('-' + last_updated_key)[:maximum_debate_query]
 
         serializer = DebateSearchSerializer(instance=debates, many=True)
         return Response(serializer.data)
@@ -53,7 +55,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
 
-
+# Don't need CUD endpoints for debates and points because they should only be interfaced w/ directly
 
 
 
@@ -273,7 +275,7 @@ class DeleteUserView(generics.DestroyAPIView):
     def post(self, request, *args, **kwargs):
         self.object = self.request.user
 
-        self.object.delete() #Triggers cascading deletions on user data existing on other tables
+        self.object.delete() # Triggers cascading deletions on user data existing on other tables
         return Response(success_response, status=status.HTTP_200_OK)
 
 class RegisterUserView(generics.CreateAPIView):
@@ -411,8 +413,8 @@ class VerificationView(generics.RetrieveAPIView):
             return HttpResponse(invalid_link_error)
 
 # Need to override to give throttle scopes
-class TokenObtainPairView(TokenObtainPairView):
+class CustomTokenObtainPairView(TokenObtainPairView):
     throttle_scope = 'TokenObtainPair'
 
-class TokenRefreshView(TokenRefreshView):
+class CustomTokenRefreshView(TokenRefreshView):
     throttle_scope = 'TokenRefresh'

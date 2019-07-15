@@ -1,6 +1,7 @@
 
 minimum_password_length = 6
 minimum_trigram_similarity = 0.1
+maximum_debate_query = 100
 
 content_type = "application/json"
 v1_key = "v1"
@@ -23,6 +24,7 @@ search_string_key = "search_string"
 
 title_key = "title"
 short_title_key = "short_title"
+tags_key = "tags"
 last_updated_key = "last_updated"
 total_points_key = "total_points"
 debate_map_key = "debate_map"

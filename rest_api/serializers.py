@@ -17,15 +17,15 @@ class PointHyperlinkSerializer(serializers.ModelSerializer):
         fields = (substring_key, url_key)
 
 class PointSerializer(serializers.ModelSerializer):
-    images = PointImageSerializer(many=True, source='pointimage_set')
-    hyperlinks = PointHyperlinkSerializer(many=True, source='pointhyperlink_set')
+    images = PointImageSerializer(many=True, source='pointimage_set') # one to many
+    hyperlinks = PointHyperlinkSerializer(many=True, source='pointhyperlink_set') # one to many
 
     class Meta:
         model = Point
         fields = (pk_key, description_key, images_key, hyperlinks_key, rebuttals_key)
 
 class DebateSerializer(serializers.ModelSerializer):
-    debate_map = PointSerializer(many=True, source='point_set')
+    debate_map = PointSerializer(many=True, source='point_set') # one to many
 
     class Meta:
         model = Debate
