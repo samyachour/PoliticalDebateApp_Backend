@@ -62,6 +62,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
+
 # PROGRESS
 
 class ProgressDetailView(generics.RetrieveAPIView):
