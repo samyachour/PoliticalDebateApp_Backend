@@ -3,12 +3,6 @@ from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
 from datetime import datetime
 
-def get_default_data_dict():
-    return {}
-
-def get_default_data_array():
-    return []
-
 # DEBATES
 
 class Debate(models.Model):
