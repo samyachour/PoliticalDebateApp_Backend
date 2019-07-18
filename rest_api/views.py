@@ -55,7 +55,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
 
-# Don't need CUD endpoints for debates and points because they should only be interfaced w/ directly
+# Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly
 
 
 

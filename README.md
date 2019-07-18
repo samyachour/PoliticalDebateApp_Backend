@@ -18,7 +18,7 @@ Each point is accompanied by several responses (rebuttals). Some of these lead t
 
 #### Debate maps
 
-The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json).
+The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/DebateSingle.json).
 
 The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
 
@@ -99,6 +99,7 @@ Instructions:
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
 - use `%20` for spaces
 - all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
+- all endpoint responses are stubbed in a separate [repo](https://github.com/samyachour/PoliticalDebateApp_Stubs) meant to be used as a submodule by the clients.
 
 ---
 #### DEBATES
@@ -112,7 +113,7 @@ GET
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/DebateSingle.json)
 
 or `HTTP_404_NOT_FOUND`
 
@@ -128,7 +129,7 @@ GET
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/DebateSearch.json)
 
 ---
 #### PROGRESS
@@ -150,15 +151,8 @@ Header
 
 - Returns:
 
-```
-{
-    "debate": 1,
-    "completed_percentage": 10,
-    "seen_points": [
-        1, 2, 3, 4...
-    ]
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/ProgressSingle.json)
+
 or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
 
 ##### `progress/`
@@ -179,14 +173,7 @@ Header
 
 - Returns:
 
-```
-[
-    {
-        "debate": 1,
-        "completed_percentage": 15
-    }
-]
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/ProgressAll.json)
 
 ##### `progress/`
 
@@ -272,13 +259,8 @@ Header
 
 - Returns:
 
-```
-{
-    "starred_list": [
-        1, 2, 3...
-    ]
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/Starred.json)
+
 or `HTTP_404_NOT_FOUND`
 
 ##### `starred/`
@@ -374,12 +356,8 @@ Body
 
 - Returns:
 
-```
-{
-    "refresh": (new JSON Web Refresh Token)
-    "access": (new JSON Web Access Token)
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/TokenObtain.json)
+
 or `HTTP_401_UNAUTHORIZED`
 
 ##### `auth/token/refresh`
@@ -401,11 +379,8 @@ Body
 
 - Returns:
 
-```
-{
-    "access": (new JSON Web Access Token)
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Stubs/blob/master/TokenRefresh.json)
+
 or `HTTP_400_BAD_REQUEST`
 
 ##### `auth/change-password/`
