@@ -1,6 +1,6 @@
 
 minimum_password_length = 6
-minimum_trigram_similarity = 0.1
+minimum_trigram_similarity = 0.09
 maximum_debate_query = 100
 
 content_type = "application/json"

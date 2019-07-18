@@ -6,6 +6,12 @@ from .helpers.constants import *
 
 # DEBATES
 
+# For self referential serializers
+class RecursiveField(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
 class PointImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PointImage
@@ -17,6 +23,7 @@ class PointHyperlinkSerializer(serializers.ModelSerializer):
         fields = (substring_key, url_key)
 
 class PointSerializer(serializers.ModelSerializer):
+    rebuttals = RecursiveField(many=True)
     images = PointImageSerializer(many=True, source='pointimage_set') # one to many
     hyperlinks = PointHyperlinkSerializer(many=True, source='pointhyperlink_set') # one to many
 

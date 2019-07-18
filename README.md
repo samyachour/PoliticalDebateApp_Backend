@@ -69,8 +69,8 @@ Instructions:
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Point
-        - debate: Debate (foreign key)
-        - rebuttals: Points (ManyToMany)
+        - debate: Debate (foreign key) (optional)
+        - rebuttals: Points (ManyToMany) (optional)
     - PointImage
         - point: Point (foreign key)
         - url: URL

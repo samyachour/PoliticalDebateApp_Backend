@@ -14,7 +14,7 @@ def get_default_data_array():
 class Debate(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     short_title = models.CharField(max_length=255, null=False)
-    tags = models.CharField(max_length=255, blank=True, default="")
+    tags = models.CharField(max_length=255, null=True, blank=True)
     last_updated = models.DateField(default=datetime.today, null=False)
     total_points = models.IntegerField(default=0, null=False)
 
@@ -22,7 +22,8 @@ class Debate(models.Model):
         return "{} updated {}".format(self.title, self.last_updated)
 
 class Point(models.Model):
-    debate = models.ForeignKey(Debate, on_delete=models.CASCADE)
+    # Optional because only root points should reference debate directly
+    debate = models.ForeignKey(Debate, on_delete=models.CASCADE, null=True, blank=True)
     description = models.CharField(max_length=255, null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
 
@@ -30,7 +31,7 @@ class PointImage(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
     url = models.URLField(max_length=255, null=False)
     source = models.CharField(max_length=255, null=False)
-    name = models.CharField(max_length=255, blank=True, default="") # images might already have names or not need them
+    name = models.CharField(max_length=255, null=True, blank=True) # images might already have names or not need them
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
