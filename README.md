@@ -336,7 +336,7 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
 
-##### `auth/token/obtain`
+##### `auth/token/obtain/`
 
 - login user to get token for session
 - save refresh and access tokens to secure persistent data
@@ -360,7 +360,7 @@ Body
 
 or `HTTP_401_UNAUTHORIZED`
 
-##### `auth/token/refresh`
+##### `auth/token/refresh/`
 
 - when you get a 401, refresh your access token
 - access token expires every 10 minutes

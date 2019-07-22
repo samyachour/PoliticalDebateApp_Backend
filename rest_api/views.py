@@ -195,7 +195,7 @@ class StarredView(generics.RetrieveAPIView):
                     starred.starred_list.add(newDebate)
 
         except Starred.DoesNotExist:
-            starred = Starred.objects.create(user=user)
+            starred = Starred.objects.create(user=request.user)
             for pk_index in range(0, len(starred_debate_pks)):
                 pk = starred_debate_pks[pk_index]
                 if pk not in unstarred_debate_pks:
