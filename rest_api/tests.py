@@ -17,10 +17,6 @@ class BaseViewTest(APITestCase):
 
     # DEBATES
 
-    @staticmethod
-    def create_debate(title, short_title, last_updated, total_points):
-        return Debate.objects.create(title=title, short_title=short_title, last_updated=last_updated, total_points=total_points)
-
     def search_debates(self, search_string):
         url = reverse(
             search_debates_name,
@@ -41,17 +37,8 @@ class BaseViewTest(APITestCase):
         )
         return self.client.get(url)
 
-    def create_point(self, debate, description):
-        point = Point.objects.create(debate=debate, description=description)
-        return point
 
-    def create_point_image(self, point, source, url):
-        point = PointImage.objects.create(point=point, source=source, url=url)
-        return point
 
-    def create_point_hyperlink(self, point, substring, url):
-        point = PointHyperlink.objects.create(point=point, substring=substring, url=url)
-        return point
 
 
 
@@ -290,33 +277,40 @@ class BaseViewTest(APITestCase):
 
     def setUp(self):
 
-        self.requestFactory = APIRequestFactory()
+        # create an admin user
 
-        # create a admin user
         self.user = User.objects.create_superuser(
             username="test@mail.com",
             email="test@mail.com",
             password="testing"
         )
         self.today = datetime.today()
+        self.requestFactory = APIRequestFactory()
+
 
         # add test data
-        self.gunControl = self.create_debate("Should we ban assault rifles?", "Assault rifle ban", self.today, 2)
-        self.gunControlPoint1 = self.create_point(self.gunControl, "Civilians can't own tanks though")
-        self.gunControlPoint2 = self.create_point(self.gunControl, "But the 2nd amendment")
-        self.abortion = self.create_debate("Is it a woman's right to choose?", "Abortion rights", self.today, 1)
-        self.abortionPoint = self.create_point(self.abortion, "Is it a woman's right to choose?")
-        self.abortionPointImage = self.create_point_image(self.abortionPoint, "Reuters", "www.reuters.com/image")
-        self.abortionPointHyperlink = self.create_point_hyperlink(self.abortionPoint, "a woman's right to", "www.vox.com/abortion")
-        self.borderWall = self.create_debate("Is the border wall an effective idea?", "Border wall", self.today, 1)
-        self.borderWallPoint = self.create_point(self.borderWall, "Is it an effective border security tool?")
-        self.vetting = self.create_debate("Are we doing enough vetting?", "Vetting", self.today, 1)
-        self.vettingPoint = self.create_point(self.vetting, "Are we doing enough?", )
 
+        self.gunControl = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2)
+        self.gunControlPoint1 = Point.objects.create(debate=self.gunControl, description="Civilians can't own tanks though")
+        self.gunControlPoint2 = Point.objects.create(debate=self.gunControl, description="But the 2nd amendment")
         self.create_progress_point(self.user, self.gunControl, self.gunControlPoint1)
+
+        self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
+        self.abortionPoint = Point.objects.create(debate=self.abortion, description="Is it a woman's right to choose?")
+        self.abortionPointImage = PointImage.objects.create(point=self.abortionPoint, source="Reuters", url="www.reuters.com/image")
+        self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
+        self.borderWall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
+        self.borderWallPoint = Point.objects.create(debate=self.borderWall, description="Is it an effective border security tool?")
+
+        self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today, total_points=1)
+        self.vettingPoint = Point.objects.create(debate=self.vetting, description="Are we doing enough?")
+
         self.starred_list = self.create_starred_list(self.user, self.gunControl)
+
+
+        # valid/invalid data inputs
 
         self.valid_progress_point_data = {
             debate_pk_key: self.gunControl.pk,
@@ -343,13 +337,13 @@ class BaseViewTest(APITestCase):
             ]
         }
 
-        self.valid_starred_data = {
+        self.valid_starred_and_unstarred_data = {
             starred_list_key: [self.borderWall.pk, self.abortion.pk],
-            unstarred_list_key: []
+            unstarred_list_key: [self.abortion.pk]
         }
         self.valid_unstarred_data = {
             starred_list_key: [],
-            unstarred_list_key: [self.abortion.pk]
+            unstarred_list_key: [self.borderWall.pk]
         }
         self.invalid_starred_data_empty = {
             starred_list_key: [],
@@ -366,20 +360,18 @@ class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
         debate = Debate.objects.create(
             title="Test debate",
-            last_updated=self.today
+            last_updated=self.today,
+            total_points=1
         )
         self.assertEqual(debate.title, "Test debate")
         self.assertEqual(debate.last_updated, self.today)
-        self.assertEqual(str(debate), "Test debate updated {}".format(self.today))
 
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        # hit the API endpoint
         response = self.client.get(
             reverse(search_debates_name, kwargs={version_key: v1_key})
         )
-        # fetch the data from db
         expected = Debate.objects.all()
         serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
@@ -389,7 +381,6 @@ class SearchDebatesTest(BaseViewTest):
 
     def test_search_debates(self):
         response = self.search_debates("gun")
-        # fetch the data from db
         expected = Debate.objects.all().filter(title="Gun control")
         serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
@@ -400,18 +391,13 @@ class GetASingleDebateTest(BaseViewTest):
     def test_get_a_debate(self):
         valid_debate = Debate.objects.get(pk=self.gunControl.pk)
         serialized = DebateSerializer(valid_debate)
-        # hit the API endpoint
         response = self.fetch_a_debate(valid_debate.pk)
-        # fetch the data from db
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # hit the API endpoint
         response = self.fetch_a_debate(valid_debate.pk)
-        # fetch the data from db
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test with a debate that does not exist
         response = self.fetch_a_debate(100000000000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -431,13 +417,11 @@ class ProgressModelTest(BaseViewTest):
         self.assertEqual(progress_point.debate.title, "Should we ban assault rifles?")
         self.assertEqual(progress_point.completed_percentage, 50)
         self.assertEqual(progress_point.seen_points.all()[0].pk, self.gunControlPoint1.pk)
-        self.assertEqual(str(progress_point), "test@mail.com - Should we ban assault rifles?")
 
 class AddProgressPointTest(BaseViewTest):
 
     def test_create_a_progress_point(self):
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
         response = self.add_progress(
             kind=post_key,
             version_key=v1_key,
@@ -446,7 +430,7 @@ class AddProgressPointTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_progress_seen_points(self.valid_progress_point_data[debate_pk_key])
         self.assertEqual(response.data[completed_percentage_key], 100)
-        # test with invalid data
+
         response = self.add_progress(
             kind=post_key,
             version_key=v1_key,
@@ -462,12 +446,11 @@ class AddProgressPointBatchTest(BaseViewTest):
 
     def test_create_a_progress_point_batch(self):
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
         response = self.post_progress_batch(data=self.valid_progress_point_batch_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(response.data[completed_percentage_key], 100)
-        # test with invalid data
+
         response = self.post_progress_batch(data=self.invalid_progress_point_batch_data)
         self.assertEqual(
             response.data[message_key],
@@ -480,16 +463,14 @@ class GetASingleDebateProgressPointsTest(BaseViewTest):
     def test_get_debate_progress_points(self):
         valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
         response = self.fetch_progress_seen_points(valid_progress.debate.pk)
-        # fetch the data from db
         serialized = ProgressSerializer(valid_progress)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test with a debate that does not exist
+
         response = self.fetch_progress_seen_points(10000000000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # test with a progress point that does not exist
+
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -498,9 +479,7 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
     def test_get_all_debate_progress_points(self):
         valid_progress = Progress.objects.filter(user=self.user)
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
         response = self.fetch_all_progress_seen_points()
-        # fetch the data from db
         serialized = ProgressAllSerializer(valid_progress, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -518,28 +497,26 @@ class StarredModelTest(BaseViewTest):
         starred_list = Starred.objects.create(user=self.user)
         starred_list.starred_list.add(self.gunControl)
         self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
-        self.assertEqual(str(starred_list), "test@mail.com - Should we ban assault rifles?")
 
 class AddStarredTest(BaseViewTest):
 
     def test_star_unstar_debates(self):
         self.login_client('test@mail.com', 'testing')
-        # star debates
         response = self.post_starred_request(
-            data=self.valid_starred_data
+            data=self.valid_starred_and_unstarred_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
         self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
-        self.assertTrue(self.abortion.pk in response.data[starred_list_key])
-        # unstar debate
+        self.assertTrue(self.abortion.pk not in response.data[starred_list_key])
+
         response = self.post_starred_request(
             data=self.valid_unstarred_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
-        self.assertFalse(self.abortion.pk in response.data[starred_list_key])
-        # test with invalid data
+        self.assertFalse(self.borderWall.pk in response.data[starred_list_key])
+
         response = self.post_starred_request(
             data=self.invalid_starred_data_empty
         )
@@ -548,7 +525,7 @@ class AddStarredTest(BaseViewTest):
             starred_post_empty_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # test with a string array
+
         response = self.post_starred_request(
             data=self.invalid_starred_data
         )
@@ -563,9 +540,7 @@ class GetStarredTest(BaseViewTest):
     def test_starred_list(self):
         valid_starred_list = Starred.objects.get(user=self.user)
         self.login_client('test@mail.com', 'testing')
-        # hit the API endpoint
         response = self.fetch_starred_list()
-        # fetch the data from db
         expected = Starred.objects.get(user=valid_starred_list.user)
         serialized = StarredSerializer(expected)
         self.assertEqual(response.data, serialized.data)
@@ -587,69 +562,52 @@ class AuthChangeEmailTest(BaseViewTest):
             email="changeemail_user@mail.com",
             password="changeemail_pass"
         )
-        # test login with valid credentials
         self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
         response = self.change_user_email(changeEmailUser, "changeemail_user1@mail.com")
-        # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             success_response
         )
-        # test with incorrect old email
-        response = self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
-        # assert status code is 400 Bad request
+        response = self.login_a_user("invalidemail@mail.com", "invalidpass")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class AuthChangePasswordTest(BaseViewTest):
 
     def test_change_password(self):
-        # test login with valid credentials
         self.login_client('test@mail.com', 'testing')
         response = self.change_user_password("testing", "testing1")
-        # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             success_response
         )
-        # test with incorrect old password
-        response = self.change_user_password("adhwuwf", "afeeaaeve")
-        # assert status code is 400 Bad request
+
+        response = self.change_user_password("testing", "afeeaaeve")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class AuthLoginUserTest(BaseViewTest):
 
     def test_login_user_with_valid_credentials(self):
-        # test login with valid credentials
         response = self.login_a_user("test@mail.com", "testing")
-        # assert access token key exists
         self.assertIn(access_key, response.data)
-        # assert refresh_key token key exists
         self.assertIn(refresh_key, response.data)
-        # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # refresh token
+
         response = self.refresh_token(response.data[refresh_key])
-        # assert token key exists
         self.assertIn(access_key, response.data)
-        # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test login with invalid credentials
-        response = self.login_a_user("anonymous", "pass")
-        # assert status code is 401 UNAUTHORIZED
+
+        response = self.login_a_user("invalidusername", "invalidpass")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class AuthRegisterUserTest(BaseViewTest):
 
-    def test_register_a_user_with_valid_data(self):
+    def test_register_a_user(self):
         response = self.register_a_user("new_user@mail.com", "new_pass")
-        # assert status code is 201 CREATED
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_register_a_user_with_invalid_data(self):
         response = self.register_a_user("", "")
-        # assert status code
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class DeleteUserTest(BaseViewTest):
@@ -660,17 +618,11 @@ class DeleteUserTest(BaseViewTest):
             email="todelete_user@mail.com",
             password="todelete_pass"
         )
-        # test login with valid credentials
         response = self.login_a_user("todelete_user@mail.com", "todelete_pass")
-        # assert access token key exists
         self.assertIn(access_key, response.data)
-        # assert refresh token key exists
         self.assertIn(refresh_key, response.data)
-        # delete user
+
         response = self.delete_user(deleteUser)
-        # assert status code is 200 OK
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # test login with invalid credentials
         response = self.login_a_user("todelete_user@mail.com", "todelete_pass")
-        # assert status code is 401 UNAUTHORIZED
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

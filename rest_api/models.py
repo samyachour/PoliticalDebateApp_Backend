@@ -12,9 +12,6 @@ class Debate(models.Model):
     last_updated = models.DateField(default=datetime.today, null=False)
     total_points = models.IntegerField(default=0, null=False)
 
-    def __str__(self):
-        return "{} updated {}".format(self.title, self.last_updated)
-
 class Point(models.Model):
     # Optional because only root points should reference debate directly
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, null=True, blank=True)
@@ -42,9 +39,6 @@ class Progress(models.Model):
     completed_percentage = models.IntegerField(default=0, null=False)
     seen_points = models.ManyToManyField(Point)
 
-    def __str__(self):
-        return "{} - {}".format(self.user.username, self.debate.title)
-
 # STARRED
 
 class Starred(models.Model):
@@ -60,6 +54,3 @@ class Starred(models.Model):
 
         if result:
             return result[:-2]
-
-    def __str__(self):
-        return "{} - {}".format(self.user.username, self.buildStarredString())

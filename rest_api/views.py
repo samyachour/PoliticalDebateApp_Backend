@@ -55,7 +55,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
 
-# Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly
+# Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly from the backend
 
 
 
@@ -172,35 +172,40 @@ class StarredView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'Starred'
 
+    @staticmethod
+    def starOrUnstarDebates(pk_list, star, starred):
+        all_debates = Debate.objects.all()
+
+        for pk_index in range(0, len(pk_list)):
+            pk = pk_list[pk_index]
+            try:
+                newDebate = all_debates.get(pk=pk)
+
+                if star:
+                    if not starred.starred_list.filter(pk=newDebate.pk).exists():
+                        starred.starred_list.add(newDebate)
+                else:
+                    if starred.starred_list.filter(pk=newDebate.pk).exists():
+                        starred.starred_list.remove(newDebate)
+            except Debate.DoesNotExist:
+                # Fail silently because it might be a batch post w/ old debates that have since been deleted
+                pass
+
     @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
         starred_debate_pks = request.data[starred_list_key]
         unstarred_debate_pks = request.data[unstarred_list_key]
+        # remove common elements
+        starred_debate_pks = list(set(starred_debate_pks)^set(unstarred_debate_pks))
 
         try:
             starred = self.queryset.get(user=request.user)
 
-            for pk_index in range(0, len(unstarred_debate_pks)):
-                pk = unstarred_debate_pks[pk_index]
-                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-
-                if starred.starred_list.filter(pk=newDebate.pk).exists():
-                    starred.starred_list.remove(newDebate)
-
-            for pk_index in range(0, len(starred_debate_pks)):
-                pk = starred_debate_pks[pk_index]
-                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-
-                if not starred.starred_list.filter(pk=newDebate.pk).exists():
-                    starred.starred_list.add(newDebate)
-
         except Starred.DoesNotExist:
             starred = Starred.objects.create(user=request.user)
-            for pk_index in range(0, len(starred_debate_pks)):
-                pk = starred_debate_pks[pk_index]
-                if pk not in unstarred_debate_pks:
-                    newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-                    starred.starred_list.add(newDebate)
+
+        self.starOrUnstarDebates(starred_debate_pks, True, starred)
+        self.starOrUnstarDebates(unstarred_debate_pks, False, starred)
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
@@ -218,8 +223,6 @@ class StarredView(generics.RetrieveAPIView):
 # AUTH
 
 class ChangePasswordView(generics.UpdateAPIView):
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'ChangePassword'
@@ -237,8 +240,6 @@ class ChangePasswordView(generics.UpdateAPIView):
         return Response(success_response, status=status.HTTP_200_OK)
 
 class ChangeEmailView(generics.UpdateAPIView):
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'ChangeEmail'
@@ -264,11 +265,6 @@ class ChangeEmailView(generics.UpdateAPIView):
         return Response(success_response, status=status.HTTP_200_OK)
 
 class DeleteUserView(generics.DestroyAPIView):
-    """
-    POST auth/delete/
-    """
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'DeleteUser'
@@ -318,7 +314,7 @@ class PasswordResetFormView(APIView):
         except:
             user = None
         if user is not None and account_verification_token.check_token(user, kwargs[token_key]):
-            # User verified email
+            # User also verified their email by opening the link (in case they hadn't already)
             user.email = user.username
             user.save()
 
