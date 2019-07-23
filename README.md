@@ -339,9 +339,9 @@ Body
 ##### `auth/token/obtain/`
 
 - login user to get token for session
-- save refresh and access tokens to secure persistent data
 - use the "username" key but pass in the user's email
-- username needs to be lowercase!
+- username needs to be lowercase
+- save refresh and access tokens to secure persistent data
 
 POST
 
