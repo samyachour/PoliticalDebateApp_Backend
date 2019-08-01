@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from smtplib import SMTPException
 
 # DEBATES
 
@@ -251,7 +252,7 @@ class ChangeEmailView(generics.UpdateAPIView):
         if new_email == self.object.username:
             return Response(
                 data={
-                    message_key: "User is already using this email"
+                    message_key: already_using_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

@@ -563,6 +563,12 @@ class AuthChangeEmailTest(BaseViewTest):
             password="changeemail_pass"
         )
         self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
+        response = self.change_user_email(changeEmailUser, changeEmailUser.email)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data[message_key],
+            already_using_email_error
+        )
         response = self.change_user_email(changeEmailUser, "changeemail_user1@mail.com")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
