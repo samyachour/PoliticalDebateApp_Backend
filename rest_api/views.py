@@ -248,6 +248,13 @@ class ChangeEmailView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         self.object = self.request.user
         new_email = request.data[new_email_key].lower()
+        if new_email == self.object.username:
+            return Response(
+                data={
+                    message_key: "User is already using this email"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             # Set username to email, don't set email property until it's verified
