@@ -252,16 +252,16 @@ class ChangeEmailView(generics.UpdateAPIView):
         try:
             # Set username to email, don't set email property until it's verified
             self.object.username = new_email
+            self.object.save()
             email_verification.send_email(self.object, request, new_email)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             return Response(
                 data={
                     message_key: invalid_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        self.object.save()
         return Response(success_response, status=status.HTTP_200_OK)
 
 class DeleteUserView(generics.DestroyAPIView):
@@ -290,8 +290,8 @@ class RegisterUserView(generics.CreateAPIView):
         )
         try:
             email_verification.send_email(new_user, request, email)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             new_user.delete()
             return Response(
                 data={
@@ -378,8 +378,8 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
             )
         try:
             email_verification.send_email(user, request, email, password_reset=True)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             return Response(
                 data={
                     message_key: invalid_email_error
