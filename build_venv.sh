@@ -1,5 +1,4 @@
 #!/bin/sh
-# Shell script to create virtual environment
 
 virtualenv --python=/usr/local/bin/python3  venv
 source venv/bin/activate
