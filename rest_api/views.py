@@ -22,25 +22,98 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from smtplib import SMTPException
+from random import shuffle
 
 # DEBATES
 
-class SearchDebatesView(generics.ListAPIView):
+class SearchDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'SearchDebates'
 
-    def get(self, request, *args, **kwargs):
-        # Just give the user the most recent debates
-        if search_string_key not in kwargs:
-            debates = self.queryset.order_by('-' + last_updated_key)[:maximum_debate_query]
+    def filter_queryset_by_pk_array(self, array_key, queryset, request, exclusion=False):
+        if array_key in request.data:
+            pk_array = request.data[array_key]
+            if type(pk_array) is not list:
+                return debate_search_invalid_pk_array_format_error
+            for pk in pk_array:
+                if type(pk) is not int:
+                    return debate_search_invalid_pk_array_items_format_error
+
+            if exclusion:
+                return queryset.exclude(pk__in=pk_array)
+            else:
+                return queryset.filter(pk__in=pk_array)
         else:
-            search_string = kwargs[search_string_key]
-            debates = self.queryset.annotate(
-                        similarity=Greatest(TrigramSimilarity(title_key, search_string),
-                                            TrigramSimilarity(tags_key, search_string)),
-                      ).filter(similarity__gt=minimum_trigram_similarity).order_by('-' + last_updated_key)[:maximum_debate_query]
+            return debate_search_missing_pk_array_error
+
+    def post(self, request, *args, **kwargs):
+        debates = self.queryset # return queryset
+
+        # Handle search string
+        if search_string_key in request.data:
+            search_string = request.data[search_string_key]
+
+            if search_string and type(search_string) is str:
+                debates = debates.annotate(
+                            similarity=Greatest(TrigramSimilarity(title_key, search_string),
+                                                TrigramSimilarity(tags_key, search_string)),
+                          ).filter(similarity__gt=minimum_trigram_similarity)
+
+            else:
+                return Response(
+                    data={
+                        message_key: debate_search_invalid_search_string_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # filter defaults to last updated
+        filter = last_updated_filter_value
+
+        # Handle filter input
+        if filter_key in request.data:
+            filter = request.data[filter_key]
+            if type(filter) is not str: # If filter is passed in but in wrong format
+                return Response(
+                    data={
+                        message_key: debate_search_invalid_filter_format_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            # If filter not in list of known filters
+            if filter not in all_filters:
+                return Response(
+                    data={
+                        message_key: debate_search_unknown_filter_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        filtered_debates_or_error = None
+        if filter == starred_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_starred_key, debates, request)
+        elif filter == progress_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request)
+        elif filter == no_progress_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request, exclusion=True)
+        if type(filtered_debates_or_error) is str: # error message
+            return Response(
+                data={
+                    message_key: filtered_debates_or_error.format(filter)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif filtered_debates_or_error is not None:
+            debates = filtered_debates_or_error
+
+        # Sort all responses by last updated and truncate array to our maximum
+        debates = debates.order_by('-' + last_updated_key)[:maximum_debate_query]
+
+        if filter == random_filter_value:
+            debates = list(debates)
+            shuffle(debates)
 
         serializer = DebateSearchSerializer(instance=debates, many=True)
         return Response(serializer.data)

@@ -17,15 +17,16 @@ class BaseViewTest(APITestCase):
 
     # DEBATES
 
-    def search_debates(self, search_string):
+    def search_debates(self, data):
         url = reverse(
             search_debates_name,
             kwargs={
-                version_key: v1_key,
-                search_string_key: search_string
+                version_key: v1_key
             },
         )
-        return self.client.get(url)
+        return self.client.post(url,
+                                data=json.dumps(data),
+                                content_type=content_type)
 
     def fetch_a_debate(self, pk):
         url = reverse(
@@ -290,10 +291,10 @@ class BaseViewTest(APITestCase):
 
         # add test data
 
-        self.gunControl = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2)
-        self.gunControlPoint1 = Point.objects.create(debate=self.gunControl, description="Civilians can't own tanks though")
-        self.gunControlPoint2 = Point.objects.create(debate=self.gunControl, description="But the 2nd amendment")
-        self.create_progress_point(self.user, self.gunControl, self.gunControlPoint1)
+        self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2, tags="gun control, school shootings")
+        self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, description="Civilians can't own tanks though")
+        self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, description="But the 2nd amendment")
+        self.create_progress_point(self.user, self.gun_control, self.gun_control_point_1)
 
         self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
         self.abortionPoint = Point.objects.create(debate=self.abortion, description="Is it a woman's right to choose?")
@@ -301,58 +302,14 @@ class BaseViewTest(APITestCase):
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
-        self.borderWall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
-        self.borderWallPoint = Point.objects.create(debate=self.borderWall, description="Is it an effective border security tool?")
+        self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
+        self.border_wall_point = Point.objects.create(debate=self.border_wall, description="Is it an effective border security tool?")
 
         self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today, total_points=1)
-        self.vettingPoint = Point.objects.create(debate=self.vetting, description="Are we doing enough?")
+        self.vetting_point = Point.objects.create(debate=self.vetting, description="Are we doing enough?")
 
-        self.starred_list = self.create_starred_list(self.user, self.gunControl)
+        self.starred_list = self.create_starred_list(self.user, self.gun_control)
 
-
-        # valid/invalid data inputs
-
-        self.valid_progress_point_data = {
-            debate_pk_key: self.gunControl.pk,
-            point_pk_key: self.gunControlPoint2.pk
-        }
-        self.invalid_progress_point_data_empty = {
-            debate_pk_key: "",
-            point_pk_key: ""
-        }
-        self.valid_progress_point_batch_data = {
-            all_debate_points_key: [
-                {
-                    debate_key: self.vetting.pk,
-                    seen_points_key: [self.vettingPoint.pk]
-                }
-            ]
-        }
-        self.invalid_progress_point_batch_data = {
-            all_debate_points_key: [
-                {
-                    "incorrect_key": self.vetting.pk,
-                    seen_points_key: ""
-                }
-            ]
-        }
-
-        self.valid_starred_and_unstarred_data = {
-            starred_list_key: [self.borderWall.pk, self.abortion.pk],
-            unstarred_list_key: [self.abortion.pk]
-        }
-        self.valid_unstarred_data = {
-            starred_list_key: [],
-            unstarred_list_key: [self.borderWall.pk]
-        }
-        self.invalid_starred_data_empty = {
-            starred_list_key: [],
-            unstarred_list_key: []
-        }
-        self.invalid_starred_data = {
-            starred_list_key: ["1"],
-            unstarred_list_key: []
-        }
 
 # DEBATES
 
@@ -369,9 +326,7 @@ class DebateModelTest(BaseViewTest):
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        response = self.client.get(
-            reverse(search_debates_name, kwargs={version_key: v1_key})
-        )
+        response = self.search_debates({})
         expected = Debate.objects.all()
         serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
@@ -380,16 +335,127 @@ class GetAllDebatesTest(BaseViewTest):
 class SearchDebatesTest(BaseViewTest):
 
     def test_search_debates(self):
-        response = self.search_debates("gun")
-        expected = Debate.objects.all().filter(title="Gun control")
+        expected = Debate.objects.all().filter(pk=self.gun_control.pk)
+
+        response = self.search_debates({
+            search_string_key: "gun"
+        })
         serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        response = self.search_debates({
+            filter_key: starred_filter_value,
+            all_starred_key: [self.gun_control.pk],
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: starred_filter_value,
+            all_starred_key: [self.gun_control.pk]
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: progress_filter_value,
+            all_progress_key: [self.gun_control.pk]
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: no_progress_filter_value,
+            all_progress_key: [self.gun_control.pk]
+        })
+        self.assertEqual(response.data, [])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: last_updated_filter_value
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: random_filter_value
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: ""
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_invalid_search_string_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.search_debates({
+            filter_key: "starredd",
+            all_starred_key: [self.gun_control.pk],
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_unknown_filter_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.search_debates({
+            filter_key: 1,
+            all_starred_key: [self.gun_control.pk],
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_invalid_filter_format_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.search_debates({
+            filter_key: starred_filter_value,
+            all_starred_key: 1,
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_invalid_pk_array_format_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.search_debates({
+            filter_key: starred_filter_value,
+            all_starred_key: ["1"],
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_invalid_pk_array_items_format_error
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.search_debates({
+            filter_key: starred_filter_value
+        })
+        self.assertEqual(
+            response.data[message_key],
+            debate_search_missing_pk_array_error.format(starred_filter_value)
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 class GetASingleDebateTest(BaseViewTest):
 
     def test_get_a_debate(self):
-        valid_debate = Debate.objects.get(pk=self.gunControl.pk)
+        valid_debate = Debate.objects.get(pk=self.gun_control.pk)
         serialized = DebateSerializer(valid_debate)
         response = self.fetch_a_debate(valid_debate.pk)
         self.assertEqual(response.data, serialized.data)
@@ -411,12 +477,12 @@ class GetASingleDebateTest(BaseViewTest):
 
 class ProgressModelTest(BaseViewTest):
     def test_basic_create_a_progress_point(self):
-        progress_point = Progress.objects.get(user=self.user, debate=self.gunControl)
+        progress_point = Progress.objects.get(user=self.user, debate=self.gun_control)
 
         self.assertEqual(progress_point.user.username, "test@mail.com")
         self.assertEqual(progress_point.debate.title, "Should we ban assault rifles?")
         self.assertEqual(progress_point.completed_percentage, 50)
-        self.assertEqual(progress_point.seen_points.all()[0].pk, self.gunControlPoint1.pk)
+        self.assertEqual(progress_point.seen_points.all()[0].pk, self.gun_control_point_1.pk)
 
 class AddProgressPointTest(BaseViewTest):
 
@@ -425,16 +491,22 @@ class AddProgressPointTest(BaseViewTest):
         response = self.add_progress(
             kind=post_key,
             version_key=v1_key,
-            data=self.valid_progress_point_data
+            data={
+                    debate_pk_key: self.gun_control.pk,
+                    point_pk_key: self.gun_control_point_2.pk
+                 }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_progress_seen_points(self.valid_progress_point_data[debate_pk_key])
+        response = self.fetch_progress_seen_points(self.gun_control.pk)
         self.assertEqual(response.data[completed_percentage_key], 100)
 
         response = self.add_progress(
             kind=post_key,
             version_key=v1_key,
-            data=self.invalid_progress_point_data_empty
+            data={
+                    debate_pk_key: "",
+                    point_pk_key: ""
+                 }
         )
         self.assertEqual(
             response.data[message_key],
@@ -446,12 +518,26 @@ class AddProgressPointBatchTest(BaseViewTest):
 
     def test_create_a_progress_point_batch(self):
         self.login_client('test@mail.com', 'testing')
-        response = self.post_progress_batch(data=self.valid_progress_point_batch_data)
+        response = self.post_progress_batch(data={
+            all_debate_points_key: [
+                {
+                    debate_key: self.vetting.pk,
+                    seen_points_key: [self.vetting_point.pk]
+                }
+            ]
+        })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_progress_seen_points(self.vetting.pk)
         self.assertEqual(response.data[completed_percentage_key], 100)
 
-        response = self.post_progress_batch(data=self.invalid_progress_point_batch_data)
+        response = self.post_progress_batch(data={
+            all_debate_points_key: [
+                {
+                    "incorrect_key": self.vetting.pk,
+                    seen_points_key: ""
+                }
+            ]
+        })
         self.assertEqual(
             response.data[message_key],
             progress_point_batch_post_error
@@ -461,7 +547,7 @@ class AddProgressPointBatchTest(BaseViewTest):
 class GetASingleDebateProgressPointsTest(BaseViewTest):
 
     def test_get_debate_progress_points(self):
-        valid_progress = Progress.objects.get(user=self.user, debate=self.gunControl)
+        valid_progress = Progress.objects.get(user=self.user, debate=self.gun_control)
         self.login_client('test@mail.com', 'testing')
         response = self.fetch_progress_seen_points(valid_progress.debate.pk)
         serialized = ProgressSerializer(valid_progress)
@@ -495,30 +581,39 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
 class StarredModelTest(BaseViewTest):
     def test_basic_create_a_starred_list(self):
         starred_list = Starred.objects.create(user=self.user)
-        starred_list.starred_list.add(self.gunControl)
-        self.assertTrue(starred_list.starred_list.filter(pk=self.gunControl.pk).exists())
+        starred_list.starred_list.add(self.gun_control)
+        self.assertTrue(starred_list.starred_list.filter(pk=self.gun_control.pk).exists())
 
 class AddStarredTest(BaseViewTest):
 
     def test_star_unstar_debates(self):
         self.login_client('test@mail.com', 'testing')
         response = self.post_starred_request(
-            data=self.valid_starred_and_unstarred_data
+            data={
+                    starred_list_key: [self.border_wall.pk, self.abortion.pk],
+                    unstarred_list_key: [self.abortion.pk]
+                 }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
-        self.assertTrue(self.borderWall.pk in response.data[starred_list_key])
+        self.assertTrue(self.border_wall.pk in response.data[starred_list_key])
         self.assertTrue(self.abortion.pk not in response.data[starred_list_key])
 
         response = self.post_starred_request(
-            data=self.valid_unstarred_data
+            data={
+                    starred_list_key: [],
+                    unstarred_list_key: [self.border_wall.pk]
+                 }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.fetch_starred_list()
-        self.assertFalse(self.borderWall.pk in response.data[starred_list_key])
+        self.assertFalse(self.border_wall.pk in response.data[starred_list_key])
 
         response = self.post_starred_request(
-            data=self.invalid_starred_data_empty
+            data={
+                    starred_list_key: [],
+                    unstarred_list_key: []
+                 }
         )
         self.assertEqual(
             response.data[message_key],
@@ -527,7 +622,10 @@ class AddStarredTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.post_starred_request(
-            data=self.invalid_starred_data
+            data={
+                    starred_list_key: ["1"],
+                    unstarred_list_key: []
+                 }
         )
         self.assertEqual(
             response.data[message_key],

@@ -54,8 +54,8 @@ convertToDoubleQuotes(file.name)
 
 # DEBATES
 
-url = baseURL + 'debate/search/gun'
-response = requests.get(url)
+url = baseURL + 'debate/search/'
+response = requests.post(url)
 response.raise_for_status()
 
 file = open("DebateSearch.json", "w")
