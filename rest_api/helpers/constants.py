@@ -1,6 +1,7 @@
 
 minimum_password_length = 6
-minimum_trigram_similarity = 0.1
+minimum_trigram_similarity = 0.09
+maximum_debate_query = 100
 
 content_type = "application/json"
 v1_key = "v1"
@@ -20,9 +21,19 @@ debate_key = "debate"
 debate_point_key = "debate_point"
 
 search_string_key = "search_string"
+all_progress_key = "all_progress"
+all_starred_key = "all_starred"
+filter_key = "filter"
+last_updated_filter_value = "last_updated"
+starred_filter_value = "starred"
+progress_filter_value = "progress"
+no_progress_filter_value = "no_progress"
+random_filter_value = "random"
+all_filters = [last_updated_filter_value, starred_filter_value, progress_filter_value, no_progress_filter_value, random_filter_value]
 
 title_key = "title"
 short_title_key = "short_title"
+tags_key = "tags"
 last_updated_key = "last_updated"
 total_points_key = "total_points"
 debate_map_key = "debate_map"
@@ -93,18 +104,25 @@ success_response = "Success"
 
 # Error messages
 invalid_email_error = "Could not send, email is invalid."
-invalid_link_error = "Link is invalid"
+invalid_link_error = "Link is invalid."
 
-debate_get_error = "A debate ID is required"
-progress_point_post_error = "Both debate ID and debate point ID are required to add a progress point"
-progress_point_get_error = "A debate ID is required"
-invalid_point_pk_error = "Could not find point associated with that ID"
-progress_point_batch_post_error = "Incorrect format must be array of seen progress points"
-starred_post_type_error = "Starred and unstarred values must be array types"
-starred_post_empty_error = "No starred or unstarred data passed"
-starred_post_format_error = "Arrays contain non-integer values"
-password_length_error = "Password must be at least 6 characters"
-register_post_error = "Both an email and a password are required to register a user"
-change_password_post_error = "Both the old and new password are required to change user's password"
-change_email_post_error = "A new email is required to change the user's email"
-request_password_reset_post_error = "Need an email to request a password reset"
+debate_get_error = "A debate ID is required."
+debate_search_invalid_search_string_error = "Invalid search string."
+debate_search_invalid_filter_format_error = "Invalid filter format."
+debate_search_unknown_filter_error = "Unknown filter."
+debate_search_missing_pk_array_error = "Used {0} filter but didn't provide {0} array." # Generic
+debate_search_invalid_pk_array_format_error = "Your primary key array is not of the right format."
+debate_search_invalid_pk_array_items_format_error = "Your primary key array contains non-integer types."
+progress_point_post_error = "Both debate ID and debate point ID are required to add a progress point."
+progress_point_get_error = "A debate ID is required."
+invalid_point_pk_error = "Could not find point associated with that ID."
+progress_point_batch_post_error = "Incorrect format must be array of seen progress points."
+starred_post_type_error = "Starred and unstarred values must be array types."
+starred_post_empty_error = "No starred or unstarred data passed."
+starred_post_format_error = "Arrays contain non-integer values."
+password_length_error = "Password must be at least 6 characters."
+register_post_error = "Both an email and a password are required to register a user."
+change_password_post_error = "Both the old and new password are required to change user's password."
+change_email_post_error = "A new email is required to change the user's email."
+request_password_reset_post_error = "Need an email to request a password reset."
+already_using_email_error = "User is already using this email."

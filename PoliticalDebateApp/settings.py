@@ -108,7 +108,6 @@ if not DEBUG:
         'TokenObtainPair': '5/day',
         'TokenRefresh': '6/hour', # access token expires every 10 min
 
-
     }
 
 SIMPLE_JWT = {

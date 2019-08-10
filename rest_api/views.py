@@ -16,28 +16,104 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models.functions import Greatest
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from smtplib import SMTPException
+from random import shuffle
 
 # DEBATES
 
-class SearchDebatesView(generics.ListAPIView):
+class SearchDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'SearchDebates'
 
-    def get(self, request, *args, **kwargs):
-        # Just give the user the most recent debates
-        if search_string_key not in kwargs:
-            debates = self.queryset.order_by('-' + last_updated_key)[:100]
+    def filter_queryset_by_pk_array(self, array_key, queryset, request, exclusion=False):
+        if array_key in request.data:
+            pk_array = request.data[array_key]
+            if type(pk_array) is not list:
+                return debate_search_invalid_pk_array_format_error
+            for pk in pk_array:
+                if type(pk) is not int:
+                    return debate_search_invalid_pk_array_items_format_error
+
+            if exclusion:
+                return queryset.exclude(pk__in=pk_array)
+            else:
+                return queryset.filter(pk__in=pk_array)
         else:
-            search_string = kwargs[search_string_key]
-            debates = self.queryset.annotate(
-                        similarity=TrigramSimilarity(title_key, search_string),
-                      ).filter(similarity__gt=minimum_trigram_similarity).order_by('-' + last_updated_key)[:100]
+            return debate_search_missing_pk_array_error
+
+    def post(self, request, *args, **kwargs):
+        debates = self.queryset # return queryset
+
+        # Handle search string
+        if search_string_key in request.data:
+            search_string = request.data[search_string_key]
+
+            if search_string and type(search_string) is str:
+                debates = debates.annotate(
+                            similarity=Greatest(TrigramSimilarity(title_key, search_string),
+                                                TrigramSimilarity(tags_key, search_string)),
+                          ).filter(similarity__gt=minimum_trigram_similarity)
+
+            else:
+                return Response(
+                    data={
+                        message_key: debate_search_invalid_search_string_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        # filter defaults to last updated
+        filter = last_updated_filter_value
+
+        # Handle filter input
+        if filter_key in request.data:
+            filter = request.data[filter_key]
+            if type(filter) is not str: # If filter is passed in but in wrong format
+                return Response(
+                    data={
+                        message_key: debate_search_invalid_filter_format_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            # If filter not in list of known filters
+            if filter not in all_filters:
+                return Response(
+                    data={
+                        message_key: debate_search_unknown_filter_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        filtered_debates_or_error = None
+        if filter == starred_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_starred_key, debates, request)
+        elif filter == progress_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request)
+        elif filter == no_progress_filter_value:
+            filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request, exclusion=True)
+        if type(filtered_debates_or_error) is str: # error message
+            return Response(
+                data={
+                    message_key: filtered_debates_or_error.format(filter)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        elif filtered_debates_or_error is not None:
+            debates = filtered_debates_or_error
+
+        # Sort all responses by last updated and truncate array to our maximum
+        debates = debates.order_by('-' + last_updated_key)[:maximum_debate_query]
+
+        if filter == random_filter_value:
+            debates = list(debates)
+            shuffle(debates)
 
         serializer = DebateSearchSerializer(instance=debates, many=True)
         return Response(serializer.data)
@@ -53,6 +129,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
         return Response(DebateSerializer(debate).data)
 
+# Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly from the backend
 
 
 
@@ -169,35 +246,40 @@ class StarredView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'Starred'
 
+    @staticmethod
+    def starOrUnstarDebates(pk_list, star, starred):
+        all_debates = Debate.objects.all()
+
+        for pk_index in range(0, len(pk_list)):
+            pk = pk_list[pk_index]
+            try:
+                newDebate = all_debates.get(pk=pk)
+
+                if star:
+                    if not starred.starred_list.filter(pk=newDebate.pk).exists():
+                        starred.starred_list.add(newDebate)
+                else:
+                    if starred.starred_list.filter(pk=newDebate.pk).exists():
+                        starred.starred_list.remove(newDebate)
+            except Debate.DoesNotExist:
+                # Fail silently because it might be a batch post w/ old debates that have since been deleted
+                pass
+
     @validate_starred_post_request_data
     def post(self, request, *args, **kwargs):
         starred_debate_pks = request.data[starred_list_key]
         unstarred_debate_pks = request.data[unstarred_list_key]
+        # remove common elements
+        starred_debate_pks = list(set(starred_debate_pks)^set(unstarred_debate_pks))
 
         try:
             starred = self.queryset.get(user=request.user)
 
-            for pk_index in range(0, len(unstarred_debate_pks)):
-                pk = unstarred_debate_pks[pk_index]
-                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-
-                if starred.starred_list.filter(pk=newDebate.pk).exists():
-                    starred.starred_list.remove(newDebate)
-
-            for pk_index in range(0, len(starred_debate_pks)):
-                pk = starred_debate_pks[pk_index]
-                newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-
-                if not starred.starred_list.filter(pk=newDebate.pk).exists():
-                    starred.starred_list.add(newDebate)
-
         except Starred.DoesNotExist:
-            starred = Starred.objects.create(user=user)
-            for pk_index in range(0, len(starred_debate_pks)):
-                pk = starred_debate_pks[pk_index]
-                if pk not in unstarred_debate_pks:
-                    newDebate = get_object_or_404(Debate.objects.all(), pk=pk)
-                    starred.starred_list.add(newDebate)
+            starred = Starred.objects.create(user=request.user)
+
+        self.starOrUnstarDebates(starred_debate_pks, True, starred)
+        self.starOrUnstarDebates(unstarred_debate_pks, False, starred)
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
@@ -215,8 +297,6 @@ class StarredView(generics.RetrieveAPIView):
 # AUTH
 
 class ChangePasswordView(generics.UpdateAPIView):
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'ChangePassword'
@@ -234,8 +314,6 @@ class ChangePasswordView(generics.UpdateAPIView):
         return Response(success_response, status=status.HTTP_200_OK)
 
 class ChangeEmailView(generics.UpdateAPIView):
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'ChangeEmail'
@@ -244,28 +322,30 @@ class ChangeEmailView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         self.object = self.request.user
         new_email = request.data[new_email_key].lower()
+        if new_email == self.object.username:
+            return Response(
+                data={
+                    message_key: already_using_email_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             # Set username to email, don't set email property until it's verified
             self.object.username = new_email
+            self.object.save()
             email_verification.send_email(self.object, request, new_email)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             return Response(
                 data={
                     message_key: invalid_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        self.object.save()
         return Response(success_response, status=status.HTTP_200_OK)
 
 class DeleteUserView(generics.DestroyAPIView):
-    """
-    POST auth/delete/
-    """
-    # This permission class will overide the global permission
-    # class setting
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'DeleteUser'
@@ -273,7 +353,7 @@ class DeleteUserView(generics.DestroyAPIView):
     def post(self, request, *args, **kwargs):
         self.object = self.request.user
 
-        self.object.delete() #Triggers cascading deletions on user data existing on other tables
+        self.object.delete() # Triggers cascading deletions on user data existing on other tables
         return Response(success_response, status=status.HTTP_200_OK)
 
 class RegisterUserView(generics.CreateAPIView):
@@ -291,8 +371,8 @@ class RegisterUserView(generics.CreateAPIView):
         )
         try:
             email_verification.send_email(new_user, request, email)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             new_user.delete()
             return Response(
                 data={
@@ -315,7 +395,7 @@ class PasswordResetFormView(APIView):
         except:
             user = None
         if user is not None and account_verification_token.check_token(user, kwargs[token_key]):
-            # User verified email
+            # User also verified their email by opening the link (in case they hadn't already)
             user.email = user.username
             user.save()
 
@@ -379,8 +459,8 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
             )
         try:
             email_verification.send_email(user, request, email, password_reset=True)
-        # Throws SMTPexception if email fails to send
-        except:
+        # Throws SMTPException if email fails to send
+        except SMTPException:
             return Response(
                 data={
                     message_key: invalid_email_error
@@ -411,8 +491,8 @@ class VerificationView(generics.RetrieveAPIView):
             return HttpResponse(invalid_link_error)
 
 # Need to override to give throttle scopes
-class TokenObtainPairView(TokenObtainPairView):
+class CustomTokenObtainPairView(TokenObtainPairView):
     throttle_scope = 'TokenObtainPair'
 
-class TokenRefreshView(TokenRefreshView):
+class CustomTokenRefreshView(TokenRefreshView):
     throttle_scope = 'TokenRefresh'

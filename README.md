@@ -18,7 +18,7 @@ Each point is accompanied by several responses (rebuttals). Some of these lead t
 
 #### Debate maps
 
-The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json).
+The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
 
 The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
 
@@ -64,12 +64,13 @@ Instructions:
     - Debate
         - title: String (unique)
         - short_title: String
+        - tags: String (optional)
         - last_updated: Date
         - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Point
-        - debate: Debate (foreign key)
-        - rebuttals: Points (ManyToMany)
+        - debate: Debate (foreign key) (optional)
+        - rebuttals: Points (ManyToMany) (optional)
     - PointImage
         - point: Point (foreign key)
         - url: URL
@@ -98,6 +99,7 @@ Instructions:
 - our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
 - use `%20` for spaces
 - all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
+- all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses) for clients to use as mocked responses in local unit testing.
 
 ---
 #### DEBATES
@@ -111,23 +113,50 @@ GET
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debate.json)
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)
 
 or `HTTP_404_NOT_FOUND`
 
-##### `debate/search/<str:search_string>`
+##### `debate/search/`
 
-- searches debate database with given string as query
-- an empty string (i.e. no characters after `/`) will return all the debates
-- results come sorted in terms of recency with a limit of 100 total
-- supports fuzzy string comparison
 - the debate maps do not come in this call
+- all responses are sorted by recency of last updated by default, therefore all parameters are **optional**
+- response array limit is 100 debates (e.g. if a user has starred more than that they will get the most recent 100, if a user filters by random it will randomize the 100 most recent debates)
 
-GET
+###### Search string parameter
+- searches debate database with the given string as a query comparing to the title and tags fields
+- an empty string will return all the debates (given there are no filters)
+- supports fuzzy string comparison
+
+###### Filter parameters
+- Filters:
+    - `last_updated` (default)
+    - `starred` (requires starred array)
+    - `progress` (requires progress array)
+    - `no_progress` (requires progress array)
+    - `random`
+- must pass in progress or starred arrays even if you are authenticated because this endpoint is also open to unauthenticated clients (who pass in local data), simpler to have just one
+- must do progress ascending/descending sorting locally on the client
+
+POST
+
+- Takes:
+
+```
+Body
+{
+    "search_string": "gun",
+    "filter": "progress",
+    "all_progress": [2, 8, 4], # primary keys of debates user has made progress on
+    "all_starred": [1, 2, 31] # primary keys of debates user has starred
+}
+```
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_iOS/blob/develop/PoliticalDebateApp_iOSTests/StubbedResponses/Debates.json)
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSearch.json)
+
+or `HTTP_400_BAD_REQUEST`
 
 ---
 #### PROGRESS
@@ -149,15 +178,8 @@ Header
 
 - Returns:
 
-```
-{
-    "debate": 1,
-    "completed_percentage": 10,
-    "seen_points": [
-        1, 2, 3, 4...
-    ]
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressSingle.json)
+
 or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
 
 ##### `progress/`
@@ -178,14 +200,7 @@ Header
 
 - Returns:
 
-```
-[
-    {
-        "debate": 1,
-        "completed_percentage": 15
-    }
-]
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json)
 
 ##### `progress/`
 
@@ -271,13 +286,8 @@ Header
 
 - Returns:
 
-```
-{
-    "starred_list": [
-        1, 2, 3...
-    ]
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json)
+
 or `HTTP_404_NOT_FOUND`
 
 ##### `starred/`
@@ -353,11 +363,12 @@ Body
 
 `HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
 
-##### `auth/token/obtain`
+##### `auth/token/obtain/`
 
 - login user to get token for session
-- save refresh and access tokens to secure persistent data
 - use the "username" key but pass in the user's email
+- username needs to be lowercase
+- save refresh and access tokens to secure persistent data
 
 POST
 
@@ -373,15 +384,11 @@ Body
 
 - Returns:
 
-```
-{
-    "refresh": (new JSON Web Refresh Token)
-    "access": (new JSON Web Access Token)
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)
+
 or `HTTP_401_UNAUTHORIZED`
 
-##### `auth/token/refresh`
+##### `auth/token/refresh/`
 
 - when you get a 401, refresh your access token
 - access token expires every 10 minutes
@@ -400,11 +407,8 @@ Body
 
 - Returns:
 
-```
-{
-    "access": (new JSON Web Access Token)
-}
-```
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)
+
 or `HTTP_400_BAD_REQUEST`
 
 ##### `auth/change-password/`
