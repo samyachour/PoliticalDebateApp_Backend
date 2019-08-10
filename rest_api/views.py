@@ -70,7 +70,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
                 )
 
         # filter defaults to last updated
-        filter = last_updated_filter_key
+        filter = last_updated_filter_value
 
         # Handle filter input
         if filter_key in request.data:
@@ -92,11 +92,11 @@ class SearchDebatesView(generics.ListCreateAPIView):
                 )
 
         filtered_debates_or_error = None
-        if filter == starred_filter_key:
+        if filter == starred_filter_value:
             filtered_debates_or_error = self.filter_queryset_by_pk_array(all_starred_key, debates, request)
-        elif filter == progress_filter_key:
+        elif filter == progress_filter_value:
             filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request)
-        elif filter == no_progress_filter_key:
+        elif filter == no_progress_filter_value:
             filtered_debates_or_error = self.filter_queryset_by_pk_array(all_progress_key, debates, request, exclusion=True)
         if type(filtered_debates_or_error) is str: # error message
             return Response(
@@ -111,7 +111,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
         # Sort all responses by last updated and truncate array to our maximum
         debates = debates.order_by('-' + last_updated_key)[:maximum_debate_query]
 
-        if filter == random_filter_key:
+        if filter == random_filter_value:
             debates = list(debates)
             shuffle(debates)
 

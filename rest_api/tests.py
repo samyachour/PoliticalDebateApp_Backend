@@ -345,7 +345,7 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response = self.search_debates({
-            filter_key: "starred",
+            filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk],
         })
         serialized = DebateSearchSerializer(expected, many=True)
@@ -354,7 +354,7 @@ class SearchDebatesTest(BaseViewTest):
 
         response = self.search_debates({
             search_string_key: "gun",
-            filter_key: "starred",
+            filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk]
         })
         serialized = DebateSearchSerializer(expected, many=True)
@@ -363,8 +363,32 @@ class SearchDebatesTest(BaseViewTest):
 
         response = self.search_debates({
             search_string_key: "gun",
-            filter_key: "progress",
+            filter_key: progress_filter_value,
             all_progress_key: [self.gun_control.pk]
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: no_progress_filter_value,
+            all_progress_key: [self.gun_control.pk]
+        })
+        self.assertEqual(response.data, [])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: last_updated_filter_value
+        })
+        serialized = DebateSearchSerializer(expected, many=True)
+        self.assertEqual(response.data, serialized.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.search_debates({
+            search_string_key: "gun",
+            filter_key: random_filter_value
         })
         serialized = DebateSearchSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
@@ -400,7 +424,7 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.search_debates({
-            filter_key: "starred",
+            filter_key: starred_filter_value,
             all_starred_key: 1,
         })
         self.assertEqual(
@@ -410,7 +434,7 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.search_debates({
-            filter_key: "starred",
+            filter_key: starred_filter_value,
             all_starred_key: ["1"],
         })
         self.assertEqual(
@@ -420,11 +444,11 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         response = self.search_debates({
-            filter_key: "starred"
+            filter_key: starred_filter_value
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_missing_pk_array_error.format("starred")
+            debate_search_missing_pk_array_error.format(starred_filter_value)
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
