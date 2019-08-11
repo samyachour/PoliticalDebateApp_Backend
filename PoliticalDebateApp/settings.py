@@ -79,7 +79,7 @@ if not DEBUG:
 
         # DEBATES
 
-        'SearchDebates': '15/minute',
+        'FilterDebates': '15/minute',
         'DebateDetail': '10/minute',
 
 

@@ -17,9 +17,9 @@ class BaseViewTest(APITestCase):
 
     # DEBATES
 
-    def search_debates(self, data):
+    def filter_debates(self, data):
         url = reverse(
-            search_debates_name,
+            filter_debates_name,
             kwargs={
                 version_key: v1_key
             },
@@ -326,51 +326,51 @@ class DebateModelTest(BaseViewTest):
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        response = self.search_debates({})
+        response = self.filter_debates({})
         expected = Debate.objects.all()
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-class SearchDebatesTest(BaseViewTest):
+class FilterDebatesTest(BaseViewTest):
 
-    def test_search_debates(self):
+    def test_filter_debates(self):
         expected = Debate.objects.all().filter(pk=self.gun_control.pk)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun"
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk],
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk]
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: progress_filter_value,
             all_progress_key: [self.gun_control.pk]
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: no_progress_filter_value,
             all_progress_key: [self.gun_control.pk]
@@ -378,77 +378,77 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.data, [])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: last_updated_filter_value
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: random_filter_value
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: ""
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_search_string_error
+            debate_filter_invalid_search_string_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: "starredd",
             all_starred_key: [self.gun_control.pk],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_unknown_filter_error
+            debate_filter_unknown_filter_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: 1,
             all_starred_key: [self.gun_control.pk],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_filter_format_error
+            debate_filter_invalid_filter_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: 1,
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_pk_array_format_error
+            debate_filter_invalid_pk_array_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: ["1"],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_pk_array_items_format_error
+            debate_filter_invalid_pk_array_items_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_missing_pk_array_error.format(starred_filter_value)
+            debate_filter_missing_pk_array_error.format(starred_filter_value)
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

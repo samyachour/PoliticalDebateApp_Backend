@@ -38,7 +38,7 @@ class DebateSerializer(serializers.ModelSerializer):
         model = Debate
         fields = (pk_key, title_key, short_title_key, last_updated_key, total_points_key, debate_map_key)
 
-class DebateSearchSerializer(serializers.ModelSerializer):
+class DebateFilterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Debate
         fields = (pk_key, title_key, short_title_key, last_updated_key, total_points_key)

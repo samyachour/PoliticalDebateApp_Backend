@@ -26,27 +26,27 @@ from random import shuffle
 
 # DEBATES
 
-class SearchDebatesView(generics.ListCreateAPIView):
+class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
     serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
-    throttle_scope = 'SearchDebates'
+    throttle_scope = 'FilterDebates'
 
     def filter_queryset_by_pk_array(self, array_key, queryset, request, exclusion=False):
         if array_key in request.data:
             pk_array = request.data[array_key]
             if type(pk_array) is not list:
-                return debate_search_invalid_pk_array_format_error
+                return debate_filter_invalid_pk_array_format_error
             for pk in pk_array:
                 if type(pk) is not int:
-                    return debate_search_invalid_pk_array_items_format_error
+                    return debate_filter_invalid_pk_array_items_format_error
 
             if exclusion:
                 return queryset.exclude(pk__in=pk_array)
             else:
                 return queryset.filter(pk__in=pk_array)
         else:
-            return debate_search_missing_pk_array_error
+            return debate_filter_missing_pk_array_error
 
     def post(self, request, *args, **kwargs):
         debates = self.queryset # return queryset
@@ -64,7 +64,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             else:
                 return Response(
                     data={
-                        message_key: debate_search_invalid_search_string_error
+                        message_key: debate_filter_invalid_search_string_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -78,7 +78,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             if type(filter) is not str: # If filter is passed in but in wrong format
                 return Response(
                     data={
-                        message_key: debate_search_invalid_filter_format_error
+                        message_key: debate_filter_invalid_filter_format_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -86,7 +86,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             if filter not in all_filters:
                 return Response(
                     data={
-                        message_key: debate_search_unknown_filter_error
+                        message_key: debate_filter_unknown_filter_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -115,7 +115,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             debates = list(debates)
             shuffle(debates)
 
-        serializer = DebateSearchSerializer(instance=debates, many=True)
+        serializer = DebateFilterSerializer(instance=debates, many=True)
         return Response(serializer.data)
 
 class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):

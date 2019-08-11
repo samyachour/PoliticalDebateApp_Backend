@@ -54,11 +54,11 @@ convertToDoubleQuotes(file.name)
 
 # DEBATES
 
-url = baseURL + 'debate/search/'
+url = baseURL + 'debate/filter/'
 response = requests.post(url)
 response.raise_for_status()
 
-file = open("DebateSearch.json", "w")
+file = open("DebateFilter.json", "w")
 serialized_response = json.loads(response.text) # from above response
 pprint.pprint(serialized_response, file)
 file.close()

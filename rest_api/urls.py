@@ -6,7 +6,7 @@ urlpatterns = [
 
     # DEBATES
 
-    path('debate/search/', SearchDebatesView.as_view(), name=search_debates_name),
+    path('debate/filter/', FilterDebatesView.as_view(), name=filter_debates_name),
     path('debate/<int:{0}>'.format(pk_key), DebateDetailView.as_view(), name=get_debate_name),
 
 

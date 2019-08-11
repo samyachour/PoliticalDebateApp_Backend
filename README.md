@@ -117,7 +117,7 @@ GET
 
 or `HTTP_404_NOT_FOUND`
 
-##### `debate/search/`
+##### `debate/filter/`
 
 - the debate maps do not come in this call
 - all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**

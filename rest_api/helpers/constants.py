@@ -75,7 +75,7 @@ username_key = "username"
 password_key = "password"
 
 # URL names
-search_debates_name = "search_debates"
+filter_debates_name = "filter_debates"
 get_debate_name = "get_debate"
 get_progress_name = "get_progress"
 get_all_post_progress_name = "get_all_post_progress"
@@ -107,12 +107,12 @@ invalid_email_error = "Could not send, email is invalid."
 invalid_link_error = "Link is invalid."
 
 debate_get_error = "A debate ID is required."
-debate_search_invalid_search_string_error = "Invalid search string."
-debate_search_invalid_filter_format_error = "Invalid filter format."
-debate_search_unknown_filter_error = "Unknown filter."
-debate_search_missing_pk_array_error = "Used {0} filter but didn't provide {0} array." # Generic
-debate_search_invalid_pk_array_format_error = "Your primary key array is not of the right format."
-debate_search_invalid_pk_array_items_format_error = "Your primary key array contains non-integer types."
+debate_filter_invalid_search_string_error = "Invalid search string."
+debate_filter_invalid_filter_format_error = "Invalid filter format."
+debate_filter_unknown_filter_error = "Unknown filter."
+debate_filter_missing_pk_array_error = "Used {0} filter but didn't provide {0} array." # Generic
+debate_filter_invalid_pk_array_format_error = "Your primary key array is not of the right format."
+debate_filter_invalid_pk_array_items_format_error = "Your primary key array contains non-integer types."
 progress_point_post_error = "Both debate ID and debate point ID are required to add a progress point."
 progress_point_get_error = "A debate ID is required."
 invalid_point_pk_error = "Could not find point associated with that ID."
