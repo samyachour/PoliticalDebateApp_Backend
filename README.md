@@ -120,12 +120,13 @@ or `HTTP_404_NOT_FOUND`
 ##### `debate/search/`
 
 - the debate maps do not come in this call
-- all responses are sorted by recency of last updated by default, therefore all parameters are **optional**
-- response array limit is 100 debates (e.g. if a user has starred more than that they will get the most recent 100, if a user filters by random it will randomize the 100 most recent debates)
+- all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**
+- response array limit is 100 debates, e.g.:
+    - if a user has starred more than 100 debates they will get the most recently updated 100
+    - if a user filters by random it will randomize the 100 most recently updated debates
 
 ###### Search string parameter
 - searches debate database with the given string as a query comparing to the title and tags fields
-- an empty string will return all the debates (given there are no filters)
 - supports fuzzy string comparison
 
 ###### Filter parameters
