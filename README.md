@@ -289,8 +289,6 @@ Header
 
 [See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json)
 
-or `HTTP_404_NOT_FOUND`
-
 ##### `starred/`
 
 - update user's starred debates
@@ -316,7 +314,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
 
 ---
 #### AUTH

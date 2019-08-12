@@ -284,8 +284,12 @@ class StarredView(generics.RetrieveAPIView):
         return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
+        try:
+            starred = self.queryset.get(user=request.user)
 
-        starred = get_object_or_404(self.queryset, user=request.user)
+        except Starred.DoesNotExist:
+            starred = Starred.objects.create(user=request.user)
+
         return Response(StarredSerializer(starred).data)
 
 
