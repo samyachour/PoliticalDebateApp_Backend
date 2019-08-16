@@ -32,7 +32,8 @@ class FilterDebatesView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'FilterDebates'
 
-    def filter_queryset_by_pk_array(self, array_key, queryset, request, exclusion=False):
+    @staticmethod
+    def filter_queryset_by_pk_array(array_key, queryset, request, exclusion=False):
         if array_key in request.data:
             pk_array = request.data[array_key]
             if type(pk_array) is not list:
@@ -101,7 +102,7 @@ class FilterDebatesView(generics.ListCreateAPIView):
         if type(filtered_debates_or_error) is str: # error message
             return Response(
                 data={
-                    message_key: filtered_debates_or_error.format(filter)
+                    message_key: filtered_debates_or_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

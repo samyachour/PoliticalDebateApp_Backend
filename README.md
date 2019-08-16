@@ -314,7 +314,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`
 
 ---
 #### AUTH
@@ -338,7 +338,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
+`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST`
 
 ##### `auth/request-password-reset/`
 
