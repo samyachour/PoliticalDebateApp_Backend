@@ -39,6 +39,8 @@ convertToDoubleQuotes(file.name)
 access_token = serialized_response["access"]
 refresh_token = serialized_response["refresh"]
 
+headers = {"Authorization": "Bearer {0}".format(access_token)}
+
 url = baseURL + 'auth/token/refresh/'
 body = { "refresh": refresh_token }
 response = requests.post(url, json=body)
@@ -52,10 +54,25 @@ convertToDoubleQuotes(file.name)
 
 
 
+# STARRED
+
+url = baseURL + 'starred/'
+response = requests.get(url, headers=headers)
+response.raise_for_status()
+
+file = open("Starred.json", "w")
+serialized_response = json.loads(response.text)
+pprint.pprint(serialized_response, file)
+file.close()
+convertToDoubleQuotes(file.name)
+
+
+
 # DEBATES
 
 url = baseURL + 'debate/filter/'
-response = requests.post(url)
+body = {"filter": "starred", "all_starred": serialized_response["starred_list"]} # from starred
+response = requests.post(url, json=body)
 response.raise_for_status()
 
 file = open("DebateFilter.json", "w")
@@ -79,8 +96,6 @@ convertToDoubleQuotes(file.name)
 
 # PROGRESS
 
-headers = {"Authorization": "Bearer {0}".format(access_token)}
-
 url = baseURL + 'progress/'
 response = requests.get(url, headers=headers)
 response.raise_for_status()
@@ -97,20 +112,6 @@ response = requests.get(url, headers=headers)
 response.raise_for_status()
 
 file = open("ProgressSingle.json", "w")
-serialized_response = json.loads(response.text)
-pprint.pprint(serialized_response, file)
-file.close()
-convertToDoubleQuotes(file.name)
-
-
-
-# STARRED
-
-url = baseURL + 'starred/'
-response = requests.get(url, headers=headers)
-response.raise_for_status()
-
-file = open("Starred.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()

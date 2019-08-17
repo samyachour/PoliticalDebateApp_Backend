@@ -278,9 +278,9 @@ class BaseViewTest(APITestCase):
 
     def setUp(self):
 
-        # create an admin user
+        # create a user
 
-        self.user = User.objects.create_superuser(
+        self.user = User.objects.create_user(
             username="test@mail.com",
             email="test@mail.com",
             password="testing"
@@ -655,7 +655,7 @@ class GetStarredTest(BaseViewTest):
 class AuthChangeEmailTest(BaseViewTest):
 
     def test_change_email(self):
-        changeEmailUser = User.objects.create_superuser(
+        changeEmailUser = User.objects.create_user(
             username="changeemail_user@mail.com",
             email="changeemail_user@mail.com",
             password="changeemail_pass"
@@ -717,7 +717,7 @@ class AuthRegisterUserTest(BaseViewTest):
 class DeleteUserTest(BaseViewTest):
 
     def test_delete_user(self):
-        deleteUser = User.objects.create_superuser(
+        deleteUser = User.objects.create_user(
             username="todelete_user@mail.com",
             email="todelete_user@mail.com",
             password="todelete_pass"
