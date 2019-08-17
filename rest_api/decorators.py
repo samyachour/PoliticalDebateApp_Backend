@@ -65,6 +65,13 @@ def validate_starred_post_request_data(fn):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        if (not starred_debate_pks) and (not unstarred_debate_pks):
+            return Response(
+                data={
+                    message_key: starred_post_empty_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         for pk in starred_debate_pks + unstarred_debate_pks:
             if type(pk) is not int:
                 return Response(
