@@ -28,7 +28,7 @@ The backend feeds these to the clients who know how to navigate & display these 
     - branches off develop must be associated with an existing issue and follow the naming convention 'issue[#]/[type]/[name]' for example 'issue7/enhancement/BasicDjangoRestSetup'
         - if necessary, we can create (& merge) hotfix branches off of master
     - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
-- We use [Test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
+- We use [test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
 - The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
 
 ## Political debate app (backend)
@@ -155,7 +155,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSearch.json)
+[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateFilter.json)
 
 or `HTTP_400_BAD_REQUEST`
 
