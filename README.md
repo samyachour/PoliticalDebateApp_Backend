@@ -113,9 +113,7 @@ GET
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)
-
-or `HTTP_404_NOT_FOUND`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)) or `404`
 
 ##### `debate/filter/`
 
@@ -155,9 +153,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateFilter.json)
-
-or `HTTP_400_BAD_REQUEST`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateFilter.json)) or `404`
 
 ---
 #### PROGRESS
@@ -179,9 +175,7 @@ Header
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressSingle.json)
-
-or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressSingle.json)), `404`, or `400`
 
 ##### `progress/`
 
@@ -201,7 +195,7 @@ Header
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json)
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json))
 
 ##### `progress/`
 
@@ -227,7 +221,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`201`, `401`, `404`, or `400`
 
 ##### `progress/batch/`
 
@@ -265,7 +259,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, or `HTTP_400_BAD_REQUEST`
+`201`, `401`, or `400`
 
 ---
 #### STARRED
@@ -287,7 +281,7 @@ Header
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json)
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json))
 
 ##### `starred/`
 
@@ -314,7 +308,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`
+`201` or `401`
 
 ---
 #### AUTH
@@ -338,7 +332,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST`
+`201` or `400`
 
 ##### `auth/request-password-reset/`
 
@@ -360,7 +354,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
+`201`, `400`, or `404`
 
 ##### `auth/token/obtain/`
 
@@ -383,9 +377,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)
-
-or `HTTP_401_UNAUTHORIZED`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)) or `400`
 
 ##### `auth/token/refresh/`
 
@@ -406,9 +398,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)
-
-or `HTTP_400_BAD_REQUEST`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)) or `400`
 
 ##### `auth/change-password/`
 
@@ -434,7 +424,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+`200`, `401`, or `400`
 
 ##### `auth/change-email/`
 
@@ -460,7 +450,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+`200`, `401`, or `400`
 
 ##### `auth/delete/`
 
@@ -479,4 +469,4 @@ Header
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`200` or `401`

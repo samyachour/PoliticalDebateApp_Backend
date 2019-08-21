@@ -117,7 +117,7 @@ class FilterDebatesView(generics.ListCreateAPIView):
             shuffle(debates)
 
         serializer = DebateFilterSerializer(instance=debates, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Debate.objects.all()
@@ -128,7 +128,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     @validate_debate_get_request_data
     def get(self, request, *args, **kwargs):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
-        return Response(DebateSerializer(debate).data)
+        return Response(DebateSerializer(debate).data, status=status.HTTP_200_OK)
 
 # Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly from the backend
 
@@ -150,7 +150,7 @@ class ProgressDetailView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         debate = get_object_or_404(Debate, pk=kwargs[pk_key])
         progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
-        return Response(ProgressSerializer(progress_point).data)
+        return Response(ProgressSerializer(progress_point).data, status=status.HTTP_200_OK)
 
 class AllProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
@@ -183,7 +183,7 @@ class AllProgressView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         progress = self.queryset.filter(user=request.user)
-        return Response(ProgressAllSerializer(progress, many=True).data)
+        return Response(ProgressAllSerializer(progress, many=True).data, status=status.HTTP_200_OK)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
@@ -291,7 +291,7 @@ class StarredView(generics.RetrieveAPIView):
         except Starred.DoesNotExist:
             starred = Starred.objects.create(user=request.user)
 
-        return Response(StarredSerializer(starred).data)
+        return Response(StarredSerializer(starred).data, status=status.HTTP_200_OK)
 
 
 
