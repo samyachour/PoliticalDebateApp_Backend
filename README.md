@@ -354,7 +354,7 @@ Body
 
 - Returns:
 
-`201`, `400`, or `404`
+`200`, `400`, or `404`
 
 ##### `auth/token/obtain/`
 
