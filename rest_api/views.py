@@ -364,6 +364,27 @@ class GetCurrentEmailView(generics.RetrieveAPIView):
             is_verified_key: is_verified
         }, status=status.HTTP_200_OK)
 
+class RequestVerificationLinkView(generics.UpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = User.objects.all()
+    throttle_scope = 'RequestVerificationLink'
+
+    def put(self, request, *args, **kwargs):
+        self.object = self.request.user
+        email = self.object.username
+
+        try:
+            email_verification.send_email(self.object, request, email)
+        # Throws SMTPException if email fails to send
+        except SMTPException:
+            return Response(
+                data={
+                    message_key: invalid_email_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(success_response, status=status.HTTP_200_OK)
+
 class DeleteUserView(generics.DestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()

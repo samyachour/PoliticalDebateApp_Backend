@@ -471,6 +471,25 @@ Header
 
 `200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/GetCurrentEmail.json)) or `401`
 
+##### `auth/request-verification-link/`
+
+- send a verification link to the user's unverified email address
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`200`, `400`, or `401`
+
 ##### `auth/delete/`
 
 - delete user account & all associated data
