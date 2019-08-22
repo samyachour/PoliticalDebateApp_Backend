@@ -53,6 +53,17 @@ file.close()
 convertToDoubleQuotes(file.name)
 
 
+url = baseURL + 'auth/get-current-email/'
+response = requests.get(url, headers=headers)
+response.raise_for_status()
+
+file = open("GetCurrentEmail.json", "w")
+serialized_response = json.loads(response.text)
+pprint.pprint(serialized_response, file)
+file.close()
+convertToDoubleQuotes(file.name)
+
+
 
 # STARRED
 

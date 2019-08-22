@@ -99,6 +99,7 @@ if not DEBUG:
 
         'ChangePassword': '5/day',
         'ChangeEmail': '5/day',
+        'GetCurrentEmail': '5/minute',
         'DeleteUser': '5/day',
         'RegisterUser': '5/day',
         'PasswordResetForm': '10/hour', # Happens when a user refreshes the page

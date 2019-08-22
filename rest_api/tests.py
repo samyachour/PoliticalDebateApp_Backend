@@ -225,6 +225,19 @@ class BaseViewTest(APITestCase):
 
         return view(request)
 
+    def get_current_email(self, user):
+        view = GetCurrentEmailView.as_view()
+        url = reverse(
+            auth_get_current_email_name,
+            kwargs={
+                version_key: v1_key
+            }
+        )
+        request = self.requestFactory.get(url)
+        force_authenticate(request, user=user)
+
+        return view(request)
+
     def login_client(self, username, password):
         url = reverse(
             auth_token_obtain_name,
@@ -655,19 +668,19 @@ class GetStarredTest(BaseViewTest):
 class AuthChangeEmailTest(BaseViewTest):
 
     def test_change_email(self):
-        changeEmailUser = User.objects.create_user(
-            username="changeemail_user@mail.com",
-            email="changeemail_user@mail.com",
-            password="changeemail_pass"
+        change_email_user = User.objects.create_user(
+            username="change_email_user@mail.com",
+            email="change_email_user@mail.com",
+            password="change_email_pass"
         )
-        self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
-        response = self.change_user_email(changeEmailUser, changeEmailUser.email)
+        self.login_a_user("change_email_user@mail.com", "change_email_pass")
+        response = self.change_user_email(change_email_user, change_email_user.email)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data[message_key],
             already_using_email_error
         )
-        response = self.change_user_email(changeEmailUser, "changeemail_user1@mail.com")
+        response = self.change_user_email(change_email_user, "change_email_user1@mail.com")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
@@ -675,6 +688,19 @@ class AuthChangeEmailTest(BaseViewTest):
         )
         response = self.login_a_user("invalidemail@mail.com", "invalidpass")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class AuthGetCurrentEmailTest(BaseViewTest):
+
+    def test_change_email(self):
+        get_current_email_user = User.objects.create_user(
+            username="get_current_email_user@mail.com",
+            password="get_current_email_pass"
+        )
+        self.login_a_user("get_current_email_user@mail.com", "get_current_email_pass")
+        response = self.get_current_email(get_current_email_user)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[current_email_key], "get_current_email_user@mail.com")
+        self.assertFalse(response.data[is_verified_key])
 
 class AuthChangePasswordTest(BaseViewTest):
 

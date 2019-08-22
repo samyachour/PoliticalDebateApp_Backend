@@ -452,6 +452,25 @@ Body
 
 `200`, `401`, or `400`
 
+##### `auth/get-current-email/`
+
+- get the user's current email address and whether or not it's verified
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/GetCurrentEmail.json)) or `401`
+
 ##### `auth/delete/`
 
 - delete user account & all associated data

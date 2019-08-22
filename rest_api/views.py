@@ -350,6 +350,20 @@ class ChangeEmailView(generics.UpdateAPIView):
             )
         return Response(success_response, status=status.HTTP_200_OK)
 
+class GetCurrentEmailView(generics.RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = User.objects.all()
+    throttle_scope = 'GetCurrentEmail'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.request.user
+        is_verified = len(self.object.email) > 0
+
+        return Response(data={
+            current_email_key: self.object.username,
+            is_verified_key: is_verified
+        }, status=status.HTTP_200_OK)
+
 class DeleteUserView(generics.DestroyAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
