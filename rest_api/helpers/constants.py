@@ -39,6 +39,7 @@ total_points_key = "total_points"
 debate_map_key = "debate_map"
 
 description_key = "description"
+side_key = "side"
 hyperlinks_key = "hyperlinks"
 images_key = "images"
 rebuttals_key = "rebuttals"

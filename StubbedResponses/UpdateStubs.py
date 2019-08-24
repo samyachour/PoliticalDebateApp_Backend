@@ -9,11 +9,19 @@ except ImportError:
     main(['install', 'requests'])
     import requests
 
-def convertToDoubleQuotes(filename):
+def convert_to_double_quotes(filename):
     with fileinput.FileInput(filename, inplace=True) as file:
         for line in file:
             # Correct JSON
             line = line.replace("None", "null")
+            print(line.replace("'", '"'), end='')
+
+def lowercase_capital_booleans(filename):
+    with fileinput.FileInput(filename, inplace=True) as file:
+        for line in file:
+            # Correct JSON
+            line = line.replace("True", "true")
+            line = line.replace("False", "false")
             print(line.replace("'", '"'), end='')
 
 version = 'v1/'
@@ -33,7 +41,8 @@ file = open("TokenObtain.json", "w")
 serialized_response = json.loads(response.text.replace("'", '"'))
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 access_token = serialized_response["access"]
@@ -50,7 +59,8 @@ file = open("TokenRefresh.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 url = baseURL + 'auth/get-current-email/'
@@ -61,7 +71,8 @@ file = open("GetCurrentEmail.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 
@@ -75,7 +86,8 @@ file = open("Starred.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 
@@ -90,7 +102,8 @@ file = open("DebateFilter.json", "w")
 serialized_response = json.loads(response.text) # from above response
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 url = baseURL + 'debate/1'
@@ -101,7 +114,8 @@ file = open("DebateSingle.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 
@@ -115,7 +129,8 @@ file = open("ProgressAll.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)
 
 
 url = baseURL + 'progress/1'
@@ -126,4 +141,5 @@ file = open("ProgressSingle.json", "w")
 serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
-convertToDoubleQuotes(file.name)
+convert_to_double_quotes(file.name)
+lowercase_capital_booleans(file.name)

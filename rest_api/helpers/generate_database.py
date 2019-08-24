@@ -5,6 +5,7 @@ import random
 
 # Run in shell:
 # from rest_api.helpers.generate_database import generate_accounts, generate_debates
+# generate_accounts(); generate_debates(); exit();
 
 def boolean_probability(percent=50):
     return random.randrange(100) < percent
@@ -46,8 +47,8 @@ def generate_debates(count = 300):
     for i in range(count):
 
         test_debate = Debate.objects.create(title="Test debate number #{0}".format(i), short_title="Debate #{0}".format(i), last_updated=today - timedelta(days=i), total_points=total_points, tags="")
-        test_debate_point_2 = Point.objects.create(description="Test point 2")
-        test_debate_point_1 = Point.objects.create(debate=test_debate, description="Test point 1")
+        test_debate_point_2 = Point.objects.create(description="Test point 2", side="con")
+        test_debate_point_1 = Point.objects.create(debate=test_debate, description="Test point 1", side="pro")
         test_debate_point_1.rebuttals.add(test_debate_point_2)
         test_debate_point_1.save()
 

@@ -70,6 +70,8 @@ Instructions:
         - debate_map: JSON Dict [String: Array[String]]
     - Point
         - debate: Debate (foreign key) (optional)
+        - description: String
+        - side: String ("pro" or "con")
         - rebuttals: Points (ManyToMany) (optional)
     - PointImage
         - point: Point (foreign key)
