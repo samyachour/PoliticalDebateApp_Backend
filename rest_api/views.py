@@ -159,7 +159,7 @@ class AllProgressView(generics.RetrieveAPIView):
     throttle_scope = 'AllProgress'
 
     @validate_progress_post_point_request_data
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
 
         try:
             debate = get_object_or_404(Debate.objects.all(), pk=request.data[debate_pk_key])
