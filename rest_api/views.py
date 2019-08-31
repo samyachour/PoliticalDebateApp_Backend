@@ -148,9 +148,18 @@ class ProgressDetailView(generics.RetrieveAPIView):
 
     @validate_progress_point_get_request_data
     def get(self, request, *args, **kwargs):
-        debate = get_object_or_404(Debate, pk=kwargs[pk_key])
-        progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
-        return Response(ProgressSerializer(progress_point).data, status=status.HTTP_200_OK)
+        try:
+            debate = get_object_or_404(Debate, pk=kwargs[pk_key])
+            progress_points = self.queryset.get(user=request.user, debate=debate)
+
+        except Progress.DoesNotExist:
+            progress_points = Progress.objects.create(
+                user=request.user,
+                debate=debate,
+                completed_percentage=0
+            )
+
+        return Response(ProgressSerializer(progress_points).data, status=status.HTTP_200_OK)
 
 class AllProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
