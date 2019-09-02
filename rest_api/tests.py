@@ -295,21 +295,21 @@ class BaseViewTest(APITestCase):
         # add test data
 
         self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2, tags="gun control, school shootings")
-        self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, description="Civilians can't own tanks though")
-        self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, description="But the 2nd amendment")
+        self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, short_description="Civilians can't own tanks though", description="We don't allow citizens to own seriously destructive weapons. Don't assault rifles count in that category?")
+        self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, short_description="But the 2nd amendment", description="Our forefathers fought a tyrannous British Monarchy for their right to independence driven by the 2nd amendment.")
         self.create_progress_point(self.user, self.gun_control, self.gun_control_point_1)
 
         self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
-        self.abortionPoint = Point.objects.create(debate=self.abortion, description="Is it a woman's right to choose?")
+        self.abortionPoint = Point.objects.create(debate=self.abortion, short_description="Is it a woman's right to choose?", description="Did the woman not sign off on her complete rights to her body when she risked pregnancy?")
         self.abortionPointImage = PointImage.objects.create(point=self.abortionPoint, source="Reuters", url="www.reuters.com/image")
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
         self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
-        self.border_wall_point = Point.objects.create(debate=self.border_wall, description="Is it an effective border security tool?")
+        self.border_wall_point = Point.objects.create(debate=self.border_wall, short_description="Is it an effective border security tool?", description="The border wall will cost billions, is it really an effective use of taxpayer dollars?")
 
         self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today, total_points=1)
-        self.vetting_point = Point.objects.create(debate=self.vetting, description="Are we doing enough?")
+        self.vetting_point = Point.objects.create(debate=self.vetting, short_description="Are we doing enough?", description="Is our current vetting process thorough enough to keep out bad actors?")
 
         self.starred_list = self.create_starred_list(self.user, self.gun_control)
 

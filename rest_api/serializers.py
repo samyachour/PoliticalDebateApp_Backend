@@ -29,7 +29,7 @@ class PointSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Point
-        fields = (pk_key, description_key, side_key, images_key, hyperlinks_key, rebuttals_key)
+        fields = (pk_key, short_description_key, description_key, side_key, images_key, hyperlinks_key, rebuttals_key)
 
 class DebateSerializer(serializers.ModelSerializer):
     debate_map = PointSerializer(many=True, source='point_set') # one to many

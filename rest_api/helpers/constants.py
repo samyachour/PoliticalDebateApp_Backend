@@ -38,6 +38,7 @@ last_updated_key = "last_updated"
 total_points_key = "total_points"
 debate_map_key = "debate_map"
 
+short_description_key = "short_description"
 description_key = "description"
 side_key = "side"
 hyperlinks_key = "hyperlinks"
