@@ -54,7 +54,7 @@ class BaseViewTest(APITestCase):
         return progress
 
     def add_progress(self, **kwargs):
-        return self.client.post(
+        return self.client.put(
             reverse(
                 get_all_post_progress_name,
                 kwargs={
@@ -500,8 +500,6 @@ class AddProgressPointTest(BaseViewTest):
                  }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_progress_seen_points(self.gun_control.pk)
-        self.assertEqual(response.data[completed_percentage_key], 100)
 
         response = self.add_progress(
             kind=post_key,
@@ -530,8 +528,6 @@ class AddProgressPointBatchTest(BaseViewTest):
             ]
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertEqual(response.data[completed_percentage_key], 100)
 
         response = self.post_progress_batch(data={
             all_debate_points_key: [
@@ -553,7 +549,7 @@ class GetAllDebateProgressPointsTest(BaseViewTest):
         valid_progress = Progress.objects.filter(user=self.user)
         self.login_client('test@mail.com', 'testing')
         response = self.fetch_all_progress_seen_points()
-        serialized = ProgressAllSerializer(valid_progress, many=True)
+        serialized = ProgressSerializer(valid_progress, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
