@@ -12,7 +12,6 @@ urlpatterns = [
 
     # PROGRESS
 
-    path('progress/<int:{0}>'.format(pk_key), ProgressDetailView.as_view(), name=get_progress_name),
     path('progress/', AllProgressView.as_view(), name=get_all_post_progress_name),
     path('progress/batch/', ProgressBatchView.as_view(), name=post_progress_batch_name),
 

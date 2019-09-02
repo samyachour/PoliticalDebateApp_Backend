@@ -160,29 +160,9 @@ Body
 ---
 #### PROGRESS
 
-##### `progress/<int:pk>`
-
-- get user's seen points for given debate
-
-GET
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressSingle.json)), `404`, or `400`
-
 ##### `progress/`
 
 - get all debates user has made progress on
-- the seen points do not come in this call
 
 GET
 

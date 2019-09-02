@@ -21,20 +21,6 @@ def validate_debate_get_request_data(fn):
 
 # PROGRESS
 
-def validate_progress_point_get_request_data(fn):
-    def decorated(*args, **kwargs):
-        # args[0] == GenericView Object
-        title = kwargs[pk_key]
-        if not title:
-            return Response(
-                data={
-                    message_key: progress_point_get_error
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        return fn(*args, **kwargs)
-    return decorated
-
 def validate_progress_post_point_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object

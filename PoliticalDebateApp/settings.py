@@ -85,7 +85,6 @@ if not DEBUG:
 
         # PROGRESS
 
-        'ProgressDetail': '10/minute', # Same as DebateDetail
         'AllProgress': '30/minute', # Whenever a user makes progress
         'ProgressBatch': '5/day',
 

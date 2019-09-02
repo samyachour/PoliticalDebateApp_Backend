@@ -140,27 +140,6 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # PROGRESS
 
-class ProgressDetailView(generics.RetrieveAPIView):
-    queryset = Progress.objects.all()
-    serializer_class = ProgressSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    throttle_scope = 'ProgressDetail'
-
-    @validate_progress_point_get_request_data
-    def get(self, request, *args, **kwargs):
-        try:
-            debate = get_object_or_404(Debate, pk=kwargs[pk_key])
-            progress_points = self.queryset.get(user=request.user, debate=debate)
-
-        except Progress.DoesNotExist:
-            progress_points = Progress.objects.create(
-                user=request.user,
-                debate=debate,
-                completed_percentage=0
-            )
-
-        return Response(ProgressSerializer(progress_points).data, status=status.HTTP_200_OK)
-
 class AllProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
@@ -192,7 +171,7 @@ class AllProgressView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         progress = self.queryset.filter(user=request.user)
-        return Response(ProgressAllSerializer(progress, many=True).data, status=status.HTTP_200_OK)
+        return Response(ProgressSerializer(progress, many=True).data, status=status.HTTP_200_OK)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()

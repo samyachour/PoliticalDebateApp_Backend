@@ -118,14 +118,3 @@ serialized_response = json.loads(response.text)
 pprint.pprint(serialized_response, file)
 file.close()
 sanitize_json(file.name)
-
-
-url = baseURL + 'progress/1'
-response = requests.get(url, headers=headers)
-response.raise_for_status()
-
-file = open("ProgressSingle.json", "w")
-serialized_response = json.loads(response.text)
-pprint.pprint(serialized_response, file)
-file.close()
-sanitize_json(file.name)

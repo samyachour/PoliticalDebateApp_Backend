@@ -77,16 +77,6 @@ class BaseViewTest(APITestCase):
             content_type=content_type
         )
 
-    def fetch_progress_seen_points(self, pk):
-        url = reverse(
-            get_progress_name,
-            kwargs={
-                version_key: v1_key,
-                pk_key: pk
-            },
-        )
-        return self.client.get(url)
-
     def fetch_all_progress_seen_points(self):
         url = reverse(
             get_all_post_progress_name,
@@ -556,22 +546,6 @@ class AddProgressPointBatchTest(BaseViewTest):
             progress_point_batch_post_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-class GetASingleDebateProgressPointsTest(BaseViewTest):
-
-    def test_get_debate_progress_points(self):
-        valid_progress = Progress.objects.get(user=self.user, debate=self.gun_control)
-        self.login_client('test@mail.com', 'testing')
-        response = self.fetch_progress_seen_points(valid_progress.debate.pk)
-        serialized = ProgressSerializer(valid_progress)
-        self.assertEqual(response.data, serialized.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response = self.fetch_progress_seen_points(10000000000)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class GetAllDebateProgressPointsTest(BaseViewTest):
 
