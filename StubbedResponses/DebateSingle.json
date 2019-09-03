@@ -4,8 +4,7 @@
                              "source": "Test source",
                              "url": "www.test.com/image"}],
                  "pk": 2,
-                 "rebuttals": [{"description": "This is a longer description "
-                                               "of test point 2.",
+                 "rebuttals": [{"description": "Test point 2 description.",
                                 "hyperlinks": [{"substring": "point",
                                                 "url": "www.test.com/article"}],
                                 "images": [],
@@ -15,7 +14,7 @@
                                 "side": "con"}],
                  "short_description": "Test point 1",
                  "side": "pro"}],
- "last_updated": "2019-09-02",
+ "last_updated": "2019-09-03",
  "pk": 1,
  "short_title": "Debate #0",
  "title": "Test debate number #0",
