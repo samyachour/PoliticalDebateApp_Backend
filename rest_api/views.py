@@ -159,19 +159,20 @@ class AllProgressView(generics.RetrieveAPIView):
             progress.save()
 
         except Progress.DoesNotExist:
-            progress_points = Progress.objects.create(
+            progress = Progress.objects.create(
                 user=request.user,
                 debate=debate,
                 completed_percentage= (1 / (debate.total_points * 1.0)) * 100
             )
-            progress_points.seen_points.add(new_point)
+            progress.seen_points.add(new_point)
+            progress.save()
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
         progress = self.queryset.filter(user=request.user)
-        return Response(ProgressSerializer(progress, many=True).data, status=status.HTTP_200_OK)
+        return Response(self.get_serializer(progress, many=True).data, status=status.HTTP_200_OK)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
