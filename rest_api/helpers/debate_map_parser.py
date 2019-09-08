@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 def count_indentation(source_string, tabsize=4):
     stripped_source_string = source_string.lstrip()
-    return (stripped_source_string, len(source_string) - len(stripped_source_string))
+    return stripped_source_string, len(source_string) - len(stripped_source_string)
 
 def check_for_key(key, source_string):
     key_length = len(key)
@@ -30,6 +30,7 @@ def basic_point_info_complete(point_info_dict):
     return description_key in point_info_dict and short_description_key in point_info_dict and side_key in point_info_dict
 
 def parse_hyperlinks(description):
+    cleaned_description = description
     hyperlinks = []
     substring = ""
     is_parsing_substring = False
@@ -50,6 +51,7 @@ def parse_hyperlinks(description):
             is_parsing_hyperlink = False
             current_hyperlink[url_key] = hyperlink
             hyperlinks.append(current_hyperlink)
+            cleaned_description = cleaned_description.replace("[" + current_hyperlink[substring_key] + "]" + "(" + current_hyperlink[url_key] + ")", current_hyperlink[substring_key])
             hyperlink = ""
             current_hyperlink = {}
         if is_parsing_hyperlink:
@@ -57,7 +59,7 @@ def parse_hyperlinks(description):
         if char == '(' and current_hyperlink[substring_key]:
             is_parsing_hyperlink = True
 
-    return hyperlinks
+    return cleaned_description, hyperlinks
 
 def parse_images(point, images):
     images_list = images.split(", ")
@@ -136,8 +138,8 @@ def parse_debate_file(filename, old_version_pk = -1):
 
                 if check_for_key(description_key, line):
                     description = get_value_for_key(description_key, line)
-                    point_info_dict[hyperlinks_key] = parse_hyperlinks(description)
-                    point_info_dict[description_key] = get_value_for_key(description_key, line)
+                    description, point_info_dict[hyperlinks_key] = parse_hyperlinks(description)
+                    point_info_dict[description_key] = description
                 elif check_for_key(short_description_key, line):
                     point_info_dict[short_description_key] = get_value_for_key(short_description_key, line)
                 elif check_for_key(side_key, line):
