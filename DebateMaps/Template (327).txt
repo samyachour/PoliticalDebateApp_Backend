@@ -1,0 +1,17 @@
+- Title: Title
+- Short title: Short title
+- Tags: Related tag keywords
+
+Points
+- Description: This is a point description
+- Short description: Short point description
+- Side: Pro
+
+    - Description: This is a rebuttal with a [link](www.link.com)
+    - Short description: Short rebuttal description
+    - Side: Pro
+
+        - Description: This is another rebuttal description
+        - Short description: Short rebuttal description
+        - Side: Pro
+        - Images: image name/image source/www.image.com, just image source/www.image.com
