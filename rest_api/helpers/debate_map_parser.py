@@ -166,7 +166,5 @@ def parse_debate_file(filename, old_version_pk = -1):
     debate_info_dict[total_points_key] = point_count
     new_debate.total_points = point_count
     new_debate.save()
-    print("DEBATE INFO: ")
-    print(debate_info_dict) # TODO: Remove
     print("NEW DEBATE PK:")
     print(new_debate.pk)
