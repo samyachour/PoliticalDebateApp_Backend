@@ -9,7 +9,7 @@ Points
 
     - Description: This is a rebuttal with a [link](www.link.com)
     - Short description: Short rebuttal description
-    - Side: Pro
+    - Side: Con
 
         - Description: This is another rebuttal description
         - Short description: Short rebuttal description
