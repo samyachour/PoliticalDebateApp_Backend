@@ -3,7 +3,7 @@
 - Tags: Related tag keywords
 
 Points
-- Description: This is a point description
+- Description: This is a **bolded point description**
 - Short description: Short point description
 - Side: Pro
 
