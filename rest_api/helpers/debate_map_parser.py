@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 # Run in shell:
 # from rest_api.helpers.debate_map_parser import parse_debate_file
-# parse_debate_file("path/to/map.txt", 300); exit();
+# parse_debate_file("/Users/samy/Documents/PoliticalDebateApp/PoliticalDebateApp_Backend/Debate\ Map\ \(\).txt", old_version_pk); exit();
 
 # Helpers
 
