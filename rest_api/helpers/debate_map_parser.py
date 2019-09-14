@@ -64,7 +64,7 @@ def parse_hyperlinks(description):
 def parse_images(point, images):
     images_list = images.split(" || ")
     for image in images_list:
-        image_parts = image.split("//")
+        image_parts = image.split("///")
         image_dict = {}
         for index, image_part in enumerate(image_parts):
             if index == 0:
