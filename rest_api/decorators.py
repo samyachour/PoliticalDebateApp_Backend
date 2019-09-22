@@ -36,7 +36,7 @@ def validate_progress_post_point_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
-def validate_progress_post_batch_point_request_data(fn):
+def validate_progress_batch_post_point_request_data(fn):
     def decorated(*args, **kwargs):
         # args[0] == GenericView Object
         all_debate_points = args[0].request.data.get(all_debate_points_key, "")

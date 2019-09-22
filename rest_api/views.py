@@ -179,7 +179,7 @@ class ProgressBatchView(generics.UpdateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'ProgressBatch'
 
-    @validate_progress_post_batch_point_request_data
+    @validate_progress_batch_post_point_request_data
     def put(self, request, *args, **kwargs):
 
         for progress_input in request.data[all_debate_points_key]:
