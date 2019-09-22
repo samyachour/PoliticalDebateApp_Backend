@@ -36,6 +36,29 @@ def validate_progress_post_point_request_data(fn):
         return fn(*args, **kwargs)
     return decorated
 
+def validate_progress_post_batch_point_request_data(fn):
+    def decorated(*args, **kwargs):
+        # args[0] == GenericView Object
+        all_debate_points = args[0].request.data.get(all_debate_points_key, "")
+        if not all_debate_points:
+            return Response(
+                data={
+                    message_key: progress_point_batch_post_key_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            for debate_point in all_debate_points:
+                if debate_key not in debate_point or seen_points_key not in debate_point:
+                    return Response(
+                        data={
+                            message_key: progress_point_batch_post_error
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+        return fn(*args, **kwargs)
+    return decorated
+
 
 # STARRED
 

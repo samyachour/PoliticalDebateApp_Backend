@@ -47,7 +47,7 @@ def parse_hyperlinks(description):
         if char == '[':
             is_parsing_substring = True
 
-        if char == ')':
+        if char == ')' and is_parsing_hyperlink:
             is_parsing_hyperlink = False
             current_hyperlink[url_key] = hyperlink
             hyperlinks.append(current_hyperlink)
@@ -56,7 +56,7 @@ def parse_hyperlinks(description):
             current_hyperlink = {}
         if is_parsing_hyperlink:
             hyperlink += char
-        if char == '(' and current_hyperlink[substring_key]:
+        if char == '(' and substring_key in current_hyperlink:
             is_parsing_hyperlink = True
 
     return cleaned_description, hyperlinks

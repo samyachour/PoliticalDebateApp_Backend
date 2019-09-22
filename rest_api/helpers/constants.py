@@ -124,6 +124,7 @@ progress_point_post_error = "Both debate ID and debate point ID are required to 
 progress_point_get_error = "A debate ID is required."
 invalid_point_pk_error = "Could not find point associated with that ID."
 progress_point_batch_post_error = "Incorrect format must be array of seen progress points."
+progress_point_batch_post_key_error = "Missing all debate points parameter."
 starred_post_type_error = "Starred and unstarred values must be array types."
 starred_post_empty_error = "No starred or unstarred data passed."
 starred_post_format_error = "Arrays contain non-integer values."
