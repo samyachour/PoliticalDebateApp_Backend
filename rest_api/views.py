@@ -28,7 +28,7 @@ from random import shuffle
 
 class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
+    serializer_class = DebateFilterSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'FilterDebates'
 
@@ -116,7 +116,7 @@ class FilterDebatesView(generics.ListCreateAPIView):
             debates = list(debates)
             shuffle(debates)
 
-        serializer = DebateFilterSerializer(instance=debates, many=True)
+        serializer = self.get_serializer(instance=debates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -128,7 +128,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     @validate_debate_get_request_data
     def get(self, request, *args, **kwargs):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
-        return Response(DebateSerializer(debate).data, status=status.HTTP_200_OK)
+        return Response(self.get_serializer(debate).data, status=status.HTTP_200_OK)
 
 # Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly from the backend
 
@@ -176,44 +176,53 @@ class AllProgressView(generics.RetrieveAPIView):
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
+    serializer_class = ProgressBatchSerializer
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'ProgressBatch'
 
     @validate_progress_batch_post_point_request_data
     def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data[all_debate_points_key], many=True)
 
-        for progress_input in request.data[all_debate_points_key]:
-            try:
-                debate = Debate.objects.all().get(pk=progress_input[debate_key])
-                new_points = progress_input[seen_points_key]
-                progress = self.queryset.get(user=request.user, debate=debate)
-
-            except Debate.DoesNotExist:
-                # Fail silently in finding the debate object because we could receive a batch request with an old debate that has since been deleted
-                pass
-
-            except Progress.DoesNotExist:
-                progress = Progress.objects.create(
-                    user=request.user,
-                    debate=debate,
-                    completed_percentage=(len(progress_input[seen_points_key]) / (debate.total_points * 1.0)) * 100
-                )
-
-            all_points = Point.objects.all()
-            for new_point_pk in new_points:
+        if serializer.is_valid():
+            for progress_input in serializer.data:
                 try:
-                    new_point = all_points.get(pk=new_point_pk)
-                    progress.seen_points.add(new_point) # add uses a set semantic to prevent duplicates
-                except Point.DoesNotExist:
-                    # Fail silently in finding the new point object because we could receive a batch request with old debate points that have since been deleted
+                    debate = Debate.objects.all().get(pk=progress_input[debate_key])
+                    new_points = progress_input[seen_points_key]
+                    progress = self.queryset.get(user=request.user, debate=debate)
+
+                except Debate.DoesNotExist:
+                    # Fail silently in finding the debate object because we could receive a batch request with an old debate that has since been deleted
                     pass
 
-            progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
-            progress.save()
+                except Progress.DoesNotExist:
+                    progress = Progress.objects.create(
+                        user=request.user,
+                        debate=debate,
+                        completed_percentage=(len(progress_input[seen_points_key]) / (debate.total_points * 1.0)) * 100
+                    )
 
-        return Response(success_response, status=status.HTTP_201_CREATED)
+                all_points = Point.objects.all()
+                for new_point_pk in new_points:
+                    try:
+                        new_point = all_points.get(pk=new_point_pk)
+                        progress.seen_points.add(new_point) # add uses a set semantic to prevent duplicates
+                    except Point.DoesNotExist:
+                        # Fail silently in finding the new point object because we could receive a batch request with old debate points that have since been deleted
+                        pass
 
+                progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
+                progress.save()
 
+            return Response(success_response, status=status.HTTP_201_CREATED)
+
+        else:
+            return Response(
+                data={
+                    message_key: progress_point_batch_post_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 
@@ -271,7 +280,7 @@ class StarredView(generics.RetrieveAPIView):
         except Starred.DoesNotExist:
             starred = Starred.objects.create(user=request.user)
 
-        return Response(StarredSerializer(starred).data, status=status.HTTP_200_OK)
+        return Response(self.get_serializer(starred).data, status=status.HTTP_200_OK)
 
 
 

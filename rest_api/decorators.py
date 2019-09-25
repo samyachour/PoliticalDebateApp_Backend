@@ -47,15 +47,6 @@ def validate_progress_batch_post_point_request_data(fn):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        else:
-            for debate_point in all_debate_points:
-                if debate_key not in debate_point or seen_points_key not in debate_point:
-                    return Response(
-                        data={
-                            message_key: progress_point_batch_post_error
-                        },
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
         return fn(*args, **kwargs)
     return decorated
 
