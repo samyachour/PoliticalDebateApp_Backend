@@ -6,16 +6,6 @@ This repo is the master for all our code repos. It has a [kanban board](https://
 
 The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
 
-#### Design
-
-Each frontend homepage opens with a search bar, a grid of all our issues, and a login button in the top right (opens a modal with email & password, to register just adds a second confirm password field) ('log in' becomes a gear after login and leads to a settings page with log out, delete acct, and password/email change options).
-
-![](Designs/Home.png)
-
-Each point is accompanied by several responses (rebuttals). Some of these lead to separate points some lead deeper into this given point. At the end of a map the user just sees a darker 'complete button.'
-
-![](Designs/Point.png)
-
 #### Debate maps
 
 The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
