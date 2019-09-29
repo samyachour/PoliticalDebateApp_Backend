@@ -3,6 +3,8 @@ venv/
 secrets.py
 *.sqlite3
 
+*.credentials.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
