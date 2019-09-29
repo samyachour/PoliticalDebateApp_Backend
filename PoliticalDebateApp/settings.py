@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import sys
-from .secrets import secretKeyHidden, secretPostgreUser, secretPostgrePassword
 import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,10 +24,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secretKeyHidden
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG'] == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -71,7 +70,8 @@ REST_FRAMEWORK = {
     ]
 }
 
-if not DEBUG:
+THROTTLE = os.environ['THROTTLE'] == 'True'
+if THROTTLE:
     REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = (
         'rest_framework.throttling.ScopedRateThrottle',
     )
@@ -152,8 +152,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'PoliticalDebateApp',
-        'USER': secretPostgreUser,
-        'PASSWORD': secretPostgrePassword,
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
         'HOST': 'localhost',
         'PORT': '5432',
     }
