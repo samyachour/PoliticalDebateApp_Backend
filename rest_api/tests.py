@@ -17,9 +17,9 @@ class BaseViewTest(APITestCase):
 
     # DEBATES
 
-    def search_debates(self, data):
+    def filter_debates(self, data):
         url = reverse(
-            search_debates_name,
+            filter_debates_name,
             kwargs={
                 version_key: v1_key
             },
@@ -54,7 +54,7 @@ class BaseViewTest(APITestCase):
         return progress
 
     def add_progress(self, **kwargs):
-        return self.client.post(
+        return self.client.put(
             reverse(
                 get_all_post_progress_name,
                 kwargs={
@@ -76,16 +76,6 @@ class BaseViewTest(APITestCase):
             data=json.dumps(data),
             content_type=content_type
         )
-
-    def fetch_progress_seen_points(self, pk):
-        url = reverse(
-            get_progress_name,
-            kwargs={
-                version_key: v1_key,
-                pk_key: pk
-            },
-        )
-        return self.client.get(url)
 
     def fetch_all_progress_seen_points(self):
         url = reverse(
@@ -225,6 +215,19 @@ class BaseViewTest(APITestCase):
 
         return view(request)
 
+    def get_current_email(self, user):
+        view = GetCurrentEmailView.as_view()
+        url = reverse(
+            auth_get_current_email_name,
+            kwargs={
+                version_key: v1_key
+            }
+        )
+        request = self.requestFactory.get(url)
+        force_authenticate(request, user=user)
+
+        return view(request)
+
     def login_client(self, username, password):
         url = reverse(
             auth_token_obtain_name,
@@ -278,9 +281,9 @@ class BaseViewTest(APITestCase):
 
     def setUp(self):
 
-        # create an admin user
+        # create a user
 
-        self.user = User.objects.create_superuser(
+        self.user = User.objects.create_user(
             username="test@mail.com",
             email="test@mail.com",
             password="testing"
@@ -292,21 +295,21 @@ class BaseViewTest(APITestCase):
         # add test data
 
         self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2, tags="gun control, school shootings")
-        self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, description="Civilians can't own tanks though")
-        self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, description="But the 2nd amendment")
+        self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, short_description="Civilians can't own tanks though", description="We don't allow citizens to own seriously destructive weapons. Don't assault rifles count in that category?")
+        self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, short_description="But the 2nd amendment", description="Our forefathers fought a tyrannous British Monarchy for their right to independence driven by the 2nd amendment.")
         self.create_progress_point(self.user, self.gun_control, self.gun_control_point_1)
 
         self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
-        self.abortionPoint = Point.objects.create(debate=self.abortion, description="Is it a woman's right to choose?")
+        self.abortionPoint = Point.objects.create(debate=self.abortion, short_description="Is it a woman's right to choose?", description="Did the woman not sign off on her complete rights to her body when she risked pregnancy?")
         self.abortionPointImage = PointImage.objects.create(point=self.abortionPoint, source="Reuters", url="www.reuters.com/image")
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
         self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
-        self.border_wall_point = Point.objects.create(debate=self.border_wall, description="Is it an effective border security tool?")
+        self.border_wall_point = Point.objects.create(debate=self.border_wall, short_description="Is it an effective border security tool?", description="The border wall will cost billions, is it really an effective use of taxpayer dollars?")
 
         self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today, total_points=1)
-        self.vetting_point = Point.objects.create(debate=self.vetting, description="Are we doing enough?")
+        self.vetting_point = Point.objects.create(debate=self.vetting, short_description="Are we doing enough?", description="Is our current vetting process thorough enough to keep out bad actors?")
 
         self.starred_list = self.create_starred_list(self.user, self.gun_control)
 
@@ -326,51 +329,51 @@ class DebateModelTest(BaseViewTest):
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
-        response = self.search_debates({})
+        response = self.filter_debates({})
         expected = Debate.objects.all()
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-class SearchDebatesTest(BaseViewTest):
+class FilterDebatesTest(BaseViewTest):
 
-    def test_search_debates(self):
+    def test_filter_debates(self):
         expected = Debate.objects.all().filter(pk=self.gun_control.pk)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun"
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk],
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk]
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: progress_filter_value,
             all_progress_key: [self.gun_control.pk]
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: no_progress_filter_value,
             all_progress_key: [self.gun_control.pk]
@@ -378,77 +381,77 @@ class SearchDebatesTest(BaseViewTest):
         self.assertEqual(response.data, [])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: last_updated_filter_value
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: "gun",
             filter_key: random_filter_value
         })
-        serialized = DebateSearchSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             search_string_key: ""
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_search_string_error
+            debate_filter_invalid_search_string_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: "starredd",
             all_starred_key: [self.gun_control.pk],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_unknown_filter_error
+            debate_filter_unknown_filter_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: 1,
             all_starred_key: [self.gun_control.pk],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_filter_format_error
+            debate_filter_invalid_filter_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: 1,
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_pk_array_format_error
+            debate_filter_invalid_pk_array_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value,
             all_starred_key: ["1"],
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_invalid_pk_array_items_format_error
+            debate_filter_invalid_pk_array_items_format_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        response = self.search_debates({
+        response = self.filter_debates({
             filter_key: starred_filter_value
         })
         self.assertEqual(
             response.data[message_key],
-            debate_search_missing_pk_array_error.format(starred_filter_value)
+            debate_filter_missing_pk_array_error.format(starred_filter_value)
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -497,8 +500,6 @@ class AddProgressPointTest(BaseViewTest):
                  }
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_progress_seen_points(self.gun_control.pk)
-        self.assertEqual(response.data[completed_percentage_key], 100)
 
         response = self.add_progress(
             kind=post_key,
@@ -527,8 +528,6 @@ class AddProgressPointBatchTest(BaseViewTest):
             ]
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertEqual(response.data[completed_percentage_key], 100)
 
         response = self.post_progress_batch(data={
             all_debate_points_key: [
@@ -544,29 +543,13 @@ class AddProgressPointBatchTest(BaseViewTest):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class GetASingleDebateProgressPointsTest(BaseViewTest):
-
-    def test_get_debate_progress_points(self):
-        valid_progress = Progress.objects.get(user=self.user, debate=self.gun_control)
-        self.login_client('test@mail.com', 'testing')
-        response = self.fetch_progress_seen_points(valid_progress.debate.pk)
-        serialized = ProgressSerializer(valid_progress)
-        self.assertEqual(response.data, serialized.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        response = self.fetch_progress_seen_points(10000000000)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        response = self.fetch_progress_seen_points(self.vetting.pk)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
 class GetAllDebateProgressPointsTest(BaseViewTest):
 
     def test_get_all_debate_progress_points(self):
         valid_progress = Progress.objects.filter(user=self.user)
         self.login_client('test@mail.com', 'testing')
         response = self.fetch_all_progress_seen_points()
-        serialized = ProgressAllSerializer(valid_progress, many=True)
+        serialized = ProgressSerializer(valid_progress, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -655,19 +638,19 @@ class GetStarredTest(BaseViewTest):
 class AuthChangeEmailTest(BaseViewTest):
 
     def test_change_email(self):
-        changeEmailUser = User.objects.create_superuser(
-            username="changeemail_user@mail.com",
-            email="changeemail_user@mail.com",
-            password="changeemail_pass"
+        change_email_user = User.objects.create_user(
+            username="change_email_user@mail.com",
+            email="change_email_user@mail.com",
+            password="change_email_pass"
         )
-        self.login_a_user("changeemail_user@mail.com", "changeemail_pass")
-        response = self.change_user_email(changeEmailUser, changeEmailUser.email)
+        self.login_a_user("change_email_user@mail.com", "change_email_pass")
+        response = self.change_user_email(change_email_user, change_email_user.email)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data[message_key],
             already_using_email_error
         )
-        response = self.change_user_email(changeEmailUser, "changeemail_user1@mail.com")
+        response = self.change_user_email(change_email_user, "change_email_user1@mail.com")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
@@ -675,6 +658,19 @@ class AuthChangeEmailTest(BaseViewTest):
         )
         response = self.login_a_user("invalidemail@mail.com", "invalidpass")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+class AuthGetCurrentEmailTest(BaseViewTest):
+
+    def test_change_email(self):
+        get_current_email_user = User.objects.create_user(
+            username="get_current_email_user@mail.com",
+            password="get_current_email_pass"
+        )
+        self.login_a_user("get_current_email_user@mail.com", "get_current_email_pass")
+        response = self.get_current_email(get_current_email_user)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[current_email_key], "get_current_email_user@mail.com")
+        self.assertFalse(response.data[is_verified_key])
 
 class AuthChangePasswordTest(BaseViewTest):
 
@@ -717,7 +713,7 @@ class AuthRegisterUserTest(BaseViewTest):
 class DeleteUserTest(BaseViewTest):
 
     def test_delete_user(self):
-        deleteUser = User.objects.create_superuser(
+        deleteUser = User.objects.create_user(
             username="todelete_user@mail.com",
             email="todelete_user@mail.com",
             password="todelete_pass"

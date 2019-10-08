@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 import sys
-from .secrets import secretKeyHidden, secretPostgreUser, secretPostgrePassword
 import datetime
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,12 +25,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secretKeyHidden
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG'] == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['https://politicaldebateapp.herokuapp.com']
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -44,10 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_api'
+    'rest_api',
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -71,7 +72,8 @@ REST_FRAMEWORK = {
     ]
 }
 
-if not DEBUG:
+THROTTLE = os.environ['THROTTLE'] == 'True'
+if THROTTLE:
     REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = (
         'rest_framework.throttling.ScopedRateThrottle',
     )
@@ -79,13 +81,12 @@ if not DEBUG:
 
         # DEBATES
 
-        'SearchDebates': '15/minute',
+        'FilterDebates': '15/minute',
         'DebateDetail': '10/minute',
 
 
         # PROGRESS
 
-        'ProgressDetail': '10/minute', # Same as DebateDetail
         'AllProgress': '30/minute', # Whenever a user makes progress
         'ProgressBatch': '5/day',
 
@@ -99,6 +100,8 @@ if not DEBUG:
 
         'ChangePassword': '5/day',
         'ChangeEmail': '5/day',
+        'GetCurrentEmail': '5/minute',
+        'RequestVerificationLink': '5/day',
         'DeleteUser': '5/day',
         'RegisterUser': '5/day',
         'PasswordResetForm': '10/hour', # Happens when a user refreshes the page
@@ -151,8 +154,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'PoliticalDebateApp',
-        'USER': secretPostgreUser,
-        'PASSWORD': secretPostgrePassword,
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -193,6 +196,17 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.1/howto/static-files/
-
+# https://docs.djangoproject.com/en/1.11/howto/static-files/
+PROJECT_ROOT = os.path.join(os.path.abspath(__file__))
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'
+
+# Extra lookup directories for collectstatic to find static files
+STATICFILES_DIRS = (
+    os.path.join(PROJECT_ROOT, 'static'),
+)
+
+#  Add configuration for static files storage using whitenoise
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+django_heroku.settings(locals())

@@ -6,16 +6,6 @@ This repo is the master for all our code repos. It has a [kanban board](https://
 
 The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
 
-#### Design
-
-Each frontend homepage opens with a search bar, a grid of all our issues, and a login button in the top right (opens a modal with email & password, to register just adds a second confirm password field) ('log in' becomes a gear after login and leads to a settings page with log out, delete acct, and password/email change options).
-
-![](Designs/Home.png)
-
-Each point is accompanied by several responses (rebuttals). Some of these lead to separate points some lead deeper into this given point. At the end of a map the user just sees a darker 'complete button.'
-
-![](Designs/Point.png)
-
 #### Debate maps
 
 The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
@@ -28,7 +18,7 @@ The backend feeds these to the clients who know how to navigate & display these 
     - branches off develop must be associated with an existing issue and follow the naming convention 'issue[#]/[type]/[name]' for example 'issue7/enhancement/BasicDjangoRestSetup'
         - if necessary, we can create (& merge) hotfix branches off of master
     - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
-- We use [Test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
+- We use [test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
 - The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
 
 ## Political debate app (backend)
@@ -70,6 +60,8 @@ Instructions:
         - debate_map: JSON Dict [String: Array[String]]
     - Point
         - debate: Debate (foreign key) (optional)
+        - description: String
+        - side: String ("pro" or "con")
         - rebuttals: Points (ManyToMany) (optional)
     - PointImage
         - point: Point (foreign key)
@@ -113,19 +105,18 @@ GET
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)) or `404`
 
-or `HTTP_404_NOT_FOUND`
-
-##### `debate/search/`
+##### `debate/filter/`
 
 - the debate maps do not come in this call
-- all responses are sorted by recency of last updated by default, therefore all parameters are **optional**
-- response array limit is 100 debates (e.g. if a user has starred more than that they will get the most recent 100, if a user filters by random it will randomize the 100 most recent debates)
+- all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**
+- response array limit is 100 debates, e.g.:
+    - if a user has starred more than 100 debates they will get the most recently updated 100
+    - if a user filters by random it will randomize the 100 most recently updated debates
 
 ###### Search string parameter
 - searches debate database with the given string as a query comparing to the title and tags fields
-- an empty string will return all the debates (given there are no filters)
 - supports fuzzy string comparison
 
 ###### Filter parameters
@@ -154,38 +145,14 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSearch.json)
-
-or `HTTP_400_BAD_REQUEST`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateFilter.json)) or `404`
 
 ---
 #### PROGRESS
 
-##### `progress/<int:pk>`
-
-- get user's seen points for given debate
-
-GET
-
-- Takes:
-
-```
-Header
-{
-    (Bearer token): (JSON Web Access Token)
-}
-```
-
-- Returns:
-
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressSingle.json)
-
-or `HTTP_404_NOT_FOUND`, `HTTP_400_BAD_REQUEST`
-
 ##### `progress/`
 
 - get all debates user has made progress on
-- the seen points do not come in this call
 
 GET
 
@@ -200,7 +167,7 @@ Header
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json)
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json))
 
 ##### `progress/`
 
@@ -226,7 +193,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`201`, `401`, `404`, or `400`
 
 ##### `progress/batch/`
 
@@ -264,7 +231,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_401_UNAUTHORIZED`, or `HTTP_400_BAD_REQUEST`
+`201`, `401`, or `400`
 
 ---
 #### STARRED
@@ -286,9 +253,7 @@ Header
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json)
-
-or `HTTP_404_NOT_FOUND`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json))
 
 ##### `starred/`
 
@@ -315,7 +280,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`, `HTTP_404_NOT_FOUND`, or `HTTP_400_BAD_REQUEST`
+`201` or `401`
 
 ---
 #### AUTH
@@ -339,7 +304,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_400_BAD_REQUEST`
+`201` or `400`
 
 ##### `auth/request-password-reset/`
 
@@ -361,7 +326,7 @@ Body
 
 - Returns:
 
-`HTTP_201_CREATED` or `HTTP_400_BAD_REQUEST` or `HTTP_404_NOT_FOUND`
+`200`, `400`, or `404`
 
 ##### `auth/token/obtain/`
 
@@ -384,9 +349,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)
-
-or `HTTP_401_UNAUTHORIZED`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)) or `400`
 
 ##### `auth/token/refresh/`
 
@@ -407,9 +370,7 @@ Body
 
 - Returns:
 
-[See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)
-
-or `HTTP_400_BAD_REQUEST`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)) or `400`
 
 ##### `auth/change-password/`
 
@@ -435,7 +396,7 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+`200`, `401`, or `400`
 
 ##### `auth/change-email/`
 
@@ -461,7 +422,45 @@ Body
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED` or `HTTP_400_BAD_REQUEST`
+`200`, `401`, or `400`
+
+##### `auth/get-current-email/`
+
+- get the user's current email address and whether or not it's verified
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/GetCurrentEmail.json)) or `401`
+
+##### `auth/request-verification-link/`
+
+- send a verification link to the user's unverified email address
+
+GET
+
+- Takes:
+
+```
+Header
+{
+    (Bearer token): (JSON Web Access Token)
+}
+```
+
+- Returns:
+
+`200`, `400`, or `401`
 
 ##### `auth/delete/`
 
@@ -480,4 +479,4 @@ Header
 
 - Returns:
 
-`HTTP_200_OK` or `HTTP_401_UNAUTHORIZED`
+`200` or `401`

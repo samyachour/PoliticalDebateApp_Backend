@@ -26,27 +26,28 @@ from random import shuffle
 
 # DEBATES
 
-class SearchDebatesView(generics.ListCreateAPIView):
+class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
+    serializer_class = DebateFilterSerializer
     permission_classes = (permissions.AllowAny,)
-    throttle_scope = 'SearchDebates'
+    throttle_scope = 'FilterDebates'
 
-    def filter_queryset_by_pk_array(self, array_key, queryset, request, exclusion=False):
+    @staticmethod
+    def filter_queryset_by_pk_array(array_key, queryset, request, exclusion=False):
         if array_key in request.data:
             pk_array = request.data[array_key]
             if type(pk_array) is not list:
-                return debate_search_invalid_pk_array_format_error
+                return debate_filter_invalid_pk_array_format_error
             for pk in pk_array:
                 if type(pk) is not int:
-                    return debate_search_invalid_pk_array_items_format_error
+                    return debate_filter_invalid_pk_array_items_format_error
 
             if exclusion:
                 return queryset.exclude(pk__in=pk_array)
             else:
                 return queryset.filter(pk__in=pk_array)
         else:
-            return debate_search_missing_pk_array_error
+            return debate_filter_missing_pk_array_error
 
     def post(self, request, *args, **kwargs):
         debates = self.queryset # return queryset
@@ -64,7 +65,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             else:
                 return Response(
                     data={
-                        message_key: debate_search_invalid_search_string_error
+                        message_key: debate_filter_invalid_search_string_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -78,7 +79,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             if type(filter) is not str: # If filter is passed in but in wrong format
                 return Response(
                     data={
-                        message_key: debate_search_invalid_filter_format_error
+                        message_key: debate_filter_invalid_filter_format_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -86,7 +87,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
             if filter not in all_filters:
                 return Response(
                     data={
-                        message_key: debate_search_unknown_filter_error
+                        message_key: debate_filter_unknown_filter_error
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
@@ -101,7 +102,7 @@ class SearchDebatesView(generics.ListCreateAPIView):
         if type(filtered_debates_or_error) is str: # error message
             return Response(
                 data={
-                    message_key: filtered_debates_or_error.format(filter)
+                    message_key: filtered_debates_or_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -115,8 +116,8 @@ class SearchDebatesView(generics.ListCreateAPIView):
             debates = list(debates)
             shuffle(debates)
 
-        serializer = DebateSearchSerializer(instance=debates, many=True)
-        return Response(serializer.data)
+        serializer = self.get_serializer(instance=debates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Debate.objects.all()
@@ -127,7 +128,7 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
     @validate_debate_get_request_data
     def get(self, request, *args, **kwargs):
         debate = get_object_or_404(self.queryset, pk=kwargs[pk_key])
-        return Response(DebateSerializer(debate).data)
+        return Response(self.get_serializer(debate).data, status=status.HTTP_200_OK)
 
 # Don't need Create/Read/Update endpoints for debates and points because they should only be interfaced w/ directly from the backend
 
@@ -139,18 +140,6 @@ class DebateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # PROGRESS
 
-class ProgressDetailView(generics.RetrieveAPIView):
-    queryset = Progress.objects.all()
-    serializer_class = ProgressSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    throttle_scope = 'ProgressDetail'
-
-    @validate_progress_point_get_request_data
-    def get(self, request, *args, **kwargs):
-        debate = get_object_or_404(Debate, pk=kwargs[pk_key])
-        progress_point = get_object_or_404(self.queryset, user=request.user, debate=debate)
-        return Response(ProgressSerializer(progress_point).data)
-
 class AllProgressView(generics.RetrieveAPIView):
     queryset = Progress.objects.all()
     serializer_class = ProgressSerializer
@@ -158,7 +147,7 @@ class AllProgressView(generics.RetrieveAPIView):
     throttle_scope = 'AllProgress'
 
     @validate_progress_post_point_request_data
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
 
         try:
             debate = get_object_or_404(Debate.objects.all(), pk=request.data[debate_pk_key])
@@ -170,31 +159,33 @@ class AllProgressView(generics.RetrieveAPIView):
             progress.save()
 
         except Progress.DoesNotExist:
-            progress_points = Progress.objects.create(
+            progress = Progress.objects.create(
                 user=request.user,
                 debate=debate,
                 completed_percentage= (1 / (debate.total_points * 1.0)) * 100
             )
-            progress_points.seen_points.add(new_point)
+            progress.seen_points.add(new_point)
+            progress.save()
 
         return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
 
         progress = self.queryset.filter(user=request.user)
-        return Response(ProgressAllSerializer(progress, many=True).data)
+        return Response(self.get_serializer(progress, many=True).data, status=status.HTTP_200_OK)
 
 class ProgressBatchView(generics.UpdateAPIView):
     queryset = Progress.objects.all()
-    serializer_class = ProgressBatchInputSerializer
+    serializer_class = ProgressBatchSerializer
     permission_classes = (permissions.IsAuthenticated,)
     throttle_scope = 'ProgressBatch'
 
+    @validate_progress_batch_post_point_request_data
     def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data[all_debate_points_key], many=True)
 
         if serializer.is_valid():
-            for progress_input in serializer.data[all_debate_points_key]:
+            for progress_input in serializer.data:
                 try:
                     debate = Debate.objects.all().get(pk=progress_input[debate_key])
                     new_points = progress_input[seen_points_key]
@@ -224,6 +215,7 @@ class ProgressBatchView(generics.UpdateAPIView):
                 progress.save()
 
             return Response(success_response, status=status.HTTP_201_CREATED)
+
         else:
             return Response(
                 data={
@@ -231,8 +223,6 @@ class ProgressBatchView(generics.UpdateAPIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
 
 
 
@@ -284,9 +274,13 @@ class StarredView(generics.RetrieveAPIView):
         return Response(success_response, status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
+        try:
+            starred = self.queryset.get(user=request.user)
 
-        starred = get_object_or_404(self.queryset, user=request.user)
-        return Response(StarredSerializer(starred).data)
+        except Starred.DoesNotExist:
+            starred = Starred.objects.create(user=request.user)
+
+        return Response(self.get_serializer(starred).data, status=status.HTTP_200_OK)
 
 
 
@@ -335,6 +329,41 @@ class ChangeEmailView(generics.UpdateAPIView):
             self.object.username = new_email
             self.object.save()
             email_verification.send_email(self.object, request, new_email)
+        # Throws SMTPException if email fails to send
+        except SMTPException:
+            return Response(
+                data={
+                    message_key: invalid_email_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(success_response, status=status.HTTP_200_OK)
+
+class GetCurrentEmailView(generics.RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = User.objects.all()
+    throttle_scope = 'GetCurrentEmail'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.request.user
+        is_verified = len(self.object.email) > 0
+
+        return Response(data={
+            current_email_key: self.object.username,
+            is_verified_key: is_verified
+        }, status=status.HTTP_200_OK)
+
+class RequestVerificationLinkView(generics.UpdateAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = User.objects.all()
+    throttle_scope = 'RequestVerificationLink'
+
+    def put(self, request, *args, **kwargs):
+        self.object = self.request.user
+        email = self.object.username
+
+        try:
+            email_verification.send_email(self.object, request, email)
         # Throws SMTPException if email fails to send
         except SMTPException:
             return Response(

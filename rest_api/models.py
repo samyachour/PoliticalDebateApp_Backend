@@ -15,6 +15,8 @@ class Debate(models.Model):
 class Point(models.Model):
     # Optional because only root points should reference debate directly
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, null=True, blank=True)
+    side = models.CharField(max_length=255, null=False)
+    short_description = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=255, null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
 
