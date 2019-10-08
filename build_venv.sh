@@ -17,9 +17,6 @@ pip3 install PyGithub
 brew update
 brew upgrade
 
-export DEBUG=True
-export THROTTLE=False
-
 # pip3 freeze > requirements.txt
 
 # If you have problems with django finding the app folder

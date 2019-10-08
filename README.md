@@ -6,6 +6,8 @@ This repo is the master for all our code repos. It has a [kanban board](https://
 
 The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
 
+The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
+
 #### Debate maps
 
 The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
@@ -19,7 +21,6 @@ The backend feeds these to the clients who know how to navigate & display these 
         - if necessary, we can create (& merge) hotfix branches off of master
     - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
 - We use [test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
-- The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
 
 ## Political debate app (backend)
 
@@ -27,26 +28,19 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 
 ### Framework
 
-For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org).
-- Django [models](https://docs.djangoproject.com/en/2.1/topics/db/models/), [form fields](https://docs.djangoproject.com/en/2.1/ref/forms/fields/), [model fields](https://docs.djangoproject.com/en/2.1/ref/models/fields/#django.db.models.ManyToManyField), and [Postgres specific fields](https://docs.djangoproject.com/en/2.0/ref/contrib/postgres/fields/#django.contrib.postgres.fields.ArrayField)
-- Django rest [walkthrough](https://medium.com/backticks-tildes/lets-build-an-api-with-django-rest-framework-32fcf40231e5), [authentication](https://www.django-rest-framework.org/api-guide/authentication/), and [permissions](https://www.django-rest-framework.org/api-guide/permissions/)
+For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) backed by [PostgreSQL](https://www.postgresql.org) and hosted on [Heroku](https://www.heroku.com).
 
 #### Setup
 
-Dependencies:
-- Python 3.x (manual)
-- [Django](https://www.djangoproject.com) 2.x
-- [Django rest framework](https://www.django-rest-framework.org) 3.x
-- [Django rest framework SimpleJWT](https://github.com/davesque/django-rest-framework-simplejwt) 3.x
-- [PostgreSQL 11.x](https://www.postgresql.org) (manual)
-    - [Trigram Similarity](https://www.postgresql.org/docs/current/pgtrgm.html)
-- [Psycopg2](http://initd.org/psycopg/) 2.x
+Dependencies
+- [see file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/requirements.txt)
 
 Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
 - install latest postegresql with homebrew `brew install postgresql`
-- run build_venv.sh `./build_venv.sh` to install and run your venv (needing python3.7 as well as django + djangorestframework)
-- create a secrets.py file in PoliticalDebateApp/ with the constants `secretKeyHidden` (Django key) & `secretPostgreUser` and `secretPostgrePassword` (PostgreSQL credentials)
+- run build_venv.sh `./build_venv.sh` to install and run your venv
+- run `./reset_database.sh` to create local database
+- request a `set_env.sh` w/ all necessary env variables
 
 ### Architecture
 
@@ -88,7 +82,12 @@ Instructions:
 
 ### Endpoints
 
-- our current API version is v1, so all endpoints start with 'http://127.0.0.1:8000/api/v1/'
+- debug URL: `https://politicaldebateapp-debug.herokuapp.com/api/`
+    - endpoint throttling is turned off
+    - has hundreds of dummy debates
+    - produces verbose logs on the backend
+- production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
+- our current API version is v1, so all endpoints start with `v1/`
 - use `%20` for spaces
 - all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
 - all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses) for clients to use as mocked responses in local unit testing.
