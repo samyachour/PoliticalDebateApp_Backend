@@ -95,7 +95,7 @@ def parse_images(point, images):
 def parse_debate_file(title_for_deletion = ""):
 
     if title_for_deletion != "":
-        Debate.objects.filter(title=title_for_deletion).delete()
+        Debate.objects.get(title=title_for_deletion).delete()
 
     # Properties
 
