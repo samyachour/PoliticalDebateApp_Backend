@@ -7,7 +7,6 @@ mv __init__.py rest_api/migrations/
 
 psql -c "drop database \"PoliticalDebateApp\";"
 psql -c "create database \"PoliticalDebateApp\";"
-psql -c "grant all privileges on database \"PoliticalDebateApp\" to politicaldebateappowner;"
 python manage.py makemigrations
 python manage.py migrate
 python manage.py test

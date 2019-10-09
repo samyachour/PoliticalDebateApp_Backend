@@ -3,9 +3,12 @@ from rest_api.models import *
 from .constants import *
 from datetime import datetime, timedelta
 from string import punctuation
+from github import Github
+import os
+from urllib.request import urlopen
 
 # Run in shell:
-# from rest_api.helpers.debate_map_parser import parse_debate_file; parse_debate_file("/Users/samy/Documents/PoliticalDebateApp/PoliticalDebateApp_Backend/DebateMap.txt"); exit();
+# from rest_api.helpers.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
 
 # Helpers
 
@@ -89,10 +92,10 @@ def parse_images(point, images):
 
 # Parser
 
-def parse_debate_file(filename, title_for_deletion = ""):
+def parse_debate_file(title_for_deletion = ""):
 
     if title_for_deletion != "":
-        Debate.objects.filter(title=title_for_deletion).delete()
+        Debate.objects.get(title=title_for_deletion).delete()
 
     # Properties
 
@@ -107,9 +110,19 @@ def parse_debate_file(filename, title_for_deletion = ""):
 
     # Parsing
 
-    with open(filename) as debate_map:
+    github_auth = Github(os.environ['GITHUB_ACCESS_TOKEN'])
+    for repo in github_auth.get_user().get_repos():
+        if repo.name == "PoliticalDebateApp_DebateMaps":
+            debate_maps_repo = repo
+    if not debate_maps_repo:
+        print("Repo file doesn't exist")
+        return
+    debate_map_file = debate_maps_repo.get_contents("Upload.txt")
 
-        for line in debate_map:
+    with urlopen(debate_map_file.download_url) as debate_map:
+
+        for encoded_line in debate_map.readlines():
+            line = encoded_line.decode('utf-8')
             if line in ['\n', '\r\n']: # empty line
                 continue
             # Trim all leading non-alphanumeric characters

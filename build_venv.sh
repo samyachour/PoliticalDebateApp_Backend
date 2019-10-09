@@ -13,11 +13,9 @@ pip3 install gunicorn
 pip3 install django-heroku
 pip3 install dj-database-url
 pip3 install whitenoise
+pip3 install PyGithub
 brew update
 brew upgrade
-
-export DEBUG=True
-export THROTTLE=False
 
 # pip3 freeze > requirements.txt
 
