@@ -4,6 +4,7 @@ from django.utils.http import urlsafe_base64_encode
 from .tokens import account_verification_token
 from django.core.mail import send_mail
 from .constants import *
+from django.conf import settings
 
 class EmailVerification():
     # Send an email to the user with the token:
@@ -22,7 +23,7 @@ class EmailVerification():
             send_mail(
                 'Reset your PoliticalDebateApp password.',
                 "Please click the following link to reset your password:\n\n {0}".format(verification_link),
-                'admin@politicaldebateapp.com',
+                settings.EMAIL_HOST_USER,
                 [email],
                 fail_silently=False,
             )
@@ -33,7 +34,7 @@ class EmailVerification():
             send_mail(
                 'Verify your PoliticalDebateApp account email.',
                 "Please click the following link to verify your email address:\n\n {0}".format(verification_link),
-                'admin@politicaldebateapp.com',
+                settings.EMAIL_HOST_USER,
                 [email],
                 fail_silently=False,
             )

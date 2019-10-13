@@ -86,6 +86,7 @@ Instructions:
     - endpoint throttling is turned off
     - has hundreds of dummy debates
     - produces verbose logs on the backend
+    - emails don't really send, they just get logged
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
 - our current API version is v1, so all endpoints start with `v1/`
 - use `%20` for spaces
