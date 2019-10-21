@@ -15,7 +15,7 @@ from pprint import pprint
 # Helpers
 
 key_key = "key"
-main_key = "main"
+root_key = "root"
 object_key = "object"
 pro_value = "pro"
 con_value = "con"
@@ -41,7 +41,7 @@ def basic_point_info_complete(point_info_dict):
     side = point_info_dict[side_key]
 
     if side == context_value:
-        if not point_info_dict[main_key]:
+        if not point_info_dict[root_key]:
             print("Context points must be main points.")
             pprint(point_info_dict)
             sys.exit()
@@ -181,8 +181,8 @@ def parse_debate_file(title_to_delete = "", local = False):
                 new_debate = Debate.objects.create(title=debate_info_dict[title_key], short_title=debate_info_dict[short_title_key], tags=debate_info_dict[tags_key], last_updated=debate_info_dict[last_updated_key], total_points=debate_info_dict[total_points_key])
 
         if is_parsing_points: # points section
-            if check_for_key(main_key, line):
-                point_info_dict[main_key] = True
+            if check_for_key(root_key, line):
+                point_info_dict[root_key] = True
             elif check_for_key(key_key, line):
                 if key_key in point_info_dict:
                     print("The following point does not have all the required fields:")
@@ -219,7 +219,7 @@ def parse_debate_file(title_to_delete = "", local = False):
                 parse_images(point_info_dict[object_key], images)
 
             if basic_point_info_complete(point_info_dict):
-                if point_info_dict[main_key]:
+                if point_info_dict[root_key]:
                     if point_info_dict[side_key] == context_value:
                         new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], side=point_info_dict[side_key])
                     else:
@@ -233,7 +233,7 @@ def parse_debate_file(title_to_delete = "", local = False):
                 point_info_dict[object_key] = new_point
                 all_points_dict[point_info_dict[key_key]] = point_info_dict
                 point_count += 1
-                point_info_dict = { main_key: False, object_key: new_point }
+                point_info_dict = { root_key: False, object_key: new_point }
 
     # Link rebuttals
     for _, point in all_points_dict.items():
