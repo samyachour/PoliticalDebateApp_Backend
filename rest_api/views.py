@@ -325,6 +325,18 @@ class ChangeEmailView(generics.UpdateAPIView):
             )
 
         try:
+            self.queryset.get(username=new_email)
+            # If we find an existing user w/ that email
+            return Response(
+                data={
+                    message_key: account_exists_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except User.DoesNotExist:
+            pass
+
+        try:
             # Set username to email, don't set email property until it's verified
             self.object.username = new_email
             self.object.save()
@@ -388,11 +400,24 @@ class DeleteUserView(generics.DestroyAPIView):
 class RegisterUserView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'RegisterUser'
+    queryset = User.objects.all()
 
     @validate_register_user_post_request_data
     def post(self, request, *args, **kwargs):
         password = request.data[password_key]
         email = request.data[email_key].lower()
+
+        try:
+            self.queryset.get(username=email)
+            # If we find an existing user w/ that email
+            return Response(
+                data={
+                    message_key: account_exists_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except User.DoesNotExist:
+            pass
 
         # New user's don't have an email attribute until they verify their email
         new_user = User.objects.create_user(

@@ -134,3 +134,4 @@ change_password_post_error = "Both the old and new password are required to chan
 change_email_post_error = "A new email is required to change the user's email."
 request_password_reset_post_error = "Need an email to request a password reset."
 already_using_email_error = "User is already using this email."
+account_exists_error = "An account with that email exists."
