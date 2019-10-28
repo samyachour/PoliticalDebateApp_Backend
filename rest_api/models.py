@@ -48,11 +48,3 @@ class Starred(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
 
     starred_list = models.ManyToManyField(Debate)
-
-    def buildStarredString(self):
-        result = ""
-        for debate in self.starred_list.all():
-            result += debate.title + ", "
-
-        if result:
-            return result[:-2]
