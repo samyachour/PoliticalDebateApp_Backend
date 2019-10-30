@@ -42,7 +42,6 @@ short_description_key = "short_description"
 description_key = "description"
 side_key = "side"
 hyperlinks_key = "hyperlinks"
-images_key = "images"
 rebuttals_key = "rebuttals"
 
 name_key = "name"

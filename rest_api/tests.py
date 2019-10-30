@@ -301,7 +301,6 @@ class BaseViewTest(APITestCase):
 
         self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
         self.abortionPoint = Point.objects.create(debate=self.abortion, short_description="Is it a woman's right to choose?", description="Did the woman not sign off on her complete rights to her body when she risked pregnancy?")
-        self.abortionPointImage = PointImage.objects.create(point=self.abortionPoint, source="Reuters", url="www.reuters.com/image")
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 

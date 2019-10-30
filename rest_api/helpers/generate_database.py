@@ -51,8 +51,7 @@ def generate_debates(count = 300):
         test_debate_point_1.rebuttals.add(test_debate_point_2)
         test_debate_point_1.save()
 
-        test_debate_point_image = PointImage.objects.create(point=test_debate_point_1, source="Test source", url="www.test.com/image")
-        test_debate_point_hyperlink = PointHyperlink.objects.create(point=test_debate_point_2, substring="point", url="www.test.com/article")
+        PointHyperlink.objects.create(point=test_debate_point_2, substring="point", url="www.test.com/article")
 
         if boolean_probability(4) or first_run: # Just so we definitely add the first debate info
             # Star this debate for our test users

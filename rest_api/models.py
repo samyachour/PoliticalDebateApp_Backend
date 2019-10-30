@@ -20,12 +20,6 @@ class Point(models.Model):
     description = models.CharField(max_length=255, null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
 
-class PointImage(models.Model):
-    point = models.ForeignKey(Point, on_delete=models.CASCADE)
-    url = models.URLField(max_length=255, null=False)
-    source = models.CharField(max_length=255, null=False)
-    name = models.CharField(max_length=255, null=True, blank=True) # images might already have names or not need them
-
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
     substring = models.CharField(max_length=255, null=False)

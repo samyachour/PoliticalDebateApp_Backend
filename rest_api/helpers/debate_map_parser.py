@@ -42,7 +42,7 @@ def basic_point_info_complete(point_info_dict):
 
     if side == context_value:
         if not point_info_dict[root_key]:
-            print("Context points must be main points.")
+            print("Context points must be root points.")
             pprint(point_info_dict)
             sys.exit()
         return key_key in point_info_dict and description_key in point_info_dict
@@ -100,32 +100,6 @@ def parse_hyperlinks(description):
                 is_parsing_hyperlink = True
 
     return cleaned_description, hyperlinks
-
-def parse_images(point, images):
-    images_list = images.split(" || ")
-    for image in images_list:
-        image_parts = image.split("///")
-        image_dict = {}
-        for index, image_part in enumerate(image_parts):
-            if index == 0:
-                if len(image_parts) == 2:
-                    image_dict[source_key] = image_part
-                if len(image_parts) == 3:
-                    image_dict[name_key] = image_part
-            if index == 1:
-                if len(image_parts) == 2:
-                    image_dict[url_key] = image_part
-                if len(image_parts) == 3:
-                    image_dict[source_key] = image_part
-            if index == 2:
-                image_dict[url_key] = image_part
-
-        if image_dict:
-            if name_key in image_dict:
-                PointImage.objects.create(point=point, name=image_dict[name_key], source=image_dict[source_key], url=image_dict[url_key])
-            else:
-                PointImage.objects.create(point=point, source=image_dict[source_key], url=image_dict[url_key])
-            image_dict = {}
 
 # Parser
 
@@ -214,11 +188,12 @@ def parse_debate_file(title_to_delete = "", local = False):
                     for rebuttal_pk in rebuttals:
                         formatted_rebuttals.append(int(rebuttal_pk))
                 point_info_dict[rebuttals_key] = formatted_rebuttals
-            elif check_for_key(images_key, line):
-                images = get_value_for_key(images_key, line)
-                parse_images(point_info_dict[object_key], images)
 
             if basic_point_info_complete(point_info_dict):
+                if not check_for_key(side_key, line):
+                    print("The side must always come last.")
+                    pprint(point_info_dict)
+                    sys.exit()
                 if point_info_dict[root_key]:
                     if point_info_dict[side_key] == context_value:
                         new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], side=point_info_dict[side_key])
