@@ -45,11 +45,6 @@ class ProgressSerializer(serializers.ModelSerializer):
         model = Progress
         fields = (debate_key, completed_percentage_key, seen_points_key,)
 
-class ProgressBatchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Progress
-        fields = (debate_key, seen_points_key,)
-
 # STARRED
 
 class StarredSerializer(serializers.ModelSerializer):

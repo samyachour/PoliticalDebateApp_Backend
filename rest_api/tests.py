@@ -538,7 +538,7 @@ class AddProgressPointBatchTest(BaseViewTest):
         })
         self.assertEqual(
             response.data[message_key],
-            progress_point_batch_post_error
+            progress_point_batch_post_debate_key_error
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
