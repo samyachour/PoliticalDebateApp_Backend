@@ -349,8 +349,8 @@ Body
 ##### `auth/token/refresh/`
 
 - when you get a 401, refresh your access token
-- access token expires every 10 minutes
-- refresh window is up to 30 days
+- access token expires after a week
+- refresh token expires after a year
 
 POST
 
