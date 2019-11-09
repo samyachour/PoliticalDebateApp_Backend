@@ -12,7 +12,7 @@ from pprint import pprint
 # Run in shell:
 # from rest_api.helpers.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
 
-# Helpers
+# Constants
 
 key_key = "key"
 root_key = "root"
@@ -21,6 +21,16 @@ pro_value = "pro"
 con_value = "con"
 context_value = "context"
 special_format_characters = ["*"]
+
+# Helpers:
+
+def handle_parse_error(message="Parsing error.", line="", dictionary={}):
+    print(message)
+    if line:
+        print(line)
+    if dictionary:
+        pprint(dictionary)
+    sys.exit()
 
 def check_for_key(key, source_string):
     key_length = len(key)
@@ -38,16 +48,25 @@ def basic_debate_info_complete(debate_info_dict):
 def basic_point_info_complete(point_info_dict):
     if side_key not in point_info_dict:
         return False
-    side = point_info_dict[side_key]
-
-    if side == context_value:
+    if point_info_dict[side_key] == context_value:
         if not point_info_dict[root_key]:
-            print("Context points must be root points.")
-            pprint(point_info_dict)
-            sys.exit()
+            handle_parse_error("Context points must be root points.", point_info_dict)
         return key_key in point_info_dict and description_key in point_info_dict
     else:
         return key_key in point_info_dict and description_key in point_info_dict and short_description_key in point_info_dict
+
+def get_formatted_rebuttals(rebuttals):
+    formatted_rebuttals = []
+    if rebuttals:
+        rebuttals = rebuttals.split(", ")
+        for rebuttal_pk in rebuttals:
+            try:
+                formatted_rebuttals.append(int(rebuttal_pk))
+            except ValueError:
+                handle_parse_error("Invalid formatting around rebuttal key: ", rebuttal_pk)
+        return formatted_rebuttals
+    else:
+        handle_parse_error("Parsing empty rebuttals")
 
 def parse_hyperlinks(description):
     cleaned_description = description
@@ -62,29 +81,21 @@ def parse_hyperlinks(description):
             if is_parsing_substring:
                 is_parsing_substring = False
             else:
-                print("Cannot have closed bracket ] without matching open bracket.")
-                sys.exit()
+                handle_parse_error("Cannot have closed bracket ] without matching open bracket.")
             current_hyperlink[substring_key] = substring
             if any(char in substring for char in special_format_characters):
-                print("Cannot have special formatting characters inside hyperlink string:")
-                print(substring)
-                sys.exit()
+                handle_parse_error("Cannot have special formatting characters inside hyperlink string:", substring)
             substring = ""
         if is_parsing_substring:
             substring += char
         if char == '[':
             if is_parsing_substring:
-                print("Cannot have open bracket [ after another open bracket.")
-                sys.exit()
+                handle_parse_error("Cannot have open bracket [ after another open bracket.")
             else:
                 is_parsing_substring = True
 
         if char == ')' and is_parsing_hyperlink:
-            if is_parsing_hyperlink:
-                is_parsing_hyperlink = False
-            else:
-                print("Cannot have closed parentheses ) without matching open parentheses.")
-                sys.exit()
+            is_parsing_hyperlink = False
             current_hyperlink[url_key] = hyperlink
             hyperlinks.append(current_hyperlink)
             cleaned_description = cleaned_description.replace("[" + current_hyperlink[substring_key] + "]" + "(" + current_hyperlink[url_key] + ")", current_hyperlink[substring_key])
@@ -94,19 +105,35 @@ def parse_hyperlinks(description):
             hyperlink += char
         if char == '(' and substring_key in current_hyperlink:
             if is_parsing_hyperlink:
-                print("Cannot have open parentheses ( after another open parentheses.")
-                sys.exit()
+                handle_parse_error("Cannot have open parentheses ( after another open parentheses.")
             else:
                 is_parsing_hyperlink = True
 
     return cleaned_description, hyperlinks
 
+def get_debate_map_lines(local):
+    if local:
+        with open("/Users/samy/Documents/PoliticalDebateApp/PoliticalDebateApp_DebateMaps/Upload.txt") as debate_map:
+            return debate_map.readlines()
+    else:
+        github_auth = Github(os.environ['GITHUB_ACCESS_TOKEN'])
+        for repo in github_auth.get_user().get_repos():
+            if repo.name == "PoliticalDebateApp_DebateMaps":
+                debate_maps_repo = repo
+        debate_map_file = debate_maps_repo.get_contents("Upload.txt")
+
+        with urlopen(debate_map_file.download_url) as debate_map:
+            return [line.decode('utf-8') for line in debate_map.readlines()]
+
+def delete_existing_debate(title):
+    try:
+        Debate.objects.get(title=title).delete()
+    except Debate.DoesNotExist:
+        handle_parse_error("No existing debate with that title.")
+
 # Parser
 
-def parse_debate_file(title_to_delete = "", local = False):
-
-    if title_to_delete != "":
-        Debate.objects.get(title=title_to_delete).delete()
+def parse_debate_file(local=False, delete_existing=False):
 
     # Properties
 
@@ -121,20 +148,7 @@ def parse_debate_file(title_to_delete = "", local = False):
 
     # Parsing
 
-    if local:
-        with open("/Users/samy/Documents/PoliticalDebateApp/PoliticalDebateApp_DebateMaps/Upload.txt") as debate_map:
-            debate_map_lines = debate_map.readlines()
-    else:
-        github_auth = Github(os.environ['GITHUB_ACCESS_TOKEN'])
-        for repo in github_auth.get_user().get_repos():
-            if repo.name == "PoliticalDebateApp_DebateMaps":
-                debate_maps_repo = repo
-        debate_map_file = debate_maps_repo.get_contents("Upload.txt")
-
-        with urlopen(debate_map_file.download_url) as debate_map:
-            debate_map_lines = [line.decode('utf-8') for line in debate_map.readlines()]
-
-    for line in debate_map_lines:
+    for line in get_debate_map_lines(local):
         if line in ['\n', '\r\n']: # empty line
             continue
         # Trim all leading non-alphanumeric characters
@@ -142,7 +156,10 @@ def parse_debate_file(title_to_delete = "", local = False):
 
         if not is_parsing_points: # basic info section
             if check_for_key(title_key, line):
-                debate_info_dict[title_key] = get_value_for_key(title_key, line)
+                title = get_value_for_key(title_key, line)
+                if delete_existing:
+                    delete_existing_debate(title)
+                debate_info_dict[title_key] = title
             elif check_for_key(short_title_key, line):
                 debate_info_dict[short_title_key] = get_value_for_key(short_title_key, line)
             elif check_for_key(tags_key, line):
@@ -159,9 +176,7 @@ def parse_debate_file(title_to_delete = "", local = False):
                 point_info_dict[root_key] = True
             elif check_for_key(key_key, line):
                 if key_key in point_info_dict:
-                    print("The following point does not have all the required fields:")
-                    pprint(point_info_dict)
-                    return
+                    handle_parse_error("The following point does not have all the required fields:", point_info_dict)
                 point_info_dict[key_key] = int(get_value_for_key(key_key, line))
             elif check_for_key(description_key, line):
                 description = get_value_for_key(description_key, line)
@@ -172,28 +187,18 @@ def parse_debate_file(title_to_delete = "", local = False):
             elif check_for_key(side_key, line):
                 side = get_value_for_key(side_key, line)
                 if side.lower() not in [pro_value, con_value, context_value]:
-                    print("Invalid side: " + side)
-                    return
+                    handle_parse_error("Invalid side: ", side)
                 else:
                     point_info_dict[side_key] = side.lower()
             elif check_for_key(rebuttals_key, line):
                 rebuttals = get_value_for_key(rebuttals_key, line)
                 if key_key not in point_info_dict:
-                    print("Rebuttals must always be before the side key:")
-                    print(rebuttals)
-                    return
-                formatted_rebuttals = []
-                if rebuttals:
-                    rebuttals = rebuttals.split(", ")
-                    for rebuttal_pk in rebuttals:
-                        formatted_rebuttals.append(int(rebuttal_pk))
-                point_info_dict[rebuttals_key] = formatted_rebuttals
+                    handle_parse_error("Rebuttals must always be before the side key:", rebuttals)
+                point_info_dict[rebuttals_key] = get_formatted_rebuttals(rebuttals)
 
             if basic_point_info_complete(point_info_dict):
                 if not check_for_key(side_key, line):
-                    print("The side must always come last.")
-                    pprint(point_info_dict)
-                    sys.exit()
+                    handle_parse_error("The side must always come last.", point_info_dict)
                 if point_info_dict[root_key]:
                     if point_info_dict[side_key] == context_value:
                         new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], side=point_info_dict[side_key])
