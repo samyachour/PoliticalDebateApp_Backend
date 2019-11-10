@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
 from datetime import datetime
+from .helpers.constants import *
 
 # DEBATES
 
@@ -19,6 +20,9 @@ class Point(models.Model):
     short_description = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=255, null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
+
+    class Meta:
+        unique_together = (short_description_key, description_key,)
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
