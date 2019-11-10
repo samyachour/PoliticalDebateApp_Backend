@@ -12,11 +12,6 @@ class RecursiveField(serializers.Serializer):
         serializer = self.parent.parent.__class__(value, context=self.context)
         return serializer.data
 
-class PointImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PointImage
-        fields = (url_key, source_key, name_key)
-
 class PointHyperlinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = PointHyperlink
@@ -24,12 +19,11 @@ class PointHyperlinkSerializer(serializers.ModelSerializer):
 
 class PointSerializer(serializers.ModelSerializer):
     rebuttals = RecursiveField(many=True)
-    images = PointImageSerializer(many=True, source='pointimage_set') # one to many
     hyperlinks = PointHyperlinkSerializer(many=True, source='pointhyperlink_set') # one to many
 
     class Meta:
         model = Point
-        fields = (pk_key, short_description_key, description_key, side_key, images_key, hyperlinks_key, rebuttals_key)
+        fields = (pk_key, short_description_key, description_key, side_key, hyperlinks_key, rebuttals_key)
 
 class DebateSerializer(serializers.ModelSerializer):
     debate_map = PointSerializer(many=True, source='point_set') # one to many
@@ -50,11 +44,6 @@ class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
         fields = (debate_key, completed_percentage_key, seen_points_key,)
-
-class ProgressBatchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Progress
-        fields = (debate_key, seen_points_key,)
 
 # STARRED
 

@@ -117,13 +117,13 @@ if THROTTLE:
         'RequestPasswordReset': '5/day',
         'Verification': '5/day',
         'TokenObtainPair': '5/day',
-        'TokenRefresh': '6/hour', # access token expires every 10 min
+        'TokenRefresh': '1/day',
 
     }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=10),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=30),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(weeks=1),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(weeks=52),
     'ROTATE_REFRESH_TOKENS': False,
 
     'ALGORITHM': 'HS256',

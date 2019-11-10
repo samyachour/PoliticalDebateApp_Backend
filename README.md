@@ -57,11 +57,6 @@ Instructions:
         - description: String
         - side: String ("pro" or "con")
         - rebuttals: Points (ManyToMany) (optional)
-    - PointImage
-        - point: Point (foreign key)
-        - url: URL
-        - source: String
-        - name: String (optional)
     - PointHyperlink
         - point: Point (foreign key)
         - substring: String
@@ -231,7 +226,7 @@ Body
 
 - Returns:
 
-`201`, `401`, or `400`
+`201` or `401`
 
 ---
 #### STARRED
@@ -354,8 +349,8 @@ Body
 ##### `auth/token/refresh/`
 
 - when you get a 401, refresh your access token
-- access token expires every 10 minutes
-- refresh window is up to 30 days
+- access token expires after a week
+- refresh token expires after a year
 
 POST
 

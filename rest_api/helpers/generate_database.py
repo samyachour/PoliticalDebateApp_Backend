@@ -46,13 +46,12 @@ def generate_debates(count = 300):
     for i in range(count):
 
         test_debate = Debate.objects.create(title="Test debate number #{0}".format(i), short_title="Debate #{0}".format(i), last_updated=today - timedelta(days=i), total_points=total_points, tags="")
-        test_debate_point_2 = Point.objects.create(short_description="Test *point 2*", description="Test *point 2* description.", side="con")
-        test_debate_point_1 = Point.objects.create(debate=test_debate, short_description="Test **point 1**", description="This is a longer description of test **point 1**.", side="pro")
+        test_debate_point_2 = Point.objects.create(short_description="Test *point 2*", description="Test *point 2* description. (in debate {0})".format(i), side="con")
+        test_debate_point_1 = Point.objects.create(debate=test_debate, short_description="Test **point 1**", description="This is a longer description of test **point 1**. (in debate {0})".format(i), side="pro")
         test_debate_point_1.rebuttals.add(test_debate_point_2)
         test_debate_point_1.save()
 
-        test_debate_point_image = PointImage.objects.create(point=test_debate_point_1, source="Test source", url="www.test.com/image")
-        test_debate_point_hyperlink = PointHyperlink.objects.create(point=test_debate_point_2, substring="point", url="www.test.com/article")
+        PointHyperlink.objects.create(point=test_debate_point_2, substring="point", url="www.test.com/article")
 
         if boolean_probability(4) or first_run: # Just so we definitely add the first debate info
             # Star this debate for our test users

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
 from datetime import datetime
+from .helpers.constants import *
 
 # DEBATES
 
@@ -20,11 +21,8 @@ class Point(models.Model):
     description = models.CharField(max_length=255, null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
 
-class PointImage(models.Model):
-    point = models.ForeignKey(Point, on_delete=models.CASCADE)
-    url = models.URLField(max_length=255, null=False)
-    source = models.CharField(max_length=255, null=False)
-    name = models.CharField(max_length=255, null=True, blank=True) # images might already have names or not need them
+    class Meta:
+        unique_together = (short_description_key, description_key,)
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
@@ -48,11 +46,3 @@ class Starred(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
 
     starred_list = models.ManyToManyField(Debate)
-
-    def buildStarredString(self):
-        result = ""
-        for debate in self.starred_list.all():
-            result += debate.title + ", "
-
-        if result:
-            return result[:-2]

@@ -47,6 +47,35 @@ def validate_progress_batch_post_point_request_data(fn):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        if type(all_debate_points) is not list:
+            return Response(
+                data={
+                    message_key: progress_point_batch_post_data_format_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        for progress_input in all_debate_points:
+            if debate_key not in progress_input:
+                return Response(
+                    data={
+                        message_key: progress_point_batch_post_debate_key_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if seen_points_key not in progress_input:
+                return Response(
+                    data={
+                        message_key: progress_point_batch_post_seen_points_key_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if type(progress_input[seen_points_key]) is not list:
+                return Response(
+                    data={
+                        message_key: progress_point_batch_post_data_format_error
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         return fn(*args, **kwargs)
     return decorated
 
