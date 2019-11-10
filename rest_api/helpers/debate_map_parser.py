@@ -201,6 +201,7 @@ def update_or_create_point_input():
     parent_point_description = get_string_input("Parent point description: ", create and not root, "")
     old_short_description = get_string_input("Old short point description: ", not create, "")
     old_description = get_string_input("Old point description: ", not create, "")
+    update_old_point = get_boolean_input("Update old point directly: ", not create, "")
     new_short_description = get_string_input("Short point description: ")
     new_description = get_string_input("Point description: ")
     new_side = get_string_input("Point side: ")
@@ -211,11 +212,14 @@ def update_or_create_point_input():
         rebuttal_description = get_string_input("Rebuttal description: ")
         new_rebuttals.append((rebuttal_short_description, rebuttal_description))
 
-    update_or_create_point(create=create, root=root, debate_title=debate_title, parent_point=(parent_point_short_description, parent_point_description), old_short_description=old_short_description, old_description=old_description, new_short_description=new_short_description, new_description=new_description, new_side=new_side, new_rebuttals=new_rebuttals)
+    update_or_create_point(create=create, update_old_point=update_old_point, root=root, debate_title=debate_title, parent_point=(parent_point_short_description, parent_point_description), old_short_description=old_short_description, old_description=old_description, new_short_description=new_short_description, new_description=new_description, new_side=new_side, new_rebuttals=new_rebuttals)
 
-def update_or_create_point(create=False, root=False, debate_title="", parent_point = (), old_short_description="", old_description="", new_short_description="", new_description="", new_side="", new_rebuttals=[]):
-    if create and not (new_side or (new_side != context_value and new_short_description) or new_description or new_side or debate_title):
-        handle_parse_error("Did not provide a short description, description, side, or parent point/debate for your new point")
+def update_or_create_point(create=False, update_old_point=False, root=False, debate_title="", parent_point = (), old_short_description="", old_description="", new_short_description="", new_description="", new_side="", new_rebuttals=[]):
+    if create:
+        if update_old_point:
+            handle_parse_error("Cannot update old point and create a new one")
+        if not (new_side or (new_side != context_value and new_short_description) or new_description or new_side or debate_title):
+            handle_parse_error("Did not provide a short description, description, side, or parent point/debate for your new point")
     if not create:
         if not old_short_description or not old_description or not (new_short_description or new_description or new_side or new_rebuttals):
             handle_parse_error("Did not provide the old short description and description or any new attributes for your updated point")
@@ -239,7 +243,8 @@ def update_or_create_point(create=False, root=False, debate_title="", parent_poi
     new_description_hyperlinks = []
     if new_description:
         description, new_description_hyperlinks = parse_hyperlinks(new_description)
-    if new_side and check_side_is_valid(new_side):
+    if new_side:
+        check_side_is_valid(new_side)
         side = new_side.lower()
 
     debate = None
@@ -254,7 +259,13 @@ def update_or_create_point(create=False, root=False, debate_title="", parent_poi
     else:
         debate = old_point.debate
 
-    if debate:
+    if update_old_point:
+        new_point = old_point
+        new_point.description = description
+        new_point.short_description = short_description
+        new_point.side = side
+        new_point.save()
+    elif debate:
         if side == context_value:
             new_point = Point.objects.create(debate=debate, description=description, side=side)
         else:
