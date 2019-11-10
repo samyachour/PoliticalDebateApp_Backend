@@ -49,7 +49,7 @@ class BaseViewTest(APITestCase):
 
     @staticmethod
     def create_progress_point(user, debate, point):
-        progress = Progress.objects.create(user=user, debate=debate, completed_percentage=(1 / (debate.total_points * 1.0)) * 100)
+        progress = Progress.objects.create(user=user, debate=debate)
         progress.seen_points.add(point)
         return progress
 
@@ -294,20 +294,20 @@ class BaseViewTest(APITestCase):
 
         # add test data
 
-        self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, total_points=2, tags="gun control, school shootings")
+        self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, tags="gun control, school shootings")
         self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, short_description="Civilians can't own tanks though", description="We don't allow citizens to own seriously destructive weapons. Don't assault rifles count in that category?")
         self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, short_description="But the 2nd amendment", description="Our forefathers fought a tyrannous British Monarchy for their right to independence driven by the 2nd amendment.")
         self.create_progress_point(self.user, self.gun_control, self.gun_control_point_1)
 
-        self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today, total_points=1)
+        self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today)
         self.abortionPoint = Point.objects.create(debate=self.abortion, short_description="Is it a woman's right to choose?", description="Did the woman not sign off on her complete rights to her body when she risked pregnancy?")
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
-        self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today, total_points=1)
+        self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today)
         self.border_wall_point = Point.objects.create(debate=self.border_wall, short_description="Is it an effective border security tool?", description="The border wall will cost billions, is it really an effective use of taxpayer dollars?")
 
-        self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today, total_points=1)
+        self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today)
         self.vetting_point = Point.objects.create(debate=self.vetting, short_description="Are we doing enough?", description="Is our current vetting process thorough enough to keep out bad actors?")
 
         self.starred_list = self.create_starred_list(self.user, self.gun_control)
@@ -319,8 +319,7 @@ class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
         debate = Debate.objects.create(
             title="Test debate",
-            last_updated=self.today,
-            total_points=1
+            last_updated=self.today
         )
         self.assertEqual(debate.title, "Test debate")
         self.assertEqual(debate.last_updated, self.today)
@@ -330,7 +329,7 @@ class GetAllDebatesTest(BaseViewTest):
     def test_get_all_debates(self):
         response = self.filter_debates({})
         expected = Debate.objects.all()
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -342,7 +341,7 @@ class FilterDebatesTest(BaseViewTest):
         response = self.filter_debates({
             search_string_key: "gun"
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -350,7 +349,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk],
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -359,7 +358,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk]
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -368,7 +367,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: progress_filter_value,
             all_progress_key: [self.gun_control.pk]
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -384,7 +383,7 @@ class FilterDebatesTest(BaseViewTest):
             search_string_key: "gun",
             filter_key: last_updated_filter_value
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -392,7 +391,7 @@ class FilterDebatesTest(BaseViewTest):
             search_string_key: "gun",
             filter_key: random_filter_value
         })
-        serialized = DebateFilterSerializer(expected, many=True)
+        serialized = DebateSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -483,7 +482,6 @@ class ProgressModelTest(BaseViewTest):
 
         self.assertEqual(progress_point.user.username, "test@mail.com")
         self.assertEqual(progress_point.debate.title, "Should we ban assault rifles?")
-        self.assertEqual(progress_point.completed_percentage, 50)
         self.assertEqual(progress_point.seen_points.all()[0].pk, self.gun_control_point_1.pk)
 
 class AddProgressPointTest(BaseViewTest):

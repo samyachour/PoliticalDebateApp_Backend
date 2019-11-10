@@ -11,7 +11,6 @@ class Debate(models.Model):
     short_title = models.CharField(max_length=255, null=False)
     tags = models.CharField(max_length=255, null=True, blank=True)
     last_updated = models.DateField(default=datetime.today, null=False)
-    total_points = models.IntegerField(default=0, null=False)
 
 class Point(models.Model):
     # Optional because only root points should reference debate directly
@@ -36,7 +35,6 @@ class Progress(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=None, null=False) # always needs to be authenticated to make this post request
 
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, default=None, null=False)
-    completed_percentage = models.IntegerField(default=0, null=False)
     seen_points = models.ManyToManyField(Point)
 
 # STARRED

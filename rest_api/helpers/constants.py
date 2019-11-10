@@ -35,7 +35,6 @@ title_key = "title"
 short_title_key = "short_title"
 tags_key = "tags"
 last_updated_key = "last_updated"
-total_points_key = "total_points"
 debate_map_key = "debate_map"
 
 short_description_key = "short_description"
@@ -50,7 +49,6 @@ url_key = "url"
 source_key = "source"
 
 seen_points_key = "seen_points"
-completed_percentage_key = "completed_percentage"
 all_debate_points_key = "all_debate_points"
 
 starred_list_key = "starred_list"
