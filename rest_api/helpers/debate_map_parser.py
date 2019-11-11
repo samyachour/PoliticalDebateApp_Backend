@@ -150,7 +150,7 @@ def get_boolean_input(message, boolean=True, default=False):
     user_input = str(input(message + "({0}/{1}) ".format(yes_value, no_value))).lower()
     if user_input == yes_value:
         return True
-    elif user_input == no_value:
+    elif user_input == no_value or not user_input:
         return False
     else:
         handle_parse_error("Input must be {0} or {1}".format(yes_value, no_value))
