@@ -295,7 +295,7 @@ def update_or_create_point(create=False, update_old_point=False, root=False, deb
             parent_point.rebuttals.add(new_point)
         except Point.DoesNotExist:
             handle_parse_error("No existing point with the description: ", cleaned_parent_description)
-    elif not create:
+    elif not create and not update_old_point:
         for old_parent_point in Point.objects.filter(rebuttals=old_point):
             old_parent_point.rebuttals.add(new_point)
             old_parent_point.save()
