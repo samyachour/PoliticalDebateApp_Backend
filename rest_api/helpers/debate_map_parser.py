@@ -11,6 +11,8 @@ from pprint import pprint
 
 # Run in shell:
 # from rest_api.helpers.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
+# from rest_api.helpers.debate_map_parser import update_debate_input; update_debate_input(); exit();
+# from rest_api.helpers.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
 
 # Constants
 
@@ -20,6 +22,8 @@ object_key = "object"
 pro_value = "pro"
 con_value = "con"
 context_value = "context"
+yes_value = "y"
+no_value = "n"
 special_format_characters = ["*"]
 
 # Helpers:
@@ -43,7 +47,7 @@ def get_value_for_key(key, source_string):
     return value_string.replace(":","",1).lstrip().rstrip()
 
 def basic_debate_info_complete(debate_info_dict):
-    return title_key in debate_info_dict and short_title_key in debate_info_dict and tags_key in debate_info_dict and last_updated_key in debate_info_dict and total_points_key in debate_info_dict
+    return title_key in debate_info_dict and short_title_key in debate_info_dict and tags_key in debate_info_dict and last_updated_key in debate_info_dict
 
 def basic_point_info_complete(point_info_dict):
     if side_key not in point_info_dict:
@@ -133,6 +137,27 @@ def create_hyperlink_objects(point, hyperlinks):
     for hyperlink in hyperlinks:
         PointHyperlink.objects.create(point=point, substring=hyperlink[substring_key], url=hyperlink[url_key])
 
+def add_hyperlinks(point_info_dict, hyperlinks):
+    if hyperlinks_key in point_info_dict:
+        point_info_dict[hyperlinks_key] = hyperlinks + point_info_dict[hyperlinks_key]
+    else:
+        point_info_dict[hyperlinks_key] = hyperlinks
+    return point_info_dict
+
+def get_boolean_input(message, boolean=True, default=False):
+    if not boolean:
+        return default
+    user_input = str(input(message + "({0}/{1}) ".format(yes_value, no_value))).lower()
+    if user_input == yes_value:
+        return True
+    elif user_input == no_value or not user_input:
+        return False
+    else:
+        handle_parse_error("Input must be {0} or {1}".format(yes_value, no_value))
+
+def get_string_input(message, boolean=True, default=""):
+    return str(input(message)) if boolean else default
+
 # Updates
 
 def delete_existing_debate(title):
@@ -141,7 +166,17 @@ def delete_existing_debate(title):
     except Debate.DoesNotExist:
         handle_parse_error("No existing debate with that title.")
 
+def update_debate_input():
+    old_title = get_string_input("Current debate title: ")
+    new_title = get_string_input("New debate title: ")
+    new_short_title = get_string_input("New debate short title: ")
+    new_tags = get_string_input("New debate tags: ")
+    should_update_date = get_boolean_input("Update debate date to today: ")
+    update_debate(old_title, new_title, new_short_title, new_tags, should_update_date)
+
 def update_debate(old_title, new_title="", new_short_title="", new_tags="", should_update_date=False):
+    if not (old_title or new_title or new_short_title or new_tags or should_update_date):
+        handle_parse_error("Missing old title or new debate info")
     try:
         debate = Debate.objects.get(title=old_title)
     except Debate.DoesNotExist:
@@ -152,17 +187,44 @@ def update_debate(old_title, new_title="", new_short_title="", new_tags="", shou
     if new_short_title:
         debate.short_title = new_short_title
     if new_tags:
-        debate.tags = new_tags
+        debate.tags = new_tags.lower()
     if should_update_date:
-        debate.last_updated = datetime.today()
+        debate.last_updated = datetime.now()
     debate.save()
     print("Debate updated!")
 
-def update_or_create_point(create=False, root=False, debate_title="", parent_point = (), old_short_description="", old_description="", new_short_description="", new_description="", new_side="", new_rebuttals=[]):
-    if create and not (new_short_description or new_description or new_side or (debate_title or parent_point)):
-        handle_parse_error("Did not provide a short description, description, side, or parent point/debate for your new point")
-    if not create and (not old_short_description or not old_description):
-        handle_parse_error("Did not provide the old short description and description for your updated point")
+def update_or_create_point_input():
+    create = get_boolean_input("Create new point: ")
+    root = get_boolean_input("Is it a root point: ", create, False)
+    debate_title = get_string_input("For what debate title: ", create, "")
+    parent_point_short_description = get_string_input("Parent point short description: ", create and not root, "")
+    parent_point_description = get_string_input("Parent point description: ", create and not root, "")
+    old_short_description = get_string_input("Old short point description: ", not create, "")
+    old_description = get_string_input("Old point description: ", not create, "")
+    update_old_point = get_boolean_input("Update old point directly: ", not create, "")
+    new_short_description = get_string_input("Short point description: ")
+    new_description = get_string_input("Point description: ")
+    new_side = get_string_input("Point side: ")
+
+    new_rebuttals = []
+    while get_boolean_input("Add rebuttal: "):
+        rebuttal_short_description = get_string_input("Rebuttal short description: ")
+        rebuttal_description = get_string_input("Rebuttal description: ")
+        new_rebuttals.append((rebuttal_short_description, rebuttal_description))
+
+    update_or_create_point(create=create, update_old_point=update_old_point, root=root, debate_title=debate_title, parent_point=(parent_point_short_description, parent_point_description), old_short_description=old_short_description, old_description=old_description, new_short_description=new_short_description, new_description=new_description, new_side=new_side, new_rebuttals=new_rebuttals)
+
+def update_or_create_point(create=False, update_old_point=False, root=False, debate_title="", parent_point = (), old_short_description="", old_description="", new_short_description="", new_description="", new_side="", new_rebuttals=[]):
+    if create:
+        if update_old_point:
+            handle_parse_error("Cannot update old point and create a new one")
+        if not (new_side or (new_side != context_value and new_short_description) or new_description or new_side or debate_title):
+            handle_parse_error("Did not provide a short description, description, side, or parent point/debate for your new point")
+    if not create:
+        if not old_short_description or not old_description or not (new_short_description or new_description or new_side or new_rebuttals):
+            handle_parse_error("Did not provide the old short description and description or any new attributes for your updated point")
+        if old_short_description == new_short_description and old_description == new_description:
+            handle_parse_error("Must change some aspect of the description or short description")
 
     if not create:
         cleaned_old_short_description, _ = parse_hyperlinks(old_short_description)
@@ -181,27 +243,35 @@ def update_or_create_point(create=False, root=False, debate_title="", parent_poi
     new_description_hyperlinks = []
     if new_description:
         description, new_description_hyperlinks = parse_hyperlinks(new_description)
-    if new_side and check_side_is_valid(new_side):
-        side = new_side
+    if new_side:
+        check_side_is_valid(new_side)
+        side = new_side.lower()
 
     debate = None
-    if create and root:
-        if not debate_title:
-            handle_parse_error("Did not provide a debate title")
+    if create:
         try:
-            debate = Debate.objects.get(title=debate_title)
+            parent_debate = Debate.objects.get(title=debate_title)
+            parent_debate.save()
+            if root:
+                debate = parent_debate
         except Debate.DoesNotExist:
             handle_parse_error("No existing debate with the title: ", debate_title)
     else:
         debate = old_point.debate
 
-    if debate:
-        if new_side == context_value:
-            new_point = Point.objects.create(debate=debate, description=description, side=new_side)
+    if update_old_point:
+        new_point = old_point
+        new_point.description = description
+        new_point.short_description = short_description
+        new_point.side = side
+        new_point.save()
+    elif debate:
+        if side == context_value:
+            new_point = Point.objects.create(debate=debate, description=description, side=side)
         else:
-            new_point = Point.objects.create(debate=debate, description=description, short_description=short_description, side=new_side)
+            new_point = Point.objects.create(debate=debate, description=description, short_description=short_description, side=side)
     else:
-        new_point = Point.objects.create(description=description, short_description=short_description, side=new_side)
+        new_point = Point.objects.create(description=description, short_description=short_description, side=side)
 
     if new_rebuttals:
         # Connect new rebuttals
@@ -217,23 +287,29 @@ def update_or_create_point(create=False, root=False, debate_title="", parent_poi
 
     create_hyperlink_objects(new_point, new_short_description_hyperlinks + new_description_hyperlinks)
 
-    if create:
+    if create and not root:
+        cleaned_parent_short_description, _ = parse_hyperlinks(parent_point[0])
+        cleaned_parent_description, _ = parse_hyperlinks(parent_point[1])
         try:
-            cleaned_parent_short_description, _ = parse_hyperlinks(parent_point[0])
-            cleaned_parent_description, _ = parse_hyperlinks(parent_point[1])
             parent_point = Point.objects.get(short_description=cleaned_parent_short_description, description=cleaned_parent_description)
             parent_point.rebuttals.add(new_point)
         except Point.DoesNotExist:
-            handle_parse_error("No existing point with the description: ", cleaned_rebuttal_description)
-    else:
-        # Replace with new point in other manytomany fields
-        old_parent_points = Points.filter(rebuttals=old_point)
-        for old_parent_point in Points.filter(rebuttals=old_point):
+            handle_parse_error("No existing point with the description: ", cleaned_parent_description)
+    elif not create and not update_old_point:
+        for old_parent_point in Point.objects.filter(rebuttals=old_point):
             old_parent_point.rebuttals.add(new_point)
             old_parent_point.save()
 
-    if not create:
+        for old_point_hyperlink in PointHyperlink.objects.filter(point=old_point):
+            old_point_hyperlink.point = new_point
+            old_point_hyperlink.save()
+
         old_point.delete()
+
+    if create:
+        print("Point created!")
+    else:
+        print("Point updated!")
 
 # Parser
 
@@ -244,7 +320,6 @@ def parse_debate_file(local=False, delete_existing=False):
     debate_info_dict = {}
     point_count = 0
     debate_info_dict[last_updated_key] = datetime.today()
-    debate_info_dict[total_points_key] = point_count
 
     point_info_dict = {}
     all_points_dict = {}
@@ -273,7 +348,7 @@ def parse_debate_file(local=False, delete_existing=False):
                 continue
 
             if basic_debate_info_complete(debate_info_dict):
-                new_debate = Debate.objects.create(title=debate_info_dict[title_key], short_title=debate_info_dict[short_title_key], tags=debate_info_dict[tags_key], last_updated=debate_info_dict[last_updated_key], total_points=debate_info_dict[total_points_key])
+                new_debate = Debate.objects.create(title=debate_info_dict[title_key], short_title=debate_info_dict[short_title_key], tags=debate_info_dict[tags_key], last_updated=debate_info_dict[last_updated_key])
 
         if is_parsing_points: # points section
             if check_for_key(root_key, line):
@@ -284,10 +359,14 @@ def parse_debate_file(local=False, delete_existing=False):
                 point_info_dict[key_key] = int(get_value_for_key(key_key, line))
             elif check_for_key(description_key, line):
                 description = get_value_for_key(description_key, line)
-                description, point_info_dict[hyperlinks_key] = parse_hyperlinks(description)
+                description, hyperlinks = parse_hyperlinks(description)
+                point_info_dict = add_hyperlinks(point_info_dict, hyperlinks)
                 point_info_dict[description_key] = description
             elif check_for_key(short_description_key, line):
-                point_info_dict[short_description_key] = get_value_for_key(short_description_key, line)
+                short_description = get_value_for_key(short_description_key, line)
+                short_description, hyperlinks = parse_hyperlinks(description)
+                point_info_dict = add_hyperlinks(point_info_dict, hyperlinks)
+                point_info_dict[short_description_key] = short_description
             elif check_for_key(side_key, line):
                 side = get_value_for_key(side_key, line)
                 check_side_is_valid(side)
@@ -324,8 +403,4 @@ def parse_debate_file(local=False, delete_existing=False):
                 rebuttal = all_points_dict[rebuttal_pk][object_key]
                 point_object.rebuttals.add(rebuttal)
             point_object.save()
-
-    debate_info_dict[total_points_key] = point_count
-    new_debate.total_points = point_count
-    new_debate.save()
     print("Debate created!")

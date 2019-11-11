@@ -30,12 +30,7 @@ class DebateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Debate
-        fields = (pk_key, title_key, short_title_key, last_updated_key, total_points_key, debate_map_key)
-
-class DebateFilterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Debate
-        fields = (pk_key, title_key, short_title_key, last_updated_key, total_points_key)
+        fields = (pk_key, title_key, short_title_key, last_updated_key, debate_map_key)
 
 
 # PROGRESS
@@ -43,7 +38,7 @@ class DebateFilterSerializer(serializers.ModelSerializer):
 class ProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Progress
-        fields = (debate_key, completed_percentage_key, seen_points_key,)
+        fields = (debate_key, seen_points_key,)
 
 # STARRED
 

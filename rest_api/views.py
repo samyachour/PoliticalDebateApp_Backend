@@ -29,7 +29,7 @@ from pprint import pprint
 
 class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
-    serializer_class = DebateFilterSerializer
+    serializer_class = DebateSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'FilterDebates'
 
@@ -156,14 +156,12 @@ class AllProgressView(generics.RetrieveAPIView):
             progress = self.queryset.get(user=request.user, debate=debate)
 
             progress.seen_points.add(new_point) # add uses a set semantic to prevent duplicates
-            progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
             progress.save()
 
         except Progress.DoesNotExist:
             progress = Progress.objects.create(
                 user=request.user,
-                debate=debate,
-                completed_percentage= (1 / (debate.total_points * 1.0)) * 100
+                debate=debate
             )
             progress.seen_points.add(new_point)
             progress.save()
@@ -196,8 +194,7 @@ class ProgressBatchView(generics.UpdateAPIView):
             except Progress.DoesNotExist:
                 progress = Progress.objects.create(
                     user=request.user,
-                    debate=debate,
-                    completed_percentage=(len(progress_input[seen_points_key]) / (debate.total_points * 1.0)) * 100
+                    debate=debate
                 )
 
             all_points = Point.objects.all()
@@ -209,7 +206,6 @@ class ProgressBatchView(generics.UpdateAPIView):
                     # Fail silently in finding the new point object because we could receive a batch request with old debate points that have since been deleted
                     continue
 
-            progress.completed_percentage = (len(progress.seen_points.all()) / (debate.total_points * 1.0)) * 100
             progress.save()
 
         return Response(success_response, status=status.HTTP_201_CREATED)

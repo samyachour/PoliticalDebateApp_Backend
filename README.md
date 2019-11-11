@@ -50,7 +50,6 @@ Instructions:
         - short_title: String
         - tags: String (optional)
         - last_updated: Date
-        - total_points: Int
         - debate_map: JSON Dict [String: Array[String]]
     - Point
         - debate: Debate (foreign key) (optional)
@@ -64,7 +63,6 @@ Instructions:
     - Progress
         - user: User (foreign key)
         - debate: Debate (foreign key)
-        - completed_percentage: Int
         - seen_points: Points (ManyToMany)
     - Starred
         - user: User (foreign key)
@@ -104,7 +102,6 @@ GET
 
 ##### `debate/filter/`
 
-- the debate maps do not come in this call
 - all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**
 - response array limit is 100 debates, e.g.:
     - if a user has starred more than 100 debates they will get the most recently updated 100
