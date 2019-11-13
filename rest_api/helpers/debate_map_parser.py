@@ -175,12 +175,12 @@ def update_debate_input():
     update_debate(old_title, new_title, new_short_title, new_tags, should_update_date)
 
 def update_debate(old_title, new_title="", new_short_title="", new_tags="", should_update_date=False):
-    if not (old_title or new_title or new_short_title or new_tags or should_update_date):
+    if not old_title or not (new_title or new_short_title or new_tags or should_update_date):
         handle_parse_error("Missing old title or new debate info")
     try:
         debate = Debate.objects.get(title=old_title)
     except Debate.DoesNotExist:
-        handle_parse_error("No existing debate with that title.")
+        handle_parse_error("No existing debate with the title: ", old_title)
 
     if new_title:
         debate.title = new_title
