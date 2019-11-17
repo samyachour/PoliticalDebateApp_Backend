@@ -10,9 +10,9 @@ import sys
 from pprint import pprint
 
 # Run in shell:
-# from rest_api.helpers.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
-# from rest_api.helpers.debate_map_parser import update_debate_input; update_debate_input(); exit();
-# from rest_api.helpers.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
+# from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
+# from rest_api.utils.debate_map_parser import update_debate_input; update_debate_input(); exit();
+# from rest_api.utils.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
 
 # Constants
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
 from datetime import datetime
-from .helpers.constants import *
+from .utils.constants import *
 
 # DEBATES
 
@@ -27,7 +27,7 @@ class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
     substring = models.CharField(max_length=255, null=False)
     url = models.URLField(max_length=255, null=False)
-
+from rest_api.models import *;
 # PROGRESS
 
 class Progress(models.Model):

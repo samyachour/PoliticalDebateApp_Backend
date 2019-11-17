@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.views import APIView
 from .decorators import *
-from .helpers.tokens import account_verification_token
-from .helpers.email_verification import email_verification
-from .helpers.constants import *
+from .utils.token_generator import account_verification_token
+from .utils.email_verification import email_verification
+from .utils.constants import *
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.http import HttpResponse
