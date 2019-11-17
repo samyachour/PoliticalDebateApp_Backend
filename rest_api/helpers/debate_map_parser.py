@@ -19,7 +19,7 @@ from pprint import pprint
 key_key = "key"
 root_key = "root"
 object_key = "object"
-pro_value = "pro"
+lib_value = "lib"
 con_value = "con"
 context_value = "context"
 yes_value = "y"
@@ -130,7 +130,7 @@ def get_debate_map_lines(local):
             return [line.decode('utf-8') for line in debate_map.readlines()]
 
 def check_side_is_valid(side):
-    if side.lower() not in [pro_value, con_value, context_value]:
+    if side.lower() not in [lib_value, con_value, context_value]:
         handle_parse_error("Invalid side: ", side)
 
 def create_hyperlink_objects(point, hyperlinks):
