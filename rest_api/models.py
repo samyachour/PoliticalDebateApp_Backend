@@ -10,7 +10,7 @@ from .utils.constants import *
 class Debate(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     short_title = models.CharField(max_length=255, null=False)
-    tags = models.CharField(max_length=255, null=True, blank=True)
+    tags = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(default=timezone.now, null=False)
 
 class Point(models.Model):
@@ -29,7 +29,7 @@ class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
     substring = models.TextField(null=False)
     url = models.TextField(null=False, validators=[URLValidator()])
-from rest_api.models import *;
+
 # PROGRESS
 
 class Progress(models.Model):
