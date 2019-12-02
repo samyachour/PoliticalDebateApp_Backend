@@ -1,7 +1,7 @@
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode
-from .tokens import account_verification_token
+from .token_generator import account_verification_token
 from django.core.mail import send_mail
 from .constants import *
 from django.conf import settings

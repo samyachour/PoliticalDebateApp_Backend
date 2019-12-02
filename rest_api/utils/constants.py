@@ -42,6 +42,7 @@ description_key = "description"
 side_key = "side"
 hyperlinks_key = "hyperlinks"
 rebuttals_key = "rebuttals"
+time_added_key = "time_added"
 
 name_key = "name"
 substring_key = "substring"

@@ -8,7 +8,7 @@ from .serializers import *
 import json
 from datetime import datetime
 from .views import *
-from .helpers.constants import *
+from .utils.constants import *
 
 # tests for views
 

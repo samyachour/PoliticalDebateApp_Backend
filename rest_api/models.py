@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
-from datetime import datetime
-from .helpers.constants import *
+from django.core.validators import URLValidator
+from django.utils import timezone
+from .utils.constants import *
 
 # DEBATES
 
@@ -10,24 +11,25 @@ class Debate(models.Model):
     title = models.CharField(max_length=255, null=False, unique=True)
     short_title = models.CharField(max_length=255, null=False)
     tags = models.CharField(max_length=255, null=True, blank=True)
-    last_updated = models.DateField(default=datetime.today, null=False)
+    last_updated = models.DateTimeField(default=timezone.now, null=False)
 
 class Point(models.Model):
     # Optional because only root points should reference debate directly
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, null=True, blank=True)
     side = models.CharField(max_length=255, null=False)
-    short_description = models.CharField(max_length=255, null=False)
-    description = models.CharField(max_length=255, null=False)
+    short_description = models.TextField(null=False)
+    description = models.TextField(null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
+    time_added = models.DateTimeField(default=timezone.now, blank=True)
 
     class Meta:
         unique_together = (short_description_key, description_key,)
 
 class PointHyperlink(models.Model):
     point = models.ForeignKey(Point, on_delete=models.CASCADE)
-    substring = models.CharField(max_length=255, null=False)
-    url = models.URLField(max_length=255, null=False)
-
+    substring = models.TextField(null=False)
+    url = models.TextField(null=False, validators=[URLValidator()])
+from rest_api.models import *;
 # PROGRESS
 
 class Progress(models.Model):

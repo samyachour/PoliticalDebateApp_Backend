@@ -54,7 +54,7 @@ Instructions:
     - Point
         - debate: Debate (foreign key) (optional)
         - description: String
-        - side: String ("pro" or "con")
+        - side: String ("lib", "con", or "context")
         - rebuttals: Points (ManyToMany) (optional)
     - PointHyperlink
         - point: Point (foreign key)

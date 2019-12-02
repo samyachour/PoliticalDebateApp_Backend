@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import random
 
 # Run in shell:
-# from rest_api.helpers.generate_database import generate_accounts, generate_debates; generate_accounts(); generate_debates(); exit();
+# from rest_api.utils.generate_database import generate_accounts, generate_debates; generate_accounts(); generate_debates(); exit();
 
 def boolean_probability(percent=50):
     return random.randrange(100) < percent
