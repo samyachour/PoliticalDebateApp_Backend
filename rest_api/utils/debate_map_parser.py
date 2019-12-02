@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
+from rest_framework.response import Response
 from rest_api.models import *
+from rest_api.serializers import *
 from .constants import *
-from datetime import datetime, timedelta
+from django.utils import timezone
 from string import punctuation
 from github import Github
 import os
@@ -47,7 +49,7 @@ def get_value_for_key(key, source_string):
     return value_string.replace(":","",1).lstrip().rstrip()
 
 def basic_debate_info_complete(debate_info_dict):
-    return title_key in debate_info_dict and short_title_key in debate_info_dict and tags_key in debate_info_dict and last_updated_key in debate_info_dict
+    return title_key in debate_info_dict and short_title_key in debate_info_dict and tags_key in debate_info_dict
 
 def basic_point_info_complete(point_info_dict):
     if side_key not in point_info_dict:
@@ -85,16 +87,16 @@ def parse_hyperlinks(description):
             if is_parsing_substring:
                 is_parsing_substring = False
             else:
-                handle_parse_error("Cannot have closed bracket ] without matching open bracket.")
+                handle_parse_error("Cannot have closed bracket ] without matching open bracket.", description)
             current_hyperlink[substring_key] = substring
             if any(char in substring for char in special_format_characters):
-                handle_parse_error("Cannot have special formatting characters inside hyperlink string:", substring)
+                handle_parse_error("Cannot have special formatting characters inside hyperlink string.", description)
             substring = ""
         if is_parsing_substring:
             substring += char
         if char == '[':
             if is_parsing_substring:
-                handle_parse_error("Cannot have open bracket [ after another open bracket.")
+                handle_parse_error("Cannot have open bracket [ after another open bracket.", description)
             else:
                 is_parsing_substring = True
 
@@ -109,7 +111,7 @@ def parse_hyperlinks(description):
             hyperlink += char
         if char == '(' and substring_key in current_hyperlink:
             if is_parsing_hyperlink:
-                handle_parse_error("Cannot have open parentheses ( after another open parentheses.")
+                handle_parse_error("Cannot have open parentheses ( after another open parentheses.", description)
             else:
                 is_parsing_hyperlink = True
 
@@ -189,7 +191,7 @@ def update_debate(old_title, new_title="", new_short_title="", new_tags="", shou
     if new_tags:
         debate.tags = new_tags.lower()
     if should_update_date:
-        debate.last_updated = datetime.now()
+        debate.last_updated = timezone.now()
     debate.save()
     print("Debate updated!")
 
@@ -319,7 +321,6 @@ def parse_debate_file(local=False, delete_existing=False):
 
     debate_info_dict = {}
     point_count = 0
-    debate_info_dict[last_updated_key] = datetime.today()
 
     point_info_dict = {}
     all_points_dict = {}
@@ -348,7 +349,7 @@ def parse_debate_file(local=False, delete_existing=False):
                 continue
 
             if basic_debate_info_complete(debate_info_dict):
-                new_debate = Debate.objects.create(title=debate_info_dict[title_key], short_title=debate_info_dict[short_title_key], tags=debate_info_dict[tags_key], last_updated=debate_info_dict[last_updated_key])
+                new_debate = Debate.objects.create(title=debate_info_dict[title_key], short_title=debate_info_dict[short_title_key], tags=debate_info_dict[tags_key])
 
         if is_parsing_points: # points section
             if check_for_key(root_key, line):
@@ -364,7 +365,7 @@ def parse_debate_file(local=False, delete_existing=False):
                 point_info_dict[description_key] = description
             elif check_for_key(short_description_key, line):
                 short_description = get_value_for_key(short_description_key, line)
-                short_description, hyperlinks = parse_hyperlinks(description)
+                short_description, hyperlinks = parse_hyperlinks(short_description)
                 point_info_dict = add_hyperlinks(point_info_dict, hyperlinks)
                 point_info_dict[short_description_key] = short_description
             elif check_for_key(side_key, line):
@@ -384,9 +385,9 @@ def parse_debate_file(local=False, delete_existing=False):
                     if point_info_dict[side_key] == context_value:
                         new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], side=point_info_dict[side_key])
                     else:
-                        new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], short_description=point_info_dict[short_description_key],  side=point_info_dict[side_key])
+                        new_point = Point.objects.create(debate=new_debate, description=point_info_dict[description_key], short_description=point_info_dict[short_description_key], side=point_info_dict[side_key])
                 else:
-                    new_point = Point.objects.create(description=point_info_dict[description_key], short_description=point_info_dict[short_description_key],  side=point_info_dict[side_key])
+                    new_point = Point.objects.create(description=point_info_dict[description_key], short_description=point_info_dict[short_description_key], side=point_info_dict[side_key])
 
                 create_hyperlink_objects(new_point, point_info_dict[hyperlinks_key])
 
@@ -403,4 +404,11 @@ def parse_debate_file(local=False, delete_existing=False):
                 rebuttal = all_points_dict[rebuttal_pk][object_key]
                 point_object.rebuttals.add(rebuttal)
             point_object.save()
+
+    # Check for infinite recursion
+    try:
+        DebateSerializer(new_debate).data
+    except Exception as e:
+        handle_parse_error("Could not serialize debate.", e)
+
     print("Debate created!")

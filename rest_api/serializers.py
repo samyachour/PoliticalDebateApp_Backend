@@ -26,7 +26,11 @@ class PointSerializer(serializers.ModelSerializer):
         fields = (pk_key, short_description_key, description_key, side_key, hyperlinks_key, rebuttals_key)
 
 class DebateSerializer(serializers.ModelSerializer):
-    debate_map = PointSerializer(many=True, source='point_set') # one to many
+    debate_map = serializers.SerializerMethodField()
+
+    def get_debate_map(self, instance):
+        root_points = Point.objects.all().filter(debate=instance).order_by(time_added_key)
+        return PointSerializer(root_points, many=True).data
 
     class Meta:
         model = Debate
