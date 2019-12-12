@@ -1,27 +1,3 @@
-## Political debate app (master)
-
-This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management.
-
-### The app
-
-The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
-
-The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
-
-#### Debate maps
-
-The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
-
-The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
-
-#### Misc
-
-- We aggregate commits onto develop and merge onto master weekly incrementing version by release e.g. 'x.1' > 'x.2'
-    - branches off develop must be associated with an existing issue and follow the naming convention 'issue[#]/[type]/[name]' for example 'issue7/enhancement/BasicDjangoRestSetup'
-        - if necessary, we can create (& merge) hotfix branches off of master
-    - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
-- We use [test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
-
 ## Political debate app (backend)
 
 This repo is the backend for each of the 3 frontend repos ([web](https://github.com/samyachour/PoliticalDebateApp_Web), [iOS](https://github.com/samyachour/PoliticalDebateApp_iOS), and [Android](https://github.com/samyachour/PoliticalDebateApp_Android)). It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management that is automatically managed by issues & pull requests.
