@@ -2,10 +2,6 @@
 
 This repo is the backend for each of the 3 frontend repos ([web](https://github.com/samyachour/PoliticalDebateApp_Web), [iOS](https://github.com/samyachour/PoliticalDebateApp_iOS), and [Android](https://github.com/samyachour/PoliticalDebateApp_Android)). It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management that is automatically managed by issues & pull requests.
 
-### Framework
-
-For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) backed by [PostgreSQL](https://www.postgresql.org) and hosted on [Heroku](https://www.heroku.com).
-
 #### Setup
 
 Dependencies
