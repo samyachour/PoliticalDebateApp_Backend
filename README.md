@@ -25,13 +25,14 @@ Instructions:
         - title: String (unique)
         - short_title: String
         - tags: String (optional)
-        - last_updated: Date
-        - debate_map: JSON Dict [String: Array[String]]
+        - last_updated: DateTime
     - Point
         - debate: Debate (foreign key) (optional)
-        - description: String
+        - description: String (primary key part 1)
+        - short_description: String (primary key part 2)
         - side: String ("lib", "con", or "context")
         - rebuttals: Points (ManyToMany) (optional)
+        - time_added: DateTime
     - PointHyperlink
         - point: Point (foreign key)
         - substring: String
@@ -53,7 +54,7 @@ Instructions:
 
 - debug URL: `https://politicaldebateapp-debug.herokuapp.com/api/`
     - endpoint throttling is turned off
-    - has hundreds of dummy debates
+    - has hundreds of dummy debates and test accounts
     - produces verbose logs on the backend
     - emails don't really send, they just get logged
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
