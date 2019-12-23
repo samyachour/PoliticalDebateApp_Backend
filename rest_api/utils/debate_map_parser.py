@@ -15,6 +15,7 @@ from pprint import pprint
 # from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
 # from rest_api.utils.debate_map_parser import update_debate_input; update_debate_input(); exit();
 # from rest_api.utils.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
+# from rest_api.utils.debate_map_parser import parse_debate_file; delete_existing_debate("title"); exit();
 
 # Constants
 
@@ -166,7 +167,19 @@ def delete_existing_debate(title):
     try:
         Debate.objects.get(title=title).delete()
     except Debate.DoesNotExist:
-        handle_parse_error("No existing debate with that title.")
+        handle_parse_error("No existing debate with the title: ", title)
+    for point in Point.objects.all().filter(debate=None):
+        # If child point doesn't exist in any rebuttals
+        if not point.point_set.exists():
+            point.delete()
+
+def check_if_debate_exists(title):
+    try:
+        Debate.objects.get(title=title)
+        # We found a debate w/ that title
+        handle_parse_error("Debate exists with the title: ", title)
+    except:
+        return
 
 def update_debate_input():
     old_title = get_string_input("Current debate title: ")
@@ -339,6 +352,8 @@ def parse_debate_file(local=False, delete_existing=False):
                 title = get_value_for_key(title_key, line)
                 if delete_existing:
                     delete_existing_debate(title)
+                else:
+                    check_if_debate_exists(title)
                 debate_info_dict[title_key] = title
             elif check_for_key(short_title_key, line):
                 debate_info_dict[short_title_key] = get_value_for_key(short_title_key, line)
