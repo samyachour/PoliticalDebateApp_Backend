@@ -1,6 +1,6 @@
-certifi==2019.9.11
+certifi==2019.11.28
 chardet==3.0.4
-Deprecated==1.2.6
+Deprecated==1.2.7
 dj-database-url==0.5.0
 Django==3.0.1
 django-heroku==0.3.1
@@ -8,7 +8,6 @@ djangorestframework==3.11.0
 djangorestframework-simplejwt==4.4.0
 gunicorn==20.0.4
 idna==2.8
-psycopg2==2.8.4
 PyGithub==1.44.1
 PyJWT==1.7.1
 pytz==2019.3
@@ -17,3 +16,4 @@ sqlparse==0.3.0
 urllib3==1.25.7
 whitenoise==5.0.1
 wrapt==1.11.2
+psycopg2==2.8.4
