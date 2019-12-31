@@ -7,7 +7,7 @@ from django.utils import timezone
 from string import punctuation
 from github import Github
 import os
-from urllib.request import urlopen
+from urlpro.request import urlopen
 import sys
 from pprint import pprint
 
@@ -22,7 +22,7 @@ from pprint import pprint
 key_key = "key"
 root_key = "root"
 object_key = "object"
-lib_value = "lib"
+pro_value = "pro"
 con_value = "con"
 context_value = "context"
 yes_value = "y"
@@ -133,7 +133,7 @@ def get_debate_map_lines(local):
             return [line.decode('utf-8') for line in debate_map.readlines()]
 
 def check_side_is_valid(side):
-    if side.lower() not in [lib_value, con_value, context_value]:
+    if side.lower() not in [pro_value, con_value, context_value]:
         handle_parse_error("Invalid side: ", side)
 
 def create_hyperlink_objects(point, hyperlinks):
