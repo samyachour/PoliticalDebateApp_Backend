@@ -495,7 +495,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
         if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
-                    message_key: "Please verify your email."
+                    message_key: "Email is unverified."
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

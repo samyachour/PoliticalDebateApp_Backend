@@ -108,7 +108,7 @@ verify_string = "verify"
 success_response = "Success"
 
 # Error messages
-invalid_email_error = "Could not send, email is invalid."
+invalid_email_error = "Verification link couldn't be sent to the given email."
 invalid_link_error = "Link is invalid."
 
 debate_get_error = "A debate ID is required."
@@ -134,5 +134,5 @@ register_post_error = "Both an email and a password are required to register a u
 change_password_post_error = "Both the old and new password are required to change user's password."
 change_email_post_error = "A new email is required to change the user's email."
 request_password_reset_post_error = "Need an email to request a password reset."
-already_using_email_error = "User is already using this email."
-account_exists_error = "An account with that email exists."
+already_using_email_error = "Already using this email."
+account_exists_error = "An account associated with that email already exists."

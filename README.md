@@ -1,34 +1,6 @@
-## Political debate app (master)
-
-This repo is the master for all our code repos. It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management.
-
-### The app
-
-The political debate app concept is simple: explore the full debate map of a given issue via an interactive (bandersnatch-esque) interface.
-
-The intended user base is anyone who wants to solidify their arguments for a certain issue or explore the other side's perspective.
-
-#### Debate maps
-
-The app's backend content can be modified by creating JSON files called [debate maps](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json).
-
-The backend feeds these to the clients who know how to navigate & display these maps (need to handle logic locally in case user is not logged in (or potentially offline), will have to store progress anyway).
-
-#### Misc
-
-- We aggregate commits onto develop and merge onto master weekly incrementing version by release e.g. 'x.1' > 'x.2'
-    - branches off develop must be associated with an existing issue and follow the naming convention 'issue[#]/[type]/[name]' for example 'issue7/enhancement/BasicDjangoRestSetup'
-        - if necessary, we can create (& merge) hotfix branches off of master
-    - submit pull requests to develop & attach a reviewer & associated issue (to automate kanban board task management)
-- We use [test-driven-development](https://en.wikipedia.org/wiki/Test-driven_development) to ensure minimal code debt.
-
 ## Political debate app (backend)
 
 This repo is the backend for each of the 3 frontend repos ([web](https://github.com/samyachour/PoliticalDebateApp_Web), [iOS](https://github.com/samyachour/PoliticalDebateApp_iOS), and [Android](https://github.com/samyachour/PoliticalDebateApp_Android)). It has a [kanban board](https://github.com/samyachour/PoliticalDebateApp_Backend/projects/1?fullscreen=true) for task management that is automatically managed by issues & pull requests.
-
-### Framework
-
-For our backend we use the [Django Rest Framework](https://www.django-rest-framework.org) backed by [PostgreSQL](https://www.postgresql.org) and hosted on [Heroku](https://www.heroku.com).
 
 #### Setup
 
@@ -49,13 +21,14 @@ Instructions:
         - title: String (unique)
         - short_title: String
         - tags: String (optional)
-        - last_updated: Date
-        - debate_map: JSON Dict [String: Array[String]]
+        - last_updated: DateTime
     - Point
         - debate: Debate (foreign key) (optional)
-        - description: String
+        - description: String (primary key part 1)
+        - short_description: String (primary key part 2)
         - side: String ("lib", "con", or "context")
         - rebuttals: Points (ManyToMany) (optional)
+        - time_added: DateTime
     - PointHyperlink
         - point: Point (foreign key)
         - substring: String
@@ -77,14 +50,14 @@ Instructions:
 
 - debug URL: `https://politicaldebateapp-debug.herokuapp.com/api/`
     - endpoint throttling is turned off
-    - has hundreds of dummy debates
+    - has hundreds of dummy debates and test accounts
     - produces verbose logs on the backend
     - emails don't really send, they just get logged
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
 - our current API version is v1, so all endpoints start with `v1/`
 - use `%20` for spaces
 - all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
-- all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses) for clients to use as mocked responses in local unit testing.
+- all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses) for clients to use as mocked responses in local unit testing.
 
 ---
 #### DEBATES
@@ -98,7 +71,7 @@ GET
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateSingle.json)) or `404`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateSingle.json)) or `404`
 
 ##### `debate/filter/`
 
@@ -137,7 +110,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/DebateFilter.json)) or `404`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateFilter.json)) or `404`
 
 ---
 #### PROGRESS
@@ -159,7 +132,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/ProgressAll.json))
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/ProgressAll.json))
 
 ##### `progress/`
 
@@ -245,7 +218,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/Starred.json))
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/Starred.json))
 
 ##### `starred/`
 
@@ -341,7 +314,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenObtain.json)) or `400`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenObtain.json)) or `400`
 
 ##### `auth/token/refresh/`
 
@@ -362,7 +335,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/TokenRefresh.json)) or `400`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenRefresh.json)) or `400`
 
 ##### `auth/change-password/`
 
@@ -433,7 +406,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/StubbedResponses/GetCurrentEmail.json)) or `401`
+`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/GetCurrentEmail.json)) or `401`
 
 ##### `auth/request-verification-link/`
 
