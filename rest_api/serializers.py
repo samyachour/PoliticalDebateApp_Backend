@@ -34,7 +34,7 @@ class DebateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Debate
-        fields = (pk_key, title_key, short_title_key, last_updated_key, debate_map_key)
+        fields = (pk_key, title_key, short_title_key, last_updated_key, tags_key, debate_map_key)
 
 
 # PROGRESS
