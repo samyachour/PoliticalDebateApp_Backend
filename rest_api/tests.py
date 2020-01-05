@@ -6,7 +6,7 @@ from rest_framework.views import status
 from rest_api.models import *
 from .serializers import *
 import json
-from datetime import datetime
+from django.utils import timezone
 from .views import *
 from .utils.constants import *
 
@@ -288,26 +288,25 @@ class BaseViewTest(APITestCase):
             email="test@mail.com",
             password="testing"
         )
-        self.today = datetime.today()
         self.requestFactory = APIRequestFactory()
 
 
         # add test data
 
-        self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", last_updated=self.today, tags="gun control, school shootings")
+        self.gun_control = Debate.objects.create(title="Should we ban assault rifles?", short_title="Assault rifle ban", tags="gun control, school shootings")
         self.gun_control_point_1 = Point.objects.create(debate=self.gun_control, short_description="Civilians can't own tanks though", description="We don't allow citizens to own seriously destructive weapons. Don't assault rifles count in that category?")
         self.gun_control_point_2 = Point.objects.create(debate=self.gun_control, short_description="But the 2nd amendment", description="Our forefathers fought a tyrannous British Monarchy for their right to independence driven by the 2nd amendment.")
         self.create_progress_point(self.user, self.gun_control, self.gun_control_point_1)
 
-        self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights", last_updated=self.today)
+        self.abortion = Debate.objects.create(title="Is it a woman's right to choose?", short_title="Abortion rights")
         self.abortionPoint = Point.objects.create(debate=self.abortion, short_description="Is it a woman's right to choose?", description="Did the woman not sign off on her complete rights to her body when she risked pregnancy?")
         self.abortionPointHyperlink = PointHyperlink.objects.create(point=self.abortionPoint, substring="a woman's right to", url="www.vox.com/abortion")
         self.create_progress_point(self.user, self.abortion, self.abortionPoint)
 
-        self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall", last_updated=self.today)
+        self.border_wall = Debate.objects.create(title="Is the border wall an effective idea?", short_title="Border wall")
         self.border_wall_point = Point.objects.create(debate=self.border_wall, short_description="Is it an effective border security tool?", description="The border wall will cost billions, is it really an effective use of taxpayer dollars?")
 
-        self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting", last_updated=self.today)
+        self.vetting = Debate.objects.create(title="Are we doing enough vetting?", short_title="Vetting")
         self.vetting_point = Point.objects.create(debate=self.vetting, short_description="Are we doing enough?", description="Is our current vetting process thorough enough to keep out bad actors?")
 
         self.starred_list = self.create_starred_list(self.user, self.gun_control)
@@ -317,20 +316,21 @@ class BaseViewTest(APITestCase):
 
 class DebateModelTest(BaseViewTest):
     def test_basic_create_a_debate(self):
+        now = timezone.now()
         debate = Debate.objects.create(
             title="Test debate",
-            last_updated=self.today
+            last_updated=now
         )
         self.assertEqual(debate.title, "Test debate")
-        self.assertEqual(debate.last_updated, self.today)
+        self.assertEqual(debate.last_updated, now)
 
 class GetAllDebatesTest(BaseViewTest):
 
     def test_get_all_debates(self):
         response = self.filter_debates({})
-        expected = Debate.objects.all()
+        expected = Debate.objects.all().order_by('-' + last_updated_key)
         serialized = DebateSerializer(expected, many=True)
-        self.assertEqual(response.data, serialized.data)
+        self.assertListEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class FilterDebatesTest(BaseViewTest):

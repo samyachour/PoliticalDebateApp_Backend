@@ -7,7 +7,7 @@ from django.utils import timezone
 from string import punctuation
 from github import Github
 import os
-from urlpro.request import urlopen
+from urllib.request import urlopen
 import sys
 from pprint import pprint
 
@@ -15,7 +15,7 @@ from pprint import pprint
 # from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
 # from rest_api.utils.debate_map_parser import update_debate_input; update_debate_input(); exit();
 # from rest_api.utils.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
-# from rest_api.utils.debate_map_parser import parse_debate_file; delete_existing_debate("title"); exit();
+# from rest_api.utils.debate_map_parser import delete_existing_debate; delete_existing_debate("title"); exit();
 
 # Constants
 
@@ -163,11 +163,12 @@ def get_string_input(message, boolean=True, default=""):
 
 # Updates
 
-def delete_existing_debate(title):
+def delete_existing_debate(title, force=True):
     try:
         Debate.objects.get(title=title).delete()
     except Debate.DoesNotExist:
-        handle_parse_error("No existing debate with the title: ", title)
+        if force:
+            handle_parse_error("No existing debate with the title: ", title)
     for point in Point.objects.all().filter(debate=None):
         # If child point doesn't exist in any rebuttals
         if not point.point_set.exists():
