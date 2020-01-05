@@ -10,6 +10,7 @@ import os
 from urllib.request import urlopen
 import sys
 from pprint import pprint
+import re
 
 # Run in shell:
 # from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
@@ -146,6 +147,9 @@ def add_hyperlinks(point_info_dict, hyperlinks):
     else:
         point_info_dict[hyperlinks_key] = hyperlinks
     return point_info_dict
+
+def format_tags(tags):
+    return re.sub(' +', ' ', tags)
 
 def get_boolean_input(message, boolean=True, default=False):
     if not boolean:
@@ -359,7 +363,7 @@ def parse_debate_file(local=False, delete_existing=False):
             elif check_for_key(short_title_key, line):
                 debate_info_dict[short_title_key] = get_value_for_key(short_title_key, line)
             elif check_for_key(tags_key, line):
-                debate_info_dict[tags_key] = get_value_for_key(tags_key, line)
+                debate_info_dict[tags_key] = format_tags(get_value_for_key(tags_key, line))
             elif check_for_key("Points", line):
                 is_parsing_points = True
                 continue

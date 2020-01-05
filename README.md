@@ -5,7 +5,7 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 #### Setup
 
 Dependencies
-- [see file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/requirements.txt)
+- [see file here](requirements.txt)
 
 Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
@@ -56,8 +56,8 @@ Instructions:
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
 - our current API version is v1, so all endpoints start with `v1/`
 - use `%20` for spaces
-- all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
-- all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses) for clients to use as mocked responses in local unit testing.
+- all endpoints are [throttled](PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
+- all endpoint responses are available as [stubbed JSON files](stubbed_responses) for clients to use as mocked responses in local unit testing.
 
 ---
 #### DEBATES
@@ -71,7 +71,7 @@ GET
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateSingle.json)) or `404`
+`200` ([See file here](stubbed_responses/DebateSingle.json)) or `404`
 
 ##### `debate/filter/`
 
@@ -110,7 +110,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateFilter.json)) or `404`
+`200` ([See file here](stubbed_responses/DebateFilter.json)) or `404`
 
 ---
 #### PROGRESS
@@ -132,7 +132,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/ProgressAll.json))
+`200` ([See file here](stubbed_responses/ProgressAll.json))
 
 ##### `progress/`
 
@@ -218,7 +218,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/Starred.json))
+`200` ([See file here](stubbed_responses/Starred.json))
 
 ##### `starred/`
 
@@ -314,7 +314,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenObtain.json)) or `400`
+`200` ([See file here](stubbed_responses/TokenObtain.json)) or `400`
 
 ##### `auth/token/refresh/`
 
@@ -335,7 +335,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenRefresh.json)) or `400`
+`200` ([See file here](stubbed_responses/TokenRefresh.json)) or `400`
 
 ##### `auth/change-password/`
 
@@ -406,7 +406,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/GetCurrentEmail.json)) or `401`
+`200` ([See file here](stubbed_responses/GetCurrentEmail.json)) or `401`
 
 ##### `auth/request-verification-link/`
 
