@@ -55,8 +55,7 @@ Instructions:
     - emails don't really send, they just get logged
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
 - our current API version is v1, so all endpoints start with `v1/`
-- use `%20` for spaces
-- all endpoints are [throttled](PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
+- all endpoints are [throttled](PoliticalDebateApp/settings.py#L77)
 - all endpoint responses are available as [stubbed JSON files](stubbed_responses) for clients to use as mocked responses in local unit testing.
 
 ---
