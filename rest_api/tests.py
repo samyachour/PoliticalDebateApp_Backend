@@ -329,7 +329,7 @@ class GetAllDebatesTest(BaseViewTest):
     def test_get_all_debates(self):
         response = self.filter_debates({})
         expected = Debate.objects.all().order_by('-' + last_updated_key)
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertListEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -341,7 +341,7 @@ class FilterDebatesTest(BaseViewTest):
         response = self.filter_debates({
             search_string_key: "gun"
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -349,7 +349,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk],
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -358,7 +358,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: starred_filter_value,
             all_starred_key: [self.gun_control.pk]
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -367,7 +367,7 @@ class FilterDebatesTest(BaseViewTest):
             filter_key: progress_filter_value,
             all_progress_key: [self.gun_control.pk]
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -383,7 +383,7 @@ class FilterDebatesTest(BaseViewTest):
             search_string_key: "gun",
             filter_key: last_updated_filter_value
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -391,7 +391,7 @@ class FilterDebatesTest(BaseViewTest):
             search_string_key: "gun",
             filter_key: random_filter_value
         })
-        serialized = DebateSerializer(expected, many=True)
+        serialized = DebateFilterSerializer(expected, many=True)
         self.assertEqual(response.data, serialized.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

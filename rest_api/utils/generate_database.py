@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_api.models import *
 from django.utils import timezone
 import random
-from .debate_map_parser import delete_existing_debate
+from .shell_utils import delete_existing_debate
 
 # Run in shell:
 # from rest_api.utils.generate_database import generate_accounts, generate_debates; generate_accounts(); generate_debates(); exit();

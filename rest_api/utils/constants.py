@@ -36,6 +36,7 @@ short_title_key = "short_title"
 tags_key = "tags"
 last_updated_key = "last_updated"
 debate_map_key = "debate_map"
+total_points_key = "total_points"
 
 short_description_key = "short_description"
 description_key = "description"
@@ -43,6 +44,10 @@ side_key = "side"
 hyperlinks_key = "hyperlinks"
 rebuttals_key = "rebuttals"
 time_added_key = "time_added"
+
+pro_value = "pro"
+con_value = "con"
+context_value = "context"
 
 name_key = "name"
 substring_key = "substring"

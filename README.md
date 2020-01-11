@@ -22,6 +22,7 @@ Instructions:
         - short_title: String
         - tags: String (optional)
         - last_updated: DateTime
+        - total_points: Int
     - Point
         - debate: Debate (foreign key) (optional)
         - description: String (primary key part 1)
@@ -64,7 +65,6 @@ Instructions:
 ##### `debate/<int:pk>`
 
 - get a debate by primary key
-- load entire map into memory and use to present map flow to users marking points as seen as you go
 
 GET
 
@@ -75,6 +75,7 @@ GET
 ##### `debate/filter/`
 
 - all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**
+- the debate maps do not come in this call
 - response array limit is 100 debates, e.g.:
     - if a user has starred more than 100 debates they will get the most recently updated 100
     - if a user filters by random it will randomize the 100 most recently updated debates

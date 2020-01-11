@@ -29,7 +29,7 @@ from pprint import pprint
 
 class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
+    serializer_class = DebateFilterSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'FilterDebates'
 

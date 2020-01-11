@@ -12,15 +12,21 @@ class Debate(models.Model):
     short_title = models.CharField(max_length=255, null=False)
     tags = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(default=timezone.now, null=False)
+    total_points = models.PositiveIntegerField(default=0, null=False)
 
 class Point(models.Model):
     # Optional because only root points should reference debate directly
     debate = models.ForeignKey(Debate, on_delete=models.CASCADE, null=True, blank=True)
-    side = models.CharField(max_length=255, null=False)
+    side = models.CharField(max_length=255, choices=[(pro_value, ""), (con_value, ""), (context_value, "")], null=False)
     short_description = models.TextField(null=False)
     description = models.TextField(null=False)
     rebuttals = models.ManyToManyField('self', symmetrical=False, blank=True)
     time_added = models.DateTimeField(default=timezone.now, blank=True)
+
+    def get_all_points(self):
+        all_points = [self]
+        for rebuttal in self.rebuttals.all(): all_points += rebuttal.get_all_points()
+        return all_points
 
     class Meta:
         unique_together = (short_description_key, description_key,)

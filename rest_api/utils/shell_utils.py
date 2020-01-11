@@ -13,19 +13,18 @@ from pprint import pprint
 import re
 
 # Run in shell:
-# from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
-# from rest_api.utils.debate_map_parser import update_debate_input; update_debate_input(); exit();
-# from rest_api.utils.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
-# from rest_api.utils.debate_map_parser import delete_existing_debate; delete_existing_debate("title"); exit();
+# from rest_api.utils.shell_utils import parse_debate_file; parse_debate_file(); exit();
+# from rest_api.utils.shell_utils import update_debate_input; update_debate_input(); exit();
+# from rest_api.utils.shell_utils import update_or_create_point_input; update_or_create_point_input(); exit();
+# from rest_api.utils.shell_utils import delete_existing_debate; delete_existing_debate("title"); exit();
+# from rest_api.utils.shell_utils import update_debate_total_points_titled; update_debate_total_points_titled("title"); exit();
+# from rest_api.utils.shell_utils import update_all_debates_total_points; update_all_debates_total_points(); exit();
 
 # Constants
 
 key_key = "key"
 root_key = "root"
 object_key = "object"
-pro_value = "pro"
-con_value = "con"
-context_value = "context"
 yes_value = "y"
 no_value = "n"
 special_format_characters = ["*"]
@@ -178,6 +177,22 @@ def delete_existing_debate(title, force=True):
         if not point.point_set.exists():
             point.delete()
 
+def update_all_debates_total_points():
+    for debate in Debate.objects.all():
+        update_debate_total_points(debate)
+
+def update_debate_total_points_titled(title):
+    try:
+        update_debate_total_points(Debate.objects.get(title=title))
+    except:
+        handle_parse_error("Debate doesn't exist with the title: ", title)
+
+def update_debate_total_points(debate):
+    all_points = []
+    for root_point in Point.objects.all().filter(debate=debate): all_points += root_point.get_all_points()
+    debate.total_points = len(set(all_points)) # `set()`` to avoid duplicate child points
+    debate.save()
+
 def check_if_debate_exists(title):
     try:
         Debate.objects.get(title=title)
@@ -327,6 +342,7 @@ def update_or_create_point(create=False, update_old_point=False, root=False, deb
         old_point.delete()
 
     if create:
+        update_debate_total_points(new_debate)
         print("Point created!")
     else:
         print("Point updated!")
@@ -430,5 +446,7 @@ def parse_debate_file(local=False, delete_existing=False):
         DebateSerializer(new_debate).data
     except Exception as e:
         handle_parse_error("Could not serialize debate.", e)
+
+    update_debate_total_points(new_debate)
 
     print("Debate created!")
