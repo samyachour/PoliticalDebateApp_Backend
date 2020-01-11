@@ -12,7 +12,7 @@ class Debate(models.Model):
     short_title = models.CharField(max_length=255, null=False)
     tags = models.TextField(null=True, blank=True)
     last_updated = models.DateTimeField(default=timezone.now, null=False)
-    total_points = models.PositiveIntegerField(default=0, null=False)
+    all_points_primary_keys = ArrayField(models.PositiveIntegerField(default=0, null=False, blank=False), default=list, null=False, blank=False)
 
 class Point(models.Model):
     # Optional because only root points should reference debate directly

@@ -22,7 +22,7 @@ Instructions:
         - short_title: String
         - tags: String (optional)
         - last_updated: DateTime
-        - total_points: Int
+        - all_points_primary_keys: [Int]
     - Point
         - debate: Debate (foreign key) (optional)
         - description: String (primary key part 1)

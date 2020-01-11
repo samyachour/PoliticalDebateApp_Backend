@@ -36,7 +36,7 @@ short_title_key = "short_title"
 tags_key = "tags"
 last_updated_key = "last_updated"
 debate_map_key = "debate_map"
-total_points_key = "total_points"
+all_points_primary_keys_key = "all_points_primary_keys"
 
 short_description_key = "short_description"
 description_key = "description"
