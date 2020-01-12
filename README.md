@@ -5,7 +5,7 @@ This repo is the backend for each of the 3 frontend repos ([web](https://github.
 #### Setup
 
 Dependencies
-- [see file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/requirements.txt)
+- [see file here](requirements.txt)
 
 Instructions:
 - install latest python with homebrew `brew install python` or `brew upgrade python`
@@ -22,6 +22,8 @@ Instructions:
         - short_title: String
         - tags: String (optional)
         - last_updated: DateTime
+        - total_points: Int
+        - all_points_primary_keys: [Int]
     - Point
         - debate: Debate (foreign key) (optional)
         - description: String (primary key part 1)
@@ -55,9 +57,8 @@ Instructions:
     - emails don't really send, they just get logged
 - production URL: `https://politicaldebateapp-prod.herokuapp.com/api/`
 - our current API version is v1, so all endpoints start with `v1/`
-- use `%20` for spaces
-- all endpoints are [throttled](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/PoliticalDebateApp/settings.py#L77), so retries should only be done for error codes 408, 502, 503 and 504 (and technically 401 but you would need to refresh your access token first)
-- all endpoint responses are available as [stubbed JSON files](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses) for clients to use as mocked responses in local unit testing.
+- all endpoints are [throttled](PoliticalDebateApp/settings.py#L77)
+- all endpoint responses are available as [stubbed JSON files](stubbed_responses) for clients to use as mocked responses in local unit testing.
 
 ---
 #### DEBATES
@@ -65,17 +66,17 @@ Instructions:
 ##### `debate/<int:pk>`
 
 - get a debate by primary key
-- load entire map into memory and use to present map flow to users marking points as seen as you go
 
 GET
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateSingle.json)) or `404`
+`200` ([See file here](stubbed_responses/DebateSingle.json)) or `404`
 
 ##### `debate/filter/`
 
 - all responses are sorted by most recent per the last updated property, therefore all parameters are **optional**
+- the `debate_map` & `all_points_primary_keys` properties do not come in this call
 - response array limit is 100 debates, e.g.:
     - if a user has starred more than 100 debates they will get the most recently updated 100
     - if a user filters by random it will randomize the 100 most recently updated debates
@@ -110,7 +111,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/DebateFilter.json)) or `404`
+`200` ([See file here](stubbed_responses/DebateFilter.json)) or `404`
 
 ---
 #### PROGRESS
@@ -132,7 +133,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/ProgressAll.json))
+`200` ([See file here](stubbed_responses/ProgressAll.json))
 
 ##### `progress/`
 
@@ -218,7 +219,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/Starred.json))
+`200` ([See file here](stubbed_responses/Starred.json))
 
 ##### `starred/`
 
@@ -314,7 +315,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenObtain.json)) or `400`
+`200` ([See file here](stubbed_responses/TokenObtain.json)) or `400`
 
 ##### `auth/token/refresh/`
 
@@ -335,7 +336,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/TokenRefresh.json)) or `400`
+`200` ([See file here](stubbed_responses/TokenRefresh.json)) or `400`
 
 ##### `auth/change-password/`
 
@@ -406,7 +407,7 @@ Header
 
 - Returns:
 
-`200` ([See file here](https://github.com/samyachour/PoliticalDebateApp_Backend/blob/develop/stubbed_responses/GetCurrentEmail.json)) or `401`
+`200` ([See file here](stubbed_responses/GetCurrentEmail.json)) or `401`
 
 ##### `auth/request-verification-link/`
 

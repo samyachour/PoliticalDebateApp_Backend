@@ -29,7 +29,7 @@ from pprint import pprint
 
 class FilterDebatesView(generics.ListCreateAPIView):
     queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
+    serializer_class = DebateFilterSerializer
     permission_classes = (permissions.AllowAny,)
     throttle_scope = 'FilterDebates'
 
@@ -289,7 +289,12 @@ class ChangePasswordView(generics.UpdateAPIView):
 
         # Check old password
         if not self.object.check_password(request.data[old_password_key]):
-            return Response({old_password_key: ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={
+                    message_key: incorrect_password_error
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         # set_password also hashes the password that the user will get
         self.object.set_password(request.data[new_password_key])
         self.object.save()
@@ -495,7 +500,7 @@ class RequestPasswordResetView(generics.RetrieveAPIView):
         if not user.email and not (force_send_key in request.data and request.data[force_send_key]):
             return Response(
                 data={
-                    message_key: "Email is unverified."
+                    message_key: unverified_email_error
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

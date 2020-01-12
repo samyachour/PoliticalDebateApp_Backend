@@ -10,21 +10,21 @@ import os
 from urllib.request import urlopen
 import sys
 from pprint import pprint
+import re
 
 # Run in shell:
-# from rest_api.utils.debate_map_parser import parse_debate_file; parse_debate_file(); exit();
-# from rest_api.utils.debate_map_parser import update_debate_input; update_debate_input(); exit();
-# from rest_api.utils.debate_map_parser import update_or_create_point_input; update_or_create_point_input(); exit();
-# from rest_api.utils.debate_map_parser import delete_existing_debate; delete_existing_debate("title"); exit();
+# from rest_api.utils.shell_utils import parse_debate_file; parse_debate_file(); exit();
+# from rest_api.utils.shell_utils import update_debate_input; update_debate_input(); exit();
+# from rest_api.utils.shell_utils import update_or_create_point_input; update_or_create_point_input(); exit();
+# from rest_api.utils.shell_utils import delete_existing_debate; delete_existing_debate("title"); exit();
+# from rest_api.utils.shell_utils import update_debate_all_points_properties_titled; update_debate_all_points_properties_titled("title"); exit();
+# from rest_api.utils.shell_utils import update_all_debate_all_points_properties; update_all_debate_all_points_properties(); exit();
 
 # Constants
 
 key_key = "key"
 root_key = "root"
 object_key = "object"
-pro_value = "pro"
-con_value = "con"
-context_value = "context"
 yes_value = "y"
 no_value = "n"
 special_format_characters = ["*"]
@@ -147,6 +147,9 @@ def add_hyperlinks(point_info_dict, hyperlinks):
         point_info_dict[hyperlinks_key] = hyperlinks
     return point_info_dict
 
+def format_tags(tags):
+    return re.sub(' +', ' ', tags)
+
 def get_boolean_input(message, boolean=True, default=False):
     if not boolean:
         return default
@@ -173,6 +176,27 @@ def delete_existing_debate(title, force=True):
         # If child point doesn't exist in any rebuttals
         if not point.point_set.exists():
             point.delete()
+
+def update_all_debate_all_points_properties():
+    for debate in Debate.objects.all():
+        update_debate_all_points_properties(debate)
+
+def update_debate_all_points_properties_titled(title):
+    try:
+        update_debate_all_points_properties(Debate.objects.get(title=title))
+    except:
+        handle_parse_error("Debate doesn't exist with the title: ", title)
+
+def get_primary_key(object):
+    return object.pk
+
+def update_debate_all_points_properties(debate):
+    all_points = []
+    for root_point in Point.objects.all().filter(debate=debate): all_points += root_point.get_all_points()
+    all_unique_points_primary_keys = list(set(map(get_primary_key, all_points)))
+    debate.all_points_primary_keys = all_unique_points_primary_keys
+    debate.total_points = len(all_unique_points_primary_keys)
+    debate.save()
 
 def check_if_debate_exists(title):
     try:
@@ -323,6 +347,7 @@ def update_or_create_point(create=False, update_old_point=False, root=False, deb
         old_point.delete()
 
     if create:
+        update_debate_all_points_properties(new_debate)
         print("Point created!")
     else:
         print("Point updated!")
@@ -359,7 +384,7 @@ def parse_debate_file(local=False, delete_existing=False):
             elif check_for_key(short_title_key, line):
                 debate_info_dict[short_title_key] = get_value_for_key(short_title_key, line)
             elif check_for_key(tags_key, line):
-                debate_info_dict[tags_key] = get_value_for_key(tags_key, line)
+                debate_info_dict[tags_key] = format_tags(get_value_for_key(tags_key, line))
             elif check_for_key("Points", line):
                 is_parsing_points = True
                 continue
@@ -426,5 +451,7 @@ def parse_debate_file(local=False, delete_existing=False):
         DebateSerializer(new_debate).data
     except Exception as e:
         handle_parse_error("Could not serialize debate.", e)
+
+    update_debate_all_points_properties(new_debate)
 
     print("Debate created!")

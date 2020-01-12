@@ -1,4 +1,5 @@
-{"debate_map": [{"description": "This is a **context description**, where you "
+{"all_points_primary_keys": [4402, 4403, 4404, 4405, 4406, 4407, 4408],
+ "debate_map": [{"description": "This is a **context description**, where you "
                                 "can give additional information needed to "
                                 "understand the debate.",
                  "hyperlinks": [],
@@ -49,8 +50,9 @@
                  "rebuttals": [],
                  "short_description": "Another short point description",
                  "side": "con"}],
- "last_updated": "2020-01-04T02:37:36.952272Z",
+ "last_updated": "2020-01-04T03:21:54.192080Z",
  "pk": 1342,
  "short_title": "Short title",
- "tags": "keyword 1, keyword 2",
- "title": "Title"}
+ "tags": "tag 1, tag 2",
+ "title": "Title",
+ "total_points": 7}

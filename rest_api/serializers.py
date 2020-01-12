@@ -25,6 +25,12 @@ class PointSerializer(serializers.ModelSerializer):
         model = Point
         fields = (pk_key, short_description_key, description_key, side_key, hyperlinks_key, rebuttals_key)
 
+class DebateFilterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Debate
+        fields = (pk_key, title_key, short_title_key, last_updated_key, tags_key, total_points_key)
+
 class DebateSerializer(serializers.ModelSerializer):
     debate_map = serializers.SerializerMethodField()
 
@@ -34,8 +40,7 @@ class DebateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Debate
-        fields = (pk_key, title_key, short_title_key, last_updated_key, tags_key, debate_map_key)
-
+        fields = (pk_key, title_key, short_title_key, last_updated_key, tags_key, total_points_key, all_points_primary_keys_key, debate_map_key)
 
 # PROGRESS
 
