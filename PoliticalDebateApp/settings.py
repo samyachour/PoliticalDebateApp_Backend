@@ -125,18 +125,32 @@ if THROTTLE:
 
     }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(weeks=1),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(weeks=52),
-    'ROTATE_REFRESH_TOKENS': False,
+if DEBUG:
+    SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=3),
+        'REFRESH_TOKEN_LIFETIME': datetime.timedelta(weeks=1),
+        'ROTATE_REFRESH_TOKENS': False,
 
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None, # HMAC algorithm uses SIGNING_KEY
+        'ALGORITHM': 'HS256',
+        'SIGNING_KEY': SECRET_KEY,
+        'VERIFYING_KEY': None, # HMAC algorithm uses SIGNING_KEY
 
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'pk',
-}
+        'AUTH_HEADER_TYPES': ('Bearer',),
+        'USER_ID_FIELD': 'pk',
+    }
+else:
+    SIMPLE_JWT = {
+        'ACCESS_TOKEN_LIFETIME': datetime.timedelta(weeks=1),
+        'REFRESH_TOKEN_LIFETIME': datetime.timedelta(weeks=52),
+        'ROTATE_REFRESH_TOKENS': False,
+
+        'ALGORITHM': 'HS256',
+        'SIGNING_KEY': SECRET_KEY,
+        'VERIFYING_KEY': None, # HMAC algorithm uses SIGNING_KEY
+
+        'AUTH_HEADER_TYPES': ('Bearer',),
+        'USER_ID_FIELD': 'pk',
+    }
 
 ROOT_URLCONF = 'PoliticalDebateApp.urls'
 

@@ -315,7 +315,7 @@ Body
 
 - Returns:
 
-`200` ([See file here](stubbed_responses/TokenObtain.json)) or `400`
+`200` ([See file here](stubbed_responses/TokenObtain.json)), `400`, `401`, or `404`
 
 ##### `auth/token/refresh/`
 
