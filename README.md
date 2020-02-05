@@ -320,8 +320,8 @@ Body
 ##### `auth/token/refresh/`
 
 - when you get a 401, refresh your access token
-- access token expires after a week
-- refresh token expires after a year
+- in prod, access tokens expire after a week and refresh after a year
+- in debug, access tokens expire after 3 minutes and refresh after a week
 
 POST
 

@@ -358,12 +358,12 @@ class GetCurrentEmailView(generics.RetrieveAPIView):
             is_verified_key: is_verified
         }, status=status.HTTP_200_OK)
 
-class RequestVerificationLinkView(generics.UpdateAPIView):
+class RequestVerificationLinkView(generics.RetrieveAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     queryset = User.objects.all()
     throttle_scope = 'RequestVerificationLink'
 
-    def put(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         self.object = self.request.user
         email = self.object.username
 
